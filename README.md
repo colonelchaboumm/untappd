@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.2.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.2.0.zip)**
+**[Télécharger Untappd Atlas 1.2.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.2.1.zip)**
 
-Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Le bouton GitHub **Code → Download ZIP** télécharge le dépôt de développement complet, qui ne s’installe pas directement comme une extension.
+Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.2.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.2.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -119,9 +119,24 @@ Services externes utilisés par l’import API ou la connexion demandée : `api.
 
 ## Développement et validation
 
+Générer le ZIP installable et sa somme SHA-256 :
+
+```sh
+python tests/build-package.py
+```
+
+Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
+
+```sh
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.2.1.zip
+```
+
+Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
+
 ```sh
 node --test tests/core.test.js tests/theme.test.js tests/content.test.js
-php -l untappd-atlas/untappd-atlas.php
+php -l untappd-atlas.php
+php -l untappd-atlas/bootstrap.php
 php -l untappd-atlas/includes/class-uat-api.php
 php -l untappd-atlas/uninstall.php
 ```

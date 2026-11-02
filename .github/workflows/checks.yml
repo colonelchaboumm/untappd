@@ -27,3 +27,10 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
       - run: find untappd-atlas tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: php -l untappd-atlas.php && php -l uninstall.php
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/build-package.py
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.2.1.zip

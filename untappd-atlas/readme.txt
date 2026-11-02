@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -47,6 +47,10 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.2.1 =
+* Installation directe de l’archive GitHub avec un fichier principal à la racine du dépôt.
+* Activation, désactivation, chemins des ressources et désinstallation adaptés aux deux archives.
 
 = 1.2.0 =
 * 65 textes personnalisables : introduction, titres, sous-titres, boutons, classements, tableaux, pied de page et export PNG.
