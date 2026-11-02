@@ -33,4 +33,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/build-package.py
-      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.4.1.zip
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.5.0.zip

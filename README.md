@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.4.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.4.1.zip)**
+**[Télécharger Untappd Atlas 1.5.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.5.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.4.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.5.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -22,17 +22,19 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Pyramides de canettes — version 1.4.1
+## Pyramides de canettes — version 1.5.0
 
-Le disque est remplacé sur la page et dans le PNG par des canettes grises métalliques. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
+Le disque est remplacé sur la page et dans le PNG par des canettes métalliques colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
 
 Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Les petites pyramides avancent légèrement devant les grandes sur un plan en perspective ; ce même rendu est exporté en PNG.
+
+Les étiquettes adoptent la couleur du style de bière, tandis que les couvercles et rebords restent métalliques. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout le fichier importé, hors filtres ; les styles suivants reçoivent des mélanges de ces couleurs. La correspondance reste stable entre années et lors des changements de filtres. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu conserve la couleur neutre du métal. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
 
 Chaque année possède son panneau. Les canettes sont réparties en pyramides complètes de 1, 3, 6, 10… canettes ; un reste commence une autre pyramide de la même année. Par exemple, 37 check-ins donnent une pyramide de 36 canettes et une canette supplémentaire. Aucune évaluation n’est résumée par une canette et aucune position vide n’est dessinée comme une évaluation.
 
 Les check-ins sont attribués chronologiquement aux canettes, du bas vers le haut de chaque pyramide, de gauche à droite, puis dans la pyramide suivante. Au survol : bière, date, heure locale et note, ou « Non notée ». Les tableaux et l’Excel restent disponibles pour consulter les données sans survol. Sur une colonne étroite, les années passent sur une seule colonne.
 
-Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le corps, les reflets, l’ombre, les contours, le couvercle et les ombres au sol. Elles sont grises par défaut et peuvent être reliées aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
+Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le métal, les reflets, l’ombre, les contours, le couvercle et les ombres au sol. Ces matériaux sont gris par défaut et peuvent être reliés aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
 
 ## Textes et typographie
 
@@ -105,7 +107,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | --- | --- |
 | Vue d’ensemble | Check-ins, notés/non notés, bières uniques, brasseries identifiées, bières et brasseries avec une note |
 | Temps | Nombre par jour, semaine ISO, mois et année ; jours actifs ; moyenne par jour actif et calendaire ; premier et dernier check-in ; jour le plus actif |
-| Pyramides | Une canette grise par check-in importé, regroupement par année ; détails au survol |
+| Pyramides | Une canette colorée selon le style par check-in importé, regroupement par année ; détails au survol |
 | Styles | Classement, moyennes, évolution par jour/semaine/mois/année et style favori de chaque année |
 | Notes | Histogramme, moyenne, médiane, minimum, maximum, évolution des moyennes par période |
 | Bières et brasseries | Classements par check-ins, bières uniques et moyennes par groupe dans Excel |
@@ -155,7 +157,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.4.1.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.5.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

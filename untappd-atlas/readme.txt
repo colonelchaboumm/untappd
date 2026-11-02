@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.4.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.5.0 =
+* Canettes redessinées : épaules, étiquettes colorées, emblème de houblon, reflets et rebords métalliques.
+* Couleur par style de bière, stable entre années et filtres du même import.
+* Palette Elementor de dix couleurs et nuances dérivées pour les styles suivants.
+* Légende complète et couleurs cohérentes dans les graphiques et le PNG.
 
 = 1.4.1 =
 * Canettes en relief avec couvercles en perspective, reflets métalliques et ombres au sol.

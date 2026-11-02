@@ -69,3 +69,30 @@ test('depth offsets overlap piles and keep every can inside the fitted scene', (
     });
   }
 });
+
+test('style paints remain stable across dates, style filters and source row order', () => {
+  const input=Array.from({length:38},(_,i)=>C.normalize({checkin_id:String(i),beer_name:'Bière '+i,style:'Style '+String(i%13).padStart(2,'0'),created_at:i<19?'2023-01-01':'2024-01-01'}));
+  const full=C.analyze(input), filtered=C.analyze(input,{from:'2024-01-01',style:'Style 12'});
+  const colors=V.stylePalette(full), subset=V.stylePalette(filtered), reversed=V.stylePalette(C.analyze([...input].reverse()));
+  assert.equal(JSON.stringify([...colors]),JSON.stringify([...reversed]));
+  for (const [key,paint] of colors) assert.equal(JSON.stringify(paint),JSON.stringify(subset.get(key)));
+  assert.equal(new Set([...colors.values()].map(p=>JSON.stringify(p))).size,13);
+  const selected=colors.get('Style 12'); assert.ok(selected.mix);
+  const graphic=V.pyramidCards(filtered,texts), legend=V.styleLegend(filtered), poster=V.poster(filtered,{texts});
+  for (const output of [graphic,legend,poster]) {
+    assert.ok(output.includes('fill="'+selected.base+'"'));
+    assert.ok(output.includes('fill="'+selected.mix+'" opacity="'+selected.amount+'"'));
+  }
+  assert.equal(cans(graphic).length,filtered.total);
+});
+
+test('all styles have a legend, unknown styles stay neutral, and style captions are escaped', () => {
+  const input=Array.from({length:15},(_,i)=>C.normalize({checkin_id:String(i),created_at:'2024-01-01',beer_name:'Bière',style:i===14?'\"><script>bad</script>':'Style '+i}));
+  input.push(C.normalize({checkin_id:'unknown',created_at:'2024-01-01',beer_name:'Inconnue'}));
+  const s=C.analyze(input), paints=V.stylePalette(s), legend=V.styleLegend(s);
+  assert.equal(paints.get('Style inconnu').base,'var(--uat-can-body)');
+  assert.equal((legend.match(/data-style=/g)||[]).length,s.styles.length);
+  assert.ok(!legend.includes('<script>'));
+  assert.ok(!V.pyramidCards(s,texts).includes('<script>'));
+  assert.ok(legend.includes('&lt;script&gt;'));
+});

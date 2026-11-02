@@ -157,6 +157,9 @@
   }
   function analyze(items, options = {}) {
     const timezone = options.timezone || 'Europe/Paris';
+    const styleCounts = new Map();
+    for (const row of items) styleCounts.set(row.style, (styleCounts.get(row.style) || 0) + 1);
+    const styleCatalog = [...styleCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([key]) => key);
     let rows = items.map(r => ({...r, local: zoned(r.date, timezone)}));
     rows = rows.filter(r => (!options.from || r.local.day >= options.from) && (!options.to || r.local.day <= options.to) && (!options.style || r.style === options.style)).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
     const rated = rows.filter(r => r.rating != null), withPhotos = rows.filter(r => r.photos > 0), photoKnown = rows.filter(r => r.photos != null);
@@ -200,7 +203,7 @@
       min: sortedRatings[0] ?? null, max: sortedRatings[sortedRatings.length - 1] ?? null,
       uniqueBeers: new Set(rows.map(r => r.beerId)).size, uniqueBreweries: new Set(rows.map(r => r.breweryId).filter(Boolean)).size,
       ratedUniqueBeers: new Set(rated.map(r => r.beerId)).size, ratedUniqueBreweries: new Set(rated.map(r => r.breweryId).filter(Boolean)).size,
-      styles, breweries, beers, venues: rank(r => r.venue), countries: rank(r => r.country), breweryCountries: rank(r => r.breweryCountry), servings: rank(r => r.serving),
+      styleCatalog, styles, breweries, beers, venues: rank(r => r.venue), countries: rank(r => r.country), breweryCountries: rank(r => r.breweryCountry), servings: rank(r => r.serving),
       withPhotos: withPhotos.length, withoutPhotos: photoKnown.length - withPhotos.length, photoUnknown: n - photoKnown.length, photos: withPhotos.reduce((s, r) => s + r.photos, 0),
       withShout: rows.filter(r => r.shout.trim()).length,
       comments: commentKnown.reduce((s, r) => s + r.commentsCount, 0), commentsUnknown: n - commentKnown.length,

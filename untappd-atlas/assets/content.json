@@ -110,7 +110,7 @@
   },
   "ring_description": {
     "label": "Explication des pyramides",
-    "default": "Une canette grise représente un check-in importé, noté ou non. Les canettes forment des pyramides complètes, regroupées par année, sans regrouper plusieurs évaluations dans une canette. Au survol : bière, date et note.",
+    "default": "Chaque canette représente un check-in importé, noté ou non. Sa couleur indique le style de bière. Les pyramides sont regroupées par année. Au survol : bière, style, date et note.",
     "group": "report",
     "multiline": true
   },
