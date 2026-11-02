@@ -27,15 +27,6 @@
   "success-text": {"label":"Texte des messages de réussite","default":"#265f43","group":"messages"},
   "demo-bg": {"label":"Fond du bandeau de démonstration","default":"#fbdde8","group":"messages"},
   "demo-text": {"label":"Texte du bandeau de démonstration","default":"#bd1752","group":"messages"},
-  "disc-inner": {"label":"Disque : dégradé intérieur","default":"#242329","group":"disc"},
-  "disc-outer": {"label":"Disque : dégradé extérieur","default":"#0c0c0e","group":"disc"},
-  "disc-groove": {"label":"Disque : sillons","default":"#ffffff","group":"disc"},
-  "disc-shadow": {"label":"Disque : ombre","default":"#000000","group":"disc"},
-  "disc-label": {"label":"Disque : fond de l’étiquette centrale","default":"#eeede9","group":"disc"},
-  "disc-label-border": {"label":"Disque : bordure de l’étiquette","default":"#dad7d1","group":"disc"},
-  "disc-marker": {"label":"Disque : fond des repères et années","default":"#171717","group":"disc"},
-  "disc-marker-text": {"label":"Disque : texte et bordure des repères","default":"#ffffff","group":"disc"},
-  "disc-ticks": {"label":"Disque : graduations horaires","default":"#99968f","group":"disc"},
   "chart-grid": {"label":"Grille des graphiques","default":"#e4e0da","group":"charts"},
   "chart-neutral": {"label":"Barres des notes inférieures à 4","default":"#b5b0a9","group":"charts"},
   "heat-empty": {"label":"Cases sans activité","default":"#e9e6df","group":"charts"},
@@ -50,5 +41,11 @@
   "series-7": {"label":"Style / série 7","default":"#b41690","group":"series"},
   "series-8": {"label":"Style / série 8","default":"#758e19","group":"series"},
   "series-9": {"label":"Style / série 9","default":"#d86427","group":"series"},
-  "series-10": {"label":"Style / série 10","default":"#7962b1","group":"series"}
+  "series-10": {"label":"Style / série 10","default":"#7962b1","group":"series"},
+  "can-body": {"label":"Canettes : gris principal","default":"#c4c4c4","group":"cans"},
+  "can-highlight": {"label":"Canettes : reflet clair","default":"#f3f3f3","group":"cans"},
+  "can-shadow": {"label":"Canettes : ombre métallique","default":"#949494","group":"cans"},
+  "can-outline": {"label":"Canettes : contours","default":"#7e7e7e","group":"cans"},
+  "can-lid": {"label":"Canettes : couvercle","default":"#dedede","group":"cans"},
+  "can-ground": {"label":"Pyramides : ligne de base","default":"#cfcfcf","group":"cans"}
 }

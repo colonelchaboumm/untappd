@@ -6,7 +6,7 @@
   },
   "tagline": {
     "label": "Signature",
-    "default": "Votre histoire, en sillons.",
+    "default": "Votre histoire, canette après canette.",
     "group": "intro"
   },
   "top_note": {
@@ -16,7 +16,7 @@
   },
   "hero_title": {
     "label": "Titre principal",
-    "default": "Chaque bière,\nun nouveau sillon.",
+    "default": "Chaque évaluation,\nune canette de plus.",
     "group": "intro",
     "multiline": true
   },
@@ -109,8 +109,8 @@
     "group": "report"
   },
   "ring_description": {
-    "label": "Explication du disque",
-    "default": "Chaque cercle est un jour, du centre vers l’extérieur. Chaque trait est un check-in, placé à son heure et coloré selon le style de bière.",
+    "label": "Explication des pyramides",
+    "default": "Une canette grise représente un check-in importé, noté ou non. Les canettes forment des pyramides complètes, regroupées par année, sans regrouper plusieurs évaluations dans une canette. Au survol : bière, date et note.",
     "group": "report",
     "multiline": true
   },
@@ -367,5 +367,25 @@
     "label": "Libellé : total annoncé par le profil",
     "default": "badges annoncés par le profil",
     "group": "report"
+  },
+  "pyramids_title": {
+    "label": "Titre : pyramides",
+    "default": "Mes pyramides de canettes",
+    "group": "sections"
+  },
+  "pyramid_one_label": {
+    "label": "Une canette : unité",
+    "default": "canette",
+    "group": "sections"
+  },
+  "pyramid_many_label": {
+    "label": "Plusieurs canettes : unité",
+    "default": "canettes",
+    "group": "sections"
+  },
+  "pyramids_empty": {
+    "label": "Pyramides : aucune donnée",
+    "default": "Aucune évaluation pour cette période.",
+    "group": "sections"
   }
 }

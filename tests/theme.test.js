@@ -11,7 +11,7 @@ test('every dashboard color has a declared, editable palette token', () => {
   const css = fs.readFileSync(path.join(base, 'dashboard.css'), 'utf8');
   const js = fs.readFileSync(path.join(base, 'dashboard.js'), 'utf8');
   for (const match of (css + js).matchAll(/var\(--uat-([a-z0-9-]+)\)/g)) assert.ok(palette[match[1]], 'Missing token: ' + match[1]);
-  assert.ok(Object.keys(palette).length >= 50);
+  assert.ok(Object.keys(palette).length >= 40);
   assert.equal(css.match(/#[a-f\d]{3,8}\b/gi), null, 'CSS must not bypass the palette');
   assert.equal(js.match(/#[a-f\d]{3,8}\b/gi), null, 'SVG and ranking colors must not bypass the palette');
   assert.equal(palette.heading.global, 'primary'); assert.equal(palette.accent.global, 'accent');

@@ -1,16 +1,16 @@
 # Untappd Atlas — plugin WordPress
 
-Un tableau de bord français qui transforme un historique Untappd en disque chronologique, graphiques et statistiques. Le visiteur colle son profil, autorise éventuellement son compte ou importe un export, puis consulte et télécharge ses résultats **sur la même page**.
+Un tableau de bord français qui transforme un historique Untappd en pyramides de canettes, graphiques et statistiques. Le visiteur colle son profil, autorise éventuellement son compte ou importe un export, puis consulte et télécharge ses résultats **sur la même page**.
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.3.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.3.0.zip)**
+**[Télécharger Untappd Atlas 1.4.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.4.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.3.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.4.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -22,9 +22,19 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Textes et typographie — version 1.2.0
+## Pyramides de canettes — version 1.4.0
 
-Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **71 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères du disque, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
+Le disque est remplacé sur la page et dans le PNG par des canettes grises métalliques. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
+
+Chaque année possède son panneau. Les canettes sont réparties en pyramides complètes de 1, 3, 6, 10… canettes ; un reste commence une autre pyramide de la même année. Par exemple, 37 check-ins donnent une pyramide de 36 canettes et une canette supplémentaire. Aucune évaluation n’est résumée par une canette et aucune position vide n’est dessinée comme une évaluation.
+
+Les check-ins sont placés chronologiquement, du bas vers le haut de chaque pyramide, de gauche à droite, puis dans la pyramide suivante. Au survol : bière, date, heure locale et note, ou « Non notée ». Les tableaux et l’Excel restent disponibles pour consulter les données sans survol. Sur une colonne étroite, les années passent sur une seule colonne.
+
+Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le corps, les reflets, l’ombre, les contours, le couvercle et la ligne de base. Elles sont grises par défaut et peuvent être reliées aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
+
+## Textes et typographie
+
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **75 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères des pyramides, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
 
 Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
 
@@ -42,7 +52,7 @@ Les titres et légendes personnalisés utilisés dans l’affiche sont repris da
 
 ## Couleurs et Elementor — depuis la version 1.1.0
 
-Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **52 couleurs** : fonds et textes, champs et boutons, messages, disque, graphiques et palette des dix styles de bière.
+Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **49 couleurs** : fonds et textes, champs et boutons, messages, pyramides, graphiques et palette des dix styles de bière.
 
 - Cliquez sur le **globe** d’un réglage pour le relier à une couleur globale Elementor, y compris une couleur personnalisée de votre kit. Une modification de cette couleur globale s’applique aux éléments qui lui sont liés.
 - Choisissez une couleur locale pour personnaliser uniquement ce widget. Plusieurs widgets peuvent avoir des palettes différentes sur la même page.
@@ -53,7 +63,7 @@ Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable 
 
 L’éditeur Elementor affiche une démonstration clairement identifiée ; la page publiée affiche le formulaire d’import. Aucun jeu de données personnel n’est enregistré dans la page Elementor. Les sélecteurs de couleurs utilisent des variables CSS : leurs changements s’appliquent aussi aux graphiques déjà affichés.
 
-Le shortcode existant continue de fonctionner. Pour disposer des 52 réglages directement dans l’onglet Style d’Elementor, utilisez le widget **Untappd Atlas**, plutôt que le widget générique **Code court**. Sans Elementor, les réglages WordPress et le shortcode restent utilisables.
+Le shortcode existant continue de fonctionner. Pour disposer des 49 réglages directement dans l’onglet Style d’Elementor, utilisez le widget **Untappd Atlas**, plutôt que le widget générique **Code court**. Sans Elementor, les réglages WordPress et le shortcode restent utilisables.
 
 Intégration testée avec **Elementor 4.3.5** sur WordPress 7.1.4 : contrôles natifs, couleurs globales, deux palettes indépendantes sur une même page et export PNG. [Documentation Elementor sur les couleurs globales](https://developers.elementor.com/docs/editor-controls/global-style/).
 
@@ -93,7 +103,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | --- | --- |
 | Vue d’ensemble | Check-ins, notés/non notés, bières uniques, brasseries identifiées, bières et brasseries avec une note |
 | Temps | Nombre par jour, semaine ISO, mois et année ; jours actifs ; moyenne par jour actif et calendaire ; premier et dernier check-in ; jour le plus actif |
-| Disque | Un cercle par jour, angle selon l’heure, couleur selon le style ; chronologie du centre vers l’extérieur |
+| Pyramides | Une canette grise par check-in importé, regroupement par année ; détails au survol |
 | Styles | Classement, moyennes, évolution par jour/semaine/mois/année et style favori de chaque année |
 | Notes | Histogramme, moyenne, médiane, minimum, maximum, évolution des moyennes par période |
 | Bières et brasseries | Classements par check-ins, bières uniques et moyennes par groupe dans Excel |
@@ -116,7 +126,7 @@ Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines 
 
 ## Exports
 
-- **PNG** : affiche de 1 800 × 3 410 pixels, inspirée du disque de référence, avec les principaux graphiques, chiffres et classements.
+- **PNG** : affiche de 1 800 pixels de large, dont la hauteur s’adapte au nombre d’années, avec les pyramides, les principaux graphiques, chiffres et classements.
 - **Excel `.xlsx`** : véritable classeur OpenXML à **21 onglets**, sans dépendance externe : synthèse, quatre granularités temporelles, styles par granularité, classements, notes, heures, auteurs, commentaires observés et tous les check-ins filtrés. Les noms et textes sont enregistrés comme chaînes, jamais comme formules.
 - Les exports suivent les filtres actifs. La démonstration est marquée **DEMO** dans le nom de fichier et dans le rapport.
 
@@ -143,13 +153,13 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.3.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.4.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
 
 ```sh
-node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js
+node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js tests/pyramids.test.js
 php -l untappd-atlas.php
 php -l untappd-atlas/bootstrap.php
 php -l untappd-atlas/includes/class-uat-api.php
@@ -164,7 +174,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 couleurs, les 71 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 49 couleurs, les 75 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 

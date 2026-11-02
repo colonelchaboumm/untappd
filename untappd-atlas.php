@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Untappd Atlas
- * Description: Statistiques Untappd, disque chronologique et exports PNG / Excel. Shortcode : [untappd_atlas].
- * Version: 1.3.0
+ * Description: Statistiques Untappd, pyramides de canettes et exports PNG / Excel. Shortcode : [untappd_atlas].
+ * Version: 1.4.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
  * Author: Colonelchaboumm

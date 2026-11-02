@@ -2,48 +2,69 @@
   'use strict';
   const C = window.UATCore, E = window.UATExport, esc = E.xml;
   const colors = Array.from({length: 10}, (_, i) => `var(--uat-series-${i + 1})`);
-  let discCounter = 0;
+  let canCounter = 0;
   const fmt = (n, digits = 0) => n == null ? '—' : Number(n).toLocaleString('fr-FR', {maximumFractionDigits: digits, minimumFractionDigits: digits});
   const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
   const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
   const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
   const svg = (width, height, content, title) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"><title>${esc(title)}</title>${content}</svg>`;
-  function ring(s, texts = {}) {
-    const cx = 500, cy = 500, inner = 126, outer = 391;
-    const polar = (r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
-    let body = '<defs><radialGradient id="uat-disc"><stop offset="0" stop-color="var(--uat-disc-inner)"/><stop offset="1" stop-color="var(--uat-disc-outer)"/></radialGradient></defs><ellipse cx="500" cy="531" rx="386" ry="386" fill="var(--uat-disc-shadow)" opacity=".05"/><circle cx="500" cy="500" r="396" fill="url(#uat-disc)"/>';
-    const gradientId = 'uat-disc-' + (++discCounter);
-    body = body.replace('id="uat-disc"', 'id="' + gradientId + '"').replace('url(#uat-disc)', 'url(#' + gradientId + ')');
-    const span = Math.max(1, s.calendarDays - 1), start = s.first ? new Date(s.first.local.day).getTime() : 0;
-    for (let i = 0; i <= Math.min(1100, span); i++) body += `<circle cx="500" cy="500" r="${inner + i / Math.min(1100, span) * (outer - inner)}" fill="none" stroke="var(--uat-disc-groove)" stroke-width=".28" opacity=".1"/>`;
-    const styleMap = new Map(s.styles.slice(0, 10).map((x, i) => [x.key, colors[i]]));
+  function pyramidLayout(s) {
+    const years = new Map();
     for (const row of s.rows) {
-      const day = (new Date(row.local.day).getTime() - start) / 86400000;
-      const r = inner + day / span * (outer - inner), angle = ((row.local.hour * 60 + row.local.minute) / 1440) * Math.PI * 2 - Math.PI / 2;
-      const p1 = polar(r, angle), p2 = polar(r, angle + .007);
-      body += `<path d="M${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}" fill="none" stroke="${styleMap.get(row.style) || 'var(--uat-other)'}" stroke-width="${Math.max(.75, Math.min(2.8, (outer - inner) / span * 1.4)).toFixed(2)}" opacity=".95"/>`;
+      const year = row.local.year;
+      if (!years.has(year)) years.set(year, {year, rows: [], piles: []});
+      years.get(year).rows.push(row);
     }
-    body += '<circle cx="500" cy="500" r="116" fill="var(--uat-disc-label)"/><circle cx="500" cy="500" r="108" fill="none" stroke="var(--uat-disc-label-border)" stroke-width="1"/>';
-    body += text(500, 481, fmt(s.total), 42, 'var(--uat-ink)', 800, 'text-anchor="middle"') + text(500, 509, short(texts.kpi_checkins || 'check-ins', 26), 14, 'var(--uat-muted)', 400, 'text-anchor="middle"') + text(500, 538, s.first ? `${s.first.local.year} — ${s.last.local.year}` : 'Aucune donnée', 12, 'var(--uat-muted)', 600, 'text-anchor="middle"');
-    for (let i = 0; i < 24; i++) {
-      const a = i / 24 * Math.PI * 2 - Math.PI / 2, p1 = polar(410, a), p2 = polar(i % 3 === 0 ? 425 : 417, a);
-      body += `<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="var(--uat-disc-ticks)" stroke-width="1.4"/>`;
-      if (i % 3 === 0) { const p = polar(457, a); body += text(p[0], p[1] + 5, i === 0 ? 'minuit' : i === 12 ? 'midi' : `${i} h`, 16, 'var(--uat-muted)', 500, 'text-anchor="middle"'); }
-    }
-    if (s.first) {
-      const years = [...new Set(s.rows.map(r => r.local.year))];
-      years.filter((_, i) => years.length <= 8 || i % Math.ceil(years.length / 8) === 0).forEach(year => {
-        const row = s.rows.find(r => r.local.year === year), day = (new Date(row.local.day).getTime() - start) / 86400000;
-        const r = inner + day / span * (outer - inner), p = polar(r, -.7);
-        body += `<rect x="${p[0] - 26}" y="${p[1] - 13}" width="52" height="26" rx="13" fill="var(--uat-disc-marker)" opacity=".84"/>` + text(p[0], p[1] + 4, year, 13, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
-      });
-      [s.first, s.rows.find(r => r.local.day === s.biggestDay?.key), s.last].forEach((r, i) => {
-        if (!r) return; const p = polar(inner + ((new Date(r.local.day).getTime() - start) / 86400000) / span * (outer - inner), (r.local.hour * 60 + r.local.minute) / 1440 * Math.PI * 2 - Math.PI / 2);
-        body += `<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="var(--uat-disc-marker)" stroke="var(--uat-disc-marker-text)" stroke-width="2"/>` + text(p[0], p[1] + 4, i + 1, 12, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
-      });
-    }
-    return svg(1000, 1000, body, `${s.total} check-ins disposés par date et heure ; couleur selon le style de bière.`);
+    return [...years.values()].sort((a, b) => a.year.localeCompare(b.year)).map(group => {
+      let left = group.rows.length;
+      while (left > 0) {
+        let height = Math.floor((Math.sqrt(8 * left + 1) - 1) / 2);
+        while (height * (height + 1) / 2 > left) height--;
+        group.piles.push(height); left -= height * (height + 1) / 2;
+      }
+      return group;
+    });
   }
+  function pyramidYear(group, texts = {}) {
+    const uid = 'uat-can-' + (++canCounter), W = 500, H = 400;
+    let body = `<defs><linearGradient id="${uid}-metal"><stop offset="0" stop-color="var(--uat-can-shadow)"/><stop offset=".25" stop-color="var(--uat-can-highlight)"/><stop offset=".56" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient><g id="${uid}-shape"><path d="M4 5Q2 7 2 10V27Q2 31 10 31Q18 31 18 27V10Q18 7 16 5Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".6"/><path d="M4 27Q10 30 16 27" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".8"/><path d="M6 10V25M13 10V25" fill="none" stroke="var(--uat-can-highlight)" opacity=".35" stroke-width=".55"/><ellipse cx="10" cy="5.5" rx="7" ry="2.6" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".6"/><ellipse cx="10" cy="5.4" rx="4.6" ry="1.5" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".4"/><path d="M9 4.6Q11 3.8 12 4.7Q12 5.8 10 5.9Q8.5 5.7 9 4.6Z" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".35"/></g></defs>`;
+    const rawWidth = group.piles.reduce((n, height) => n + height * 24 - 4, 0) + Math.max(0, group.piles.length - 1) * 22;
+    const rawHeight = Math.max(...group.piles, 1) * 28 + 4;
+    const scale = Math.min(3.4, 440 / Math.max(1, rawWidth), 265 / rawHeight);
+    body += text(30, 44, group.year, 24, 'var(--uat-heading)', 800);
+    const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
+    body += text(470, 44, short(`${fmt(group.rows.length)} ${unit}`, 30), 20, 'var(--uat-muted)', 600, 'text-anchor="end"');
+    body += `<path d="M30 342H470" stroke="var(--uat-can-ground)" stroke-width="1"/><g transform="translate(${((W - rawWidth * scale) / 2).toFixed(3)} ${(342 - (rawHeight - 1) * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
+    let index = 0, pileX = 0;
+    for (const height of group.piles) {
+      for (let level = 0; level < height; level++) {
+        for (let col = 0; col < height - level; col++) {
+          const row = group.rows[index++], x = pileX + level * 12 + col * 24, y = rawHeight - 32 - level * 28;
+          const title = `${row.beer} · ${dayLabel(row.local.day)} ${String(row.local.hour).padStart(2, '0')}:${String(row.local.minute).padStart(2, '0')} · ${row.rating == null ? 'Non notée' : fmt(row.rating, 2) + ' / 5'}`;
+          body += `<g class="uat-can" data-checkin-id="${esc(row.id)}"><title>${esc(title)}</title><use href="#${uid}-shape" x="${x}" y="${y}"/></g>`;
+        }
+      }
+      pileX += height * 24 - 4 + 22;
+    }
+    body += '</g>' + text(250, 374, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 13, 'var(--uat-muted)', 500, 'text-anchor="middle"');
+    body = `<rect x="1" y="1" width="498" height="398" rx="20" fill="var(--uat-surface)" stroke="var(--uat-surface-border)"/>` + body;
+    return svg(W, H, body, `${group.year} : ${group.rows.length} évaluations, une canette par évaluation, réparties en ${group.piles.length} pyramides.`);
+  }
+  function pyramidCards(s, texts = {}) {
+    const groups = pyramidLayout(s);
+    if (!groups.length) return `<p class="uat-empty">${esc(texts.pyramids_empty || 'Aucune évaluation pour cette période.')}</p>`;
+    return groups.map(group => `<div class="uat-pyramid-year">${pyramidYear(group, texts)}</div>`).join('');
+  }
+  function pyramids(s, texts = {}) {
+    const groups = pyramidLayout(s), width = 1548, height = groups.length ? Math.ceil(groups.length / 3) * 424 - 24 : 240;
+    if (!groups.length) return svg(width, height, text(width / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
+    const body = groups.map((group, i) => {
+      const row = Math.floor(i / 3), onRow = Math.min(3, groups.length - row * 3), x = (3 - onRow) * 262 + i % 3 * 524;
+      return pyramidYear(group, texts).replace('<svg ', `<svg x="${x}" y="${row * 424}" `);
+    }).join('');
+    return svg(width, height, body, `${s.total} canettes grises : une par évaluation importée, en pyramides regroupées par année.`);
+  }
+
   function heat(s) {
     const width = 430, height = 205, left = 36, top = 26, cellW = 15.6, cellH = 18, max = Math.max(1, ...s.heat.flat());
     let body = '';
@@ -112,7 +133,10 @@
   }
   function poster(s, meta) {
     const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
-    const W = 1800, H = 3660; let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
+    const pyramidGraphic = pyramids(s, meta.texts);
+    const pyramidHeight = Number(pyramidGraphic.match(/viewBox="0 0 \d+ (\d+)"/)[1]) * 1640 / 1548;
+    const summaryY = 480 + pyramidHeight + 30, shift = summaryY + 160 - 1660;
+    const W = 1800, H = Math.ceil(3660 + shift); let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
     const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;
     const embed = (chart, x, y, w) => chart.replace('<svg ', `<svg x="${x}" y="${y}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${w * Number(chart.match(/viewBox="0 0 \d+ (\d+)"/)[1]) / Number(chart.match(/viewBox="0 0 (\d+)/)[1])}"`);
     out += text(80, 70, short(t('brand') + ' / ' + t('tagline'), 140), 15, 'var(--uat-ink)', 700);
@@ -121,11 +145,13 @@
     if (meta.demo) out += text(80, 225, 'DONNÉES FICTIVES — AUCUN RÉSULTAT PERSONNEL', 16, 'var(--uat-demo-text)', 700);
     [[s.total, t('kpi_checkins')], [s.uniqueBeers, t('kpi_beers')], [s.uniqueBreweries, t('kpi_breweries')], [fmt(s.average, 2), t('kpi_average')]].forEach(([n, label], i) => { out += text(80 + i * 420, 329, typeof n === 'number' ? fmt(n) : n, 76, 'var(--uat-ink)', 800) + text(80 + i * 420, 365, short(label, 34), 21); });
     out += text(80, 415, short(t('ring_description'), 150), 19);
-    out += embed(ring(s, meta.texts), 280, 425, 1240);
-    out += text(80, 850, short('01 / ' + t('first_label'), 32), 13, 'var(--uat-muted)', 700) + text(80, 885, short(s.first?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 914, dayLabel(s.first?.local.day), 17);
-    out += text(1410, 1160, short('02 / ' + t('biggest_label'), 32), 13, 'var(--uat-muted)', 700) + text(1410, 1200, `${fmt(s.biggestDay?.count || 0)} check-ins`, 29, 'var(--uat-ink)', 800) + text(1410, 1230, dayLabel(s.biggestDay?.key), 17);
-    out += text(1410, 760, 'JOURS ACTIFS', 13, 'var(--uat-muted)', 700) + text(1410, 800, fmt(s.activeDays), 38, 'var(--uat-ink)', 800);
-    out += text(80, 1240, short('03 / ' + t('last_label'), 32), 13, 'var(--uat-muted)', 700) + text(80, 1277, short(s.last?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 1307, dayLabel(s.last?.local.day), 17);
+    out += text(80, 460, short(t('pyramids_title'), 70), 26, 'var(--uat-heading)', 800);
+    out += embed(pyramidGraphic, 80, 480, 1640);
+    [[t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day)], [t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key)], [t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day)], ['Jours actifs', fmt(s.activeDays), 'Sur les données importées']].forEach(([label, value, sub], i) => {
+      const x = 80 + i * 420;
+      out += text(x, summaryY, short(label, 30), 14, 'var(--uat-muted)', 600) + text(x, summaryY + 39, short(value, 23), 25, 'var(--uat-ink)', 800) + text(x, summaryY + 68, sub, 16);
+    });
+    out += `<g transform="translate(0 ${shift})">`;
     s.styles.slice(0, 6).forEach((st, i) => { const x = 110 + (i % 3) * 555, y = 1660 + Math.floor(i / 3) * 34; out += `<circle cx="${x}" cy="${y - 5}" r="6" fill="${colors[i]}"/>` + text(x + 15, y, `${short(st.label, 32)} · ${fmt(st.count)}`, 15); });
     const chartPanels = [[t('heat_title'), t('heat_subtitle'), heat(s)], [t('styles_time_title'), t('styles_time_subtitle'), styleTimeline(s, meta.grain || 'month')], [t('ratings_title'), t('ratings_subtitle'), ratings(s)], [t('activity_title'), t('activity_subtitle'), timeline(s, meta.grain || 'month')], [t('average_title'), t('average_subtitle'), timeline(s, meta.grain || 'month', true)]];
     chartPanels.forEach(([title, sub, chart], i) => { const x = 80 + i % 3 * 555, y = 1750 + Math.floor(i / 3) * 345; out += panel(x, y, 530, 320) + text(x + 25, y + 43, short(title, 36), 23, 'var(--uat-heading)', 800) + text(x + 25, y + 72, short(sub, 65), 14) + embed(chart, x + 25, y + 100, 480); });
@@ -141,10 +167,11 @@
     out += text(105, 3380, s.badgesUnknown === s.total ? 'Badges non renseignés dans les données importées.' : `${fmt(s.badges.length)} badges distincts observés · ${fmt(s.badgeAwards)} obtentions connues · ${fmt(s.badgesUnknown)} check-ins non renseignés`, 15);
     s.badges.slice(0, 6).forEach((b, i) => { out += text(105 + i % 3 * 535, 3425 + Math.floor(i / 3) * 35, short(b.label, 35) + (b.level == null ? '' : ` · niv. ${b.level}`), 16, 'var(--uat-ink)'); });
     out += `<path d="M80 3580H1720" stroke="var(--uat-border)"/>` + text(80, 3613, short(t('footer_left'), 140), 13) + text(1720, 3613, short(t('brand'), 36), 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
-    return svg(W, H, out, 'Rapport Untappd Atlas');
+    out += '</g>';
+    return svg(W, H, out, 'Rapport Untappd Atlas — pyramides de canettes');
   }
 
-  window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+  window.UATView = {pyramids, pyramidLayout, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
   function boot(scope = document) {
     if (scope.matches?.('.uat-app')) mount(scope);
     scope.querySelectorAll('.uat-app').forEach(mount);
@@ -244,8 +271,9 @@
       const coverage = `<section class="uat-coverage"><h3>Ce que racontent ces données</h3><p>${esc(statusLabel())}</p><p>${fmt(s.photoUnknown)} check-ins sans information photo · ${fmt(s.commentsUnknown)} sans total de commentaires · ${fmt(s.toastsUnknown)} sans total de toasts.</p><p>${state?.source === 'public' && source === 'api' ? `Badges annoncés par le profil : ${state.profile?.expected_badges == null ? 'inconnus' : fmt(state.profile.expected_badges)}. Le catalogue complet exige une connexion Untappd ; seules les obtentions visibles sont listées ici.` : 'Les badges sont limités aux champs fournis dans le fichier ou les réponses importées.'}</p><p>${s.commentersComplete ? 'Les auteurs de tous les commentaires des check-ins sélectionnés sont identifiés.' : 'Les auteurs distincts représentent un minimum observé : Untappd ou le fichier peut ne fournir qu’une partie des identités.'}</p><p>Les champs absents restent inconnus. Les notes à zéro sont considérées non notées. Sans identifiant, les bières et brasseries sont regroupées par nom ; des homonymes peuvent se confondre. Les dates sans fuseau sont interprétées en UTC.</p></section>`;
       $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), t('kpi_checkins'), `${fmt(s.rated)} notés · ${fmt(s.unrated)} non notés`)}${metric(fmt(s.uniqueBeers), t('kpi_beers'), fmt(s.ratedUniqueBeers) + ' avec une note')}${metric(fmt(s.uniqueBreweries), t('kpi_breweries'), fmt(s.ratedUniqueBreweries) + ' avec une note')}${metric(fmt(s.average, 2), t('kpi_average'), 'Sur les check-ins notés')}</div>
         <p class="uat-ring-description">${h('ring_description')} ${s.first ? `${dayLabel(s.first.local.day)} — ${dayLabel(s.last.local.day)}.` : ''}</p>
-        <div class="uat-vinyl-layout"><aside class="uat-callouts">${callout(1, t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}</aside><div class="uat-ring">${ring(s, texts)}</div><aside class="uat-callouts">${callout(2, t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day))}</aside></div>
-        <div class="uat-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:var(--uat-other)"></i>Autres styles</span>' : ''}</div>
+        <div class="uat-section-head"><h3>${h('pyramids_title')}</h3></div><div class="uat-pyramids">${pyramidCards(s, texts)}</div>
+        <div class="uat-pyramid-callouts">${callout(1, t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}${callout(2, t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day))}</div>
+        <div class="uat-legend uat-style-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:var(--uat-other)"></i>Autres styles</span>' : ''}</div>
         <div class="uat-section-head"><h3>${h('rhythm_title')}</h3><p>${h('rhythm_subtitle')}</p></div><div class="uat-card-grid">${card(t('heat_title'), t('heat_subtitle'), `<div class="uat-chart">${heat(s)}</div>`)}${card(t('styles_time_title'), t('styles_time_subtitle'), `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card(t('ratings_title'), t('ratings_subtitle'), `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card(t('activity_title'), t('activity_subtitle'), `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card(t('average_title'), t('average_subtitle'), `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card(t('venues_title'), t('venues_subtitle'), ranking(s.venues, 6, 'var(--uat-series-2)'))}</div>
         <div class="uat-section-head"><h3>${h('favorites_title')}</h3><p>${h('favorites_subtitle')}</p></div><div class="uat-card-grid">${card(t('styles_title'), t('styles_subtitle'), ranking(s.styles, 8, colors))}${card(t('breweries_title'), t('breweries_subtitle'), ranking(s.breweries, 8, 'var(--uat-series-2)'))}${card(t('beers_title'), t('beers_subtitle'), ranking(s.beers, 8, 'var(--uat-series-3)'))}</div>
         ${badgeSection}<div class="uat-section-head"><h3>${h('social_title')}</h3><p>${h('social_subtitle')}</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
@@ -323,7 +351,7 @@
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
     // Exposed rendering helper is useful for standalone previews and export verification.
-    window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+    window.UATView = {pyramids, pyramidLayout, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
     if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);

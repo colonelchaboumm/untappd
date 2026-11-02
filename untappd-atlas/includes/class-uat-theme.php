@@ -8,7 +8,7 @@ final class UAT_Theme {
         return $tokens;
     }
     public static function groups(): array {
-        return ['general' => 'Fond, textes et cartes', 'controls' => 'Champs et boutons', 'messages' => 'Messages et démonstration', 'disc' => 'Disque chronologique', 'charts' => 'Graphiques et classements', 'series' => 'Palette des 10 styles'];
+        return ['general' => 'Fond, textes et cartes', 'controls' => 'Champs et boutons', 'messages' => 'Messages et démonstration', 'cans' => 'Pyramides de canettes', 'charts' => 'Graphiques et classements', 'series' => 'Palette des 10 styles'];
     }
     public static function color($value): string {
         if (!is_string($value)) { return ''; }
