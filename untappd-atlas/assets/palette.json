@@ -42,10 +42,10 @@
   "series-8": {"label":"Style / série 8","default":"#758e19","group":"series"},
   "series-9": {"label":"Style / série 9","default":"#d86427","group":"series"},
   "series-10": {"label":"Style / série 10","default":"#7962b1","group":"series"},
-  "can-body": {"label":"Canettes : gris principal","default":"#c4c4c4","group":"cans"},
-  "can-highlight": {"label":"Canettes : reflet clair","default":"#f3f3f3","group":"cans"},
-  "can-shadow": {"label":"Canettes : ombre métallique","default":"#949494","group":"cans"},
-  "can-outline": {"label":"Canettes : contours","default":"#7e7e7e","group":"cans"},
-  "can-lid": {"label":"Canettes : couvercle","default":"#dedede","group":"cans"},
-  "can-ground": {"label":"Pyramides : ligne de base","default":"#cfcfcf","group":"cans"}
+  "can-body": {"label":"Canettes : gris principal","default":"#bdbdbd","group":"cans"},
+  "can-highlight": {"label":"Canettes : reflet clair","default":"#ffffff","group":"cans"},
+  "can-shadow": {"label":"Canettes : ombre métallique","default":"#6b6b6b","group":"cans"},
+  "can-outline": {"label":"Canettes : contours","default":"#777777","group":"cans"},
+  "can-lid": {"label":"Canettes : couvercle","default":"#dfdfdf","group":"cans"},
+  "can-ground": {"label":"Pyramides : ombres au sol","default":"#757575","group":"cans"}
 }

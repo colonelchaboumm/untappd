@@ -25,30 +25,70 @@
       return group;
     });
   }
+  function pyramidGeometry(group) {
+    let index = 0, offset = 0;
+    const piles = group.piles.map((height, i) => {
+      const width = height * 24 - 4;
+      if (i) offset -= Math.min(width * .55, 90);
+      const baseline = offset * .10 + i * 22;
+      const cans = [];
+      for (let level = 0; level < height; level++) {
+        for (let col = 0; col < height - level; col++) {
+          const x = level * 12 + col * 24;
+          cans.push({row: group.rows[index++], x: offset + x, y: baseline - 36 - level * 31 + x * .10});
+        }
+      }
+      const pile = {height, x: offset, baseline, width, cans};
+      offset += width + 8;
+      return pile;
+    });
+    const cans = piles.flatMap(pile => pile.cans);
+    const bounds = cans.reduce((b, can) => ({left: Math.min(b.left, can.x), top: Math.min(b.top, can.y), right: Math.max(b.right, can.x + 31), bottom: Math.max(b.bottom, can.y + 42)}), {left: 0, top: 0, right: 1, bottom: 1});
+    return {piles, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
+  }
   function pyramidYear(group, texts = {}) {
     const uid = 'uat-can-' + (++canCounter), W = 500, H = 400;
-    let body = `<defs><linearGradient id="${uid}-metal"><stop offset="0" stop-color="var(--uat-can-shadow)"/><stop offset=".25" stop-color="var(--uat-can-highlight)"/><stop offset=".56" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient><g id="${uid}-shape"><path d="M4 5Q2 7 2 10V27Q2 31 10 31Q18 31 18 27V10Q18 7 16 5Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".6"/><path d="M4 27Q10 30 16 27" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".8"/><path d="M6 10V25M13 10V25" fill="none" stroke="var(--uat-can-highlight)" opacity=".35" stroke-width=".55"/><ellipse cx="10" cy="5.5" rx="7" ry="2.6" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".6"/><ellipse cx="10" cy="5.4" rx="4.6" ry="1.5" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".4"/><path d="M9 4.6Q11 3.8 12 4.7Q12 5.8 10 5.9Q8.5 5.7 9 4.6Z" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".35"/></g></defs>`;
-    const rawWidth = group.piles.reduce((n, height) => n + height * 24 - 4, 0) + Math.max(0, group.piles.length - 1) * 22;
-    const rawHeight = Math.max(...group.piles, 1) * 28 + 4;
-    const scale = Math.min(3.4, 440 / Math.max(1, rawWidth), 265 / rawHeight);
+    // Shared vector geometry keeps every can crisp on the page and in the PNG.
+    let body = `<defs>
+      <linearGradient id="${uid}-metal"><stop offset="0" stop-color="var(--uat-can-shadow)"/><stop offset=".16" stop-color="var(--uat-can-body)"/><stop offset=".32" stop-color="var(--uat-can-highlight)"/><stop offset=".46" stop-color="var(--uat-can-body)"/><stop offset=".76" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
+      <linearGradient id="${uid}-lid" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset=".55" stop-color="var(--uat-can-lid)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
+      <linearGradient id="${uid}-rim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
+      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".42"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
+      <g id="${uid}-shape">
+        <ellipse cx="17" cy="36.8" rx="13.5" ry="4.5" fill="url(#${uid}-ground)"/>
+        <path d="M2 6Q2 3.5 12 3.5Q22 3.5 22 6V30Q22 36 12 36Q2 36 2 30Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
+        <path d="M3 28.5Q12 33 21 28.5V31Q20 35.2 12 35.2Q4 35.2 3 31Z" fill="url(#${uid}-rim)"/>
+        <path d="M5.8 10Q5.3 18 5.8 28" fill="none" stroke="var(--uat-can-highlight)" stroke-width="1.4" opacity=".72"/>
+        <path d="M19.5 10V28" fill="none" stroke="var(--uat-can-shadow)" stroke-width="1" opacity=".55"/>
+        <ellipse cx="12" cy="6" rx="10" ry="4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".6"/>
+        <ellipse cx="12" cy="5.8" rx="8.1" ry="2.8" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".65"/>
+        <ellipse cx="12" cy="5.8" rx="6.7" ry="2" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".45"/>
+        <ellipse cx="15.3" cy="5.5" rx="2.2" ry="1.15" fill="var(--uat-can-shadow)"/>
+        <path d="M8.6 4.4Q10.5 3.4 12.3 4.4L13 6Q11.3 7.3 9.3 6.5Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
+        <ellipse cx="10.8" cy="5.2" rx="1.1" ry=".55" fill="var(--uat-can-shadow)"/>
+      </g></defs>`;
+    const geometry = pyramidGeometry(group), b = geometry.bounds;
+    const scale = Math.min(3.4, 436 / geometry.width, 260 / geometry.height);
     body += text(30, 44, group.year, 24, 'var(--uat-heading)', 800);
     const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
     body += text(470, 44, short(`${fmt(group.rows.length)} ${unit}`, 30), 20, 'var(--uat-muted)', 600, 'text-anchor="end"');
-    body += `<path d="M30 342H470" stroke="var(--uat-can-ground)" stroke-width="1"/><g transform="translate(${((W - rawWidth * scale) / 2).toFixed(3)} ${(342 - (rawHeight - 1) * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
-    let index = 0, pileX = 0;
-    for (const height of group.piles) {
-      for (let level = 0; level < height; level++) {
-        for (let col = 0; col < height - level; col++) {
-          const row = group.rows[index++], x = pileX + level * 12 + col * 24, y = rawHeight - 32 - level * 28;
-          const title = `${row.beer} · ${dayLabel(row.local.day)} ${String(row.local.hour).padStart(2, '0')}:${String(row.local.minute).padStart(2, '0')} · ${row.rating == null ? 'Non notée' : fmt(row.rating, 2) + ' / 5'}`;
-          body += `<g class="uat-can" data-checkin-id="${esc(row.id)}"><title>${esc(title)}</title><use href="#${uid}-shape" x="${x}" y="${y}"/></g>`;
-        }
-      }
-      pileX += height * 24 - 4 + 22;
+    body += `<g transform="translate(${((W - geometry.width * scale) / 2 - b.left * scale).toFixed(3)} ${(344 - b.bottom * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
+    // Ground shadows and cans are drawn back to front. The next pile is nearer.
+    for (const pile of geometry.piles) {
+      body += `<ellipse cx="${pile.x + pile.width / 2 + 8}" cy="${pile.baseline + pile.width * .05 + 2}" rx="${pile.width / 2 + 12}" ry="${Math.max(6, pile.width * .035)}" fill="url(#${uid}-ground)" transform="rotate(5.71 ${pile.x + pile.width / 2 + 8} ${pile.baseline + pile.width * .05 + 2})"/>`;
     }
-    body += '</g>' + text(250, 374, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 13, 'var(--uat-muted)', 500, 'text-anchor="middle"');
+    for (const pile of geometry.piles) {
+      body += `<g class="uat-can-pile" data-depth="${pile.baseline}">`;
+      for (const can of [...pile.cans].sort((a, b) => a.y - b.y || a.x - b.x)) {
+        const row = can.row;
+        const title = `${row.beer} · ${dayLabel(row.local.day)} ${String(row.local.hour).padStart(2, '0')}:${String(row.local.minute).padStart(2, '0')} · ${row.rating == null ? 'Non notée' : fmt(row.rating, 2) + ' / 5'}`;
+        body += `<g class="uat-can" data-checkin-id="${esc(row.id)}"><title>${esc(title)}</title><use href="#${uid}-shape" x="${can.x}" y="${can.y}"/></g>`;
+      }
+      body += '</g>';
+    }
+    body += '</g>' + text(250, 378, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 13, 'var(--uat-muted)', 500, 'text-anchor="middle"');
     body = `<rect x="1" y="1" width="498" height="398" rx="20" fill="var(--uat-surface)" stroke="var(--uat-surface-border)"/>` + body;
-    return svg(W, H, body, `${group.year} : ${group.rows.length} évaluations, une canette par évaluation, réparties en ${group.piles.length} pyramides.`);
+    return svg(W, H, body, `${group.year} : ${group.rows.length} évaluations, une canette par évaluation, réparties en ${group.piles.length} pyramides en relief.`);
   }
   function pyramidCards(s, texts = {}) {
     const groups = pyramidLayout(s);
@@ -171,7 +211,7 @@
     return svg(W, H, out, 'Rapport Untappd Atlas — pyramides de canettes');
   }
 
-  window.UATView = {pyramids, pyramidLayout, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+  window.UATView = {pyramids, pyramidLayout, pyramidGeometry, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
   function boot(scope = document) {
     if (scope.matches?.('.uat-app')) mount(scope);
     scope.querySelectorAll('.uat-app').forEach(mount);
@@ -351,7 +391,7 @@
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
     // Exposed rendering helper is useful for standalone previews and export verification.
-    window.UATView = {pyramids, pyramidLayout, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+    window.UATView = {pyramids, pyramidLayout, pyramidGeometry, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
     if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);

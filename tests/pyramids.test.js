@@ -50,3 +50,22 @@ test('can defaults are grey and are exposed as palette controls', () => {
     assert.equal(palette[key].global,undefined);
   }
 });
+
+test('depth offsets overlap piles and keep every can inside the fitted scene', () => {
+  for (const n of [1,2,5,37,295,1510,5000]) {
+    const group=V.pyramidLayout(C.analyze(rows(n)))[0];
+    const scene=V.pyramidGeometry(group), b=scene.bounds;
+    assert.equal(scene.piles.flatMap(p=>p.cans).length,n);
+    scene.piles.forEach((pile,i)=>{
+      assert.ok(Math.abs(pile.baseline-pile.x*.10-i*22)<.0001);
+      if (i) {
+        const previous=scene.piles[i-1];
+        assert.ok(pile.x<previous.x+previous.width,'foreground pile overlaps the preceding pile');
+      }
+      for (const can of pile.cans) {
+        assert.ok(can.x>=b.left && can.x+31<=b.right);
+        assert.ok(can.y>=b.top && can.y+42<=b.bottom);
+      }
+    });
+  }
+});
