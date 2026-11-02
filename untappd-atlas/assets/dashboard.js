@@ -64,34 +64,39 @@
       return pile;
     });
     const cans = piles.flatMap(pile => pile.cans);
-    const bounds = cans.reduce((b, can) => ({left: Math.min(b.left, can.x), top: Math.min(b.top, can.y), right: Math.max(b.right, can.x + 31), bottom: Math.max(b.bottom, can.y + 42)}), {left: 0, top: 0, right: 1, bottom: 1});
+    const bounds = cans.reduce((b, can) => ({left: Math.min(b.left, can.x), top: Math.min(b.top, can.y), right: Math.max(b.right, can.x + 35), bottom: Math.max(b.bottom, can.y + 42)}), {left: 0, top: 0, right: 1, bottom: 1});
     return {piles, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
   }
   function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
-    const uid = 'uat-can-' + (++canCounter), W = 500, H = 400;
+    const uid = 'uat-can-' + (++canCounter), W = 500, H = 480;
     const styles = [...new Set(group.rows.map(row => row.style))], shapeIds = new Map(styles.map((key, i) => [key, `${uid}-shape-${i}`]));
     // Shared vector symbols retain the same style paint in the page and PNG.
     let body = `<defs>
       <linearGradient id="${uid}-metal"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".23" stop-color="var(--uat-can-highlight)"/><stop offset=".48" stop-color="var(--uat-can-lid)"/><stop offset=".82" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <linearGradient id="${uid}-shade"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".78"/><stop offset=".18" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset=".66" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-shadow)" stop-opacity=".72"/></linearGradient>
-      <linearGradient id="${uid}-gleam"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".25" stop-color="var(--uat-can-highlight)" stop-opacity=".52"/><stop offset=".39" stop-color="var(--uat-can-highlight)" stop-opacity=".08"/><stop offset=".65" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".9" stop-color="var(--uat-can-highlight)" stop-opacity=".12"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></linearGradient>
+      <linearGradient id="${uid}-shade"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".82"/><stop offset=".17" stop-color="var(--uat-can-shadow)" stop-opacity=".08"/><stop offset=".42" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset=".73" stop-color="var(--uat-can-shadow)" stop-opacity=".05"/><stop offset=".91" stop-color="var(--uat-can-shadow)" stop-opacity=".38"/><stop offset="1" stop-color="var(--uat-can-shadow)" stop-opacity=".86"/></linearGradient>
+      <linearGradient id="${uid}-gleam"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".19" stop-color="var(--uat-can-highlight)" stop-opacity=".12"/><stop offset=".25" stop-color="var(--uat-can-highlight)" stop-opacity=".8"/><stop offset=".30" stop-color="var(--uat-can-highlight)" stop-opacity=".23"/><stop offset=".49" stop-color="var(--uat-can-highlight)" stop-opacity=".03"/><stop offset=".77" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".9" stop-color="var(--uat-can-highlight)" stop-opacity=".16"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></linearGradient>
       <linearGradient id="${uid}-lid" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset=".55" stop-color="var(--uat-can-lid)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
       <linearGradient id="${uid}-rim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".5" stop-color="var(--uat-can-highlight)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".42"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>`;
-    const labelPath = 'd="M2.6 11.6Q12 15.8 21.4 11.6V29.7Q21.4 33.7 12 33.7Q2.6 33.7 2.6 29.7Z"';
+      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".45"/><stop offset=".48" stop-color="var(--uat-can-ground)" stop-opacity=".18"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".66"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${uid}-backdrop" cx=".28" cy=".24" r=".88"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".7"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".18"/></radialGradient>
+      <radialGradient id="${uid}-stage"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset=".6" stop-color="var(--uat-can-ground)" stop-opacity=".06"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>`;
+    const labelPath = 'd="M2.6 10.9Q12 14.1 21.4 10.9V29.7Q21.4 33.7 12 33.7Q2.6 33.7 2.6 29.7Z"';
     for (const key of styles) {
       const paint = paints.get(key);
       body += `<g id="${shapeIds.get(key)}">
-        <ellipse cx="17" cy="36.8" rx="13.5" ry="4.5" fill="url(#${uid}-ground)"/>
+        <ellipse cx="19" cy="37" rx="15" ry="4.7" fill="url(#${uid}-ground)"/>
+        <ellipse cx="12" cy="35.7" rx="10.7" ry="2.1" fill="url(#${uid}-contact)"/>
         <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V29.8Q22 36 12 36Q2 36 2 29.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
         ${paintShape('path', labelPath, paint)}
         <path ${labelPath} fill="url(#${uid}-shade)"/>
         <path d="M3 14Q12 18 21 14M3 28.6Q12 32.5 21 28.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4" opacity=".5"/>
-        <g fill="none" stroke="var(--uat-can-highlight)" stroke-width=".55" stroke-linecap="round" stroke-linejoin="round" opacity=".78">
+        <g fill="none" stroke="var(--uat-can-highlight)" stroke-width=".45" stroke-linecap="round" stroke-linejoin="round" opacity=".6">
           <path d="M12 19Q8.2 20 9.1 23Q10 25 12 26.4Q14 25 14.9 23Q15.8 20 12 19ZM12 19V26.4M9.1 21.3 12 23.3 14.9 21.3M9.5 23.6 12 25 14.5 23.6"/>
         </g>
         <path ${labelPath} fill="url(#${uid}-gleam)"/>
-        <path d="M3.2 31Q12 35.4 20.8 31V32.3Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.3Z" fill="url(#${uid}-rim)"/>
+        <path d="M3.2 31.8Q12 35.4 20.8 31.8V32.8Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.8Z" fill="url(#${uid}-rim)"/>
+        <path d="M4 33.7Q12 36 20 33.7" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".45" opacity=".8"/>
         <path d="M4.3 9Q12 12.5 19.7 9" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
         <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".65"/>
         <ellipse cx="12" cy="5.95" rx="7.1" ry="2.5" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".65"/>
@@ -103,11 +108,15 @@
     }
     body += '</defs>';
     const geometry = pyramidGeometry(group), b = geometry.bounds;
-    const scale = Math.min(3.4, 436 / geometry.width, 260 / geometry.height);
-    body += text(30, 44, group.year, 24, 'var(--uat-heading)', 800);
+    const scale = Math.min(3.4, 436 / geometry.width, 326 / geometry.height);
+    body += text(30, 48, group.year, 29, 'var(--uat-heading)', 800);
     const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
-    body += text(470, 44, short(`${fmt(group.rows.length)} ${unit}`, 30), 20, 'var(--uat-muted)', 600, 'text-anchor="end"');
-    body += `<g transform="translate(${((W - geometry.width * scale) / 2 - b.left * scale).toFixed(3)} ${(344 - b.bottom * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
+    body += text(470, 46, short(`${fmt(group.rows.length)} ${unit}`, 30), 19, 'var(--uat-muted)', 600, 'text-anchor="end"');
+    const floors = geometry.piles.map(pile => pile.baseline + pile.width * .05);
+    const floorMin = Math.min(...floors), floorMax = Math.max(...floors);
+    const floorY = 409 + ((floorMin + floorMax) / 2 - b.bottom) * scale;
+    body += `<ellipse cx="250" cy="${floorY}" rx="204" ry="${Math.max(17, (floorMax - floorMin) / 2 * scale + 18)}" fill="url(#${uid}-stage)"/>`;
+    body += `<g transform="translate(${((W - geometry.width * scale) / 2 - b.left * scale).toFixed(3)} ${(409 - b.bottom * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
     for (const pile of geometry.piles) {
       body += `<ellipse cx="${pile.x + pile.width / 2 + 8}" cy="${pile.baseline + pile.width * .05 + 2}" rx="${pile.width / 2 + 12}" ry="${Math.max(6, pile.width * .035)}" fill="url(#${uid}-ground)" transform="rotate(5.71 ${pile.x + pile.width / 2 + 8} ${pile.baseline + pile.width * .05 + 2})"/>`;
     }
@@ -120,8 +129,18 @@
       }
       body += '</g>';
     }
-    body += '</g>' + text(250, 378, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 13, 'var(--uat-muted)', 500, 'text-anchor="middle"');
-    body = `<rect x="1" y="1" width="498" height="398" rx="20" fill="var(--uat-surface)" stroke="var(--uat-surface-border)"/>` + body;
+    body += '</g>' + text(30, 443, short(texts.styles_title || 'Mes styles', 32), 12, 'var(--uat-muted)', 500) + text(470, 443, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 12, 'var(--uat-muted)', 500, 'text-anchor="end"');
+    const counts = new Map(); group.rows.forEach(row => counts.set(row.style, (counts.get(row.style) || 0) + 1));
+    let bandX = 30;
+    body += `<defs><clipPath id="${uid}-band"><rect x="30" y="455" width="440" height="5" rx="2.5"/></clipPath></defs><g clip-path="url(#${uid}-band)">`;
+    for (const [key, paint] of paints) {
+      const count = counts.get(key) || 0; if (!count) continue;
+      const width = count / group.rows.length * 440;
+      body += `<g>${paintShape('rect', `x="${bandX}" y="455" width="${width}" height="5"`, paint)}<title>${esc(key)} : ${fmt(count)} check-ins</title></g>`;
+      bandX += width;
+    }
+    body += '</g>';
+    body = `<rect x="1" y="1" width="498" height="478" rx="22" fill="var(--uat-surface)" stroke="var(--uat-border)" stroke-opacity=".48"/><rect x="2" y="2" width="496" height="476" rx="21" fill="url(#${uid}-backdrop)"/>` + body;
     return svg(W, H, body, `${group.year} : ${group.rows.length} évaluations, une canette par évaluation, couleur selon le style, réparties en ${group.piles.length} pyramides en relief.`);
   }
   function pyramidCards(s, texts = {}) {
@@ -130,11 +149,11 @@
     return groups.map(group => `<div class="uat-pyramid-year">${pyramidYear(group, texts, paints)}</div>`).join('');
   }
   function pyramids(s, texts = {}) {
-    const groups = pyramidLayout(s), paints = stylePalette(s), width = 1548, height = groups.length ? Math.ceil(groups.length / 3) * 424 - 24 : 240;
+    const groups = pyramidLayout(s), paints = stylePalette(s), width = 1024, height = groups.length ? Math.ceil(groups.length / 2) * 504 - 24 : 240;
     if (!groups.length) return svg(width, height, text(width / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
     const body = groups.map((group, i) => {
-      const row = Math.floor(i / 3), onRow = Math.min(3, groups.length - row * 3), x = (3 - onRow) * 262 + i % 3 * 524;
-      return pyramidYear(group, texts, paints).replace('<svg ', `<svg x="${x}" y="${row * 424}" `);
+      const row = Math.floor(i / 2), onRow = Math.min(2, groups.length - row * 2), x = (2 - onRow) * 262 + i % 2 * 524;
+      return pyramidYear(group, texts, paints).replace('<svg ', `<svg x="${x}" y="${row * 504}" `);
     }).join('');
     return svg(width, height, body, `${s.total} canettes colorées par style : une par évaluation importée, en pyramides regroupées par année.`);
   }
@@ -213,7 +232,8 @@
     const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
     const paints = stylePalette(s), legendExtra = Math.max(0, Math.ceil(s.styles.length / 3) - 2) * 34;
     const pyramidGraphic = pyramids(s, meta.texts);
-    const pyramidHeight = Number(pyramidGraphic.match(/viewBox="0 0 \d+ (\d+)"/)[1]) * 1640 / 1548;
+    const pyramidBox = pyramidGraphic.match(/viewBox="0 0 (\d+) (\d+)"/);
+    const pyramidHeight = Number(pyramidBox[2]) * 1640 / Number(pyramidBox[1]);
     const summaryY = 480 + pyramidHeight + 30, shift = summaryY + 160 - 1660;
     const W = 1800, H = Math.ceil(3660 + shift + legendExtra); let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
     const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;

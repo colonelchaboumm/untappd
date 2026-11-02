@@ -63,7 +63,7 @@ test('depth offsets overlap piles and keep every can inside the fitted scene', (
         assert.ok(pile.x<previous.x+previous.width,'foreground pile overlaps the preceding pile');
       }
       for (const can of pile.cans) {
-        assert.ok(can.x>=b.left && can.x+31<=b.right);
+        assert.ok(can.x>=b.left && can.x+35<=b.right);
         assert.ok(can.y>=b.top && can.y+42<=b.bottom);
       }
     });
