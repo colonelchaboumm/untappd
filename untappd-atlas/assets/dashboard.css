@@ -8,6 +8,7 @@
 @container(max-width:400px){.uat-topline>span{display:none}.uat-year-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.uat-mini strong{font-size:22px}.uat-app .uat-intro h2{font-size:34px}.uat-callout strong{font-size:16px}.uat-app input,.uat-app select{width:100%}}
 .uat-file{position:relative;overflow:hidden}.uat-file input{width:1px!important;height:1px!important;left:0;top:0;clip-path:inset(50%)}
 .uat-export-buttons{flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.uat-app h2,.uat-app h3{overflow-wrap:anywhere}.uat-topline>*{min-width:0;overflow-wrap:anywhere}.uat-logo{flex-shrink:0}
 
 .uat-app h1,.uat-app h2,.uat-app h3{color:var(--uat-heading)}
 .uat-demo-notice{color:var(--uat-demo-text)}

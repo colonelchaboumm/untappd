@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Untappd Atlas
  * Description: Votre histoire Untappd en statistiques, disque chronologique et exports PNG / Excel. Shortcode : [untappd_atlas].
- * Version: 1.1.0
+ * Version: 1.2.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
  * Author: Colonelchaboumm
@@ -10,10 +10,11 @@
  * Text Domain: untappd-atlas
  */
 defined('ABSPATH') || exit;
-define('UAT_VERSION', '1.1.0');
+define('UAT_VERSION', '1.2.0');
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
 require_once __DIR__ . '/includes/class-uat-theme.php';
+require_once __DIR__ . '/includes/class-uat-content.php';
 
 function uat_register_assets() {
     static $registered = false;
@@ -23,8 +24,9 @@ function uat_register_assets() {
     wp_add_inline_style('uat-dashboard', UAT_Theme::css());
     wp_register_script('uat-core', plugins_url('assets/core.js', UAT_FILE), [], UAT_VERSION, true);
     wp_register_script('uat-theme', plugins_url('assets/theme.js', UAT_FILE), [], UAT_VERSION, true);
+    wp_register_script('uat-content', plugins_url('assets/content.js', UAT_FILE), [], UAT_VERSION, true);
     wp_register_script('uat-export', plugins_url('assets/export.js', UAT_FILE), ['uat-core'], UAT_VERSION, true);
-    wp_register_script('uat-dashboard', plugins_url('assets/dashboard.js', UAT_FILE), ['uat-core', 'uat-theme', 'uat-export'], UAT_VERSION, true);
+    wp_register_script('uat-dashboard', plugins_url('assets/dashboard.js', UAT_FILE), ['uat-core', 'uat-theme', 'uat-content', 'uat-export'], UAT_VERSION, true);
 }
 add_action('wp_enqueue_scripts', 'uat_register_assets', 5);
 add_action('elementor/frontend/after_register_scripts', 'uat_register_assets');
@@ -58,6 +60,7 @@ add_action('admin_menu', function () {
 });
 add_action('admin_init', function () {
     register_setting('uat_appearance', 'uat_palette', ['sanitize_callback' => [UAT_Theme::class, 'sanitize'], 'default' => ['follow_elementor' => 1]]);
+    register_setting('uat_content', 'uat_texts', ['sanitize_callback' => [UAT_Content::class, 'sanitize'], 'default' => []]);
     register_setting('uat_settings', 'uat_credentials', [
         'sanitize_callback' => function ($input) {
             $old = get_option('uat_credentials', []);
@@ -80,16 +83,17 @@ function uat_settings() {
     <tr><th>URL de retour OAuth</th><td><code><?php echo esc_html(admin_url('admin-post.php?action=uat_callback')); ?></code><p>Recopiez exactement cette URL dans les paramètres de votre application Untappd. Utilisez HTTPS.</p></td></tr></table>
     <?php submit_button(); ?></form>
     <?php UAT_Theme::settings(); ?>
+    <?php UAT_Content::settings(); ?>
     <h2>Données et confidentialité</h2><p>Les exports de fichiers sont analysés dans le navigateur. Les imports API et jetons chiffrés sont isolés par session et supprimés après 24 heures (nettoyage horaire WordPress). Le visiteur peut les effacer immédiatement. Aucun résultat personnel n’est intégré au HTML public de la page.</p>
     <p><a href="https://untappd.com/api/docs/v4" target="_blank" rel="noopener noreferrer">Documentation API officielle</a></p></div>
     <?php
 }
-function uat_dashboard($preview = false) {
+function uat_dashboard($preview = false, $texts = []) {
     uat_register_assets();
     wp_enqueue_style('uat-dashboard');
     wp_enqueue_script('uat-dashboard');
     $credentials = get_option('uat_credentials', []);
-    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview];
+    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'texts' => UAT_Content::values($texts)];
     return '<div class="uat-app alignwide" data-config="' . esc_attr(wp_json_encode($config)) . '"><p>Chargement d’Untappd Atlas… JavaScript est nécessaire pour les graphiques et exports.</p></div>';
 }
 add_shortcode('untappd_atlas', function () { return uat_dashboard(); });

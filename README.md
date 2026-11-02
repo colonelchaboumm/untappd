@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.1.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.2.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -16,7 +16,25 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 
 Prérequis : WordPress 6.4+, PHP 8.1+. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Couleurs et Elementor — version 1.1.0
+## Textes et typographie — version 1.2.0
+
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **65 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères du disque, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
+
+Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
+
+Certains champs acceptent des variables, indiquées sous le champ :
+
+- Titre du rapport : `{profile}`, `{count}`, `{years}`, `{years_label}`.
+- Sous-titres des cartes : `{rated}`, `{median}`, `{styles}`, `{breweries}`, `{beers}`, `{venues}` selon la carte.
+- Fuseau horaire : `{timezone}`.
+
+Exemple : `{profile} : {count} découvertes` affiche le profil et le nombre de check-ins du filtre actif. Les valeurs des statistiques restent calculées à partir des données importées. Les avis de démonstration et de couverture des données restent affichés.
+
+Dans **Style → Typographie des textes**, six groupes permettent de choisir la police, la taille, la graisse, l’interligne, l’espacement et les réglages responsives : texte courant, titres des sections et cartes, titre principal, sous-titres, chiffres clés et boutons. Le globe permet de choisir une typographie globale Elementor. Les polices sont chargées suivant la configuration d’Elementor.
+
+Les titres et légendes personnalisés utilisés dans l’affiche sont repris dans l’export **PNG**, avec un titre d’export dédié si souhaité. L’affiche conserve son gabarit et sa police d’export ; les textes très longs sont raccourcis pour y tenir. Les réglages de typographie Elementor pilotent la page. Le classeur Excel conserve ses libellés et tableaux de données.
+
+## Couleurs et Elementor — depuis la version 1.1.0
 
 Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **52 couleurs** : fonds et textes, champs et boutons, messages, disque, graphiques et palette des dix styles de bière.
 
@@ -91,12 +109,12 @@ Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines 
 - OAuth utilise un état aléatoire à usage unique, lié à un cookie HttpOnly/Secure/SameSite=Lax, valable dix minutes.
 - La désinstallation supprime tables, réglages et transients du plugin. Désactiver le plugin conserve les données jusqu’à leur suppression ou à sa réactivation et au nettoyage.
 
-Services externes utilisés uniquement pour l’import API ou la connexion demandée : `api.untappd.com` et `untappd.com/oauth/`. Aucun suivi analytique, police distante ou collecte de fichiers.
+Services externes utilisés par l’import API ou la connexion demandée : `api.untappd.com` et `untappd.com/oauth/`. Aucun suivi analytique ou téléversement de fichiers. Le chargement des polices sélectionnées dans le widget utilise les réglages d’Elementor.
 
 ## Développement et validation
 
 ```sh
-node --test tests/core.test.js tests/theme.test.js
+node --test tests/core.test.js tests/theme.test.js tests/content.test.js
 php -l untappd-atlas/untappd-atlas.php
 php -l untappd-atlas/includes/class-uat-api.php
 php -l untappd-atlas/uninstall.php
@@ -110,7 +128,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 contrôles sur une installation locale isolée avec Elementor activé, les liens globaux et la validation de la palette. Il réinitialise les réglages de couleurs du plugin : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 couleurs, les 65 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 

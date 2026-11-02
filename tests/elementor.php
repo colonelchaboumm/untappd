@@ -15,6 +15,20 @@ foreach ($tokens as $key => $token) {
     $control = $controls['uat_color_' . str_replace('-', '_', $key)] ?? [];
     check_theme(($control['type'] ?? '') === 'color' && !empty($control['global']['active']) && str_contains($control['selectors']['{{WRAPPER}} .uat-app'] ?? '', '--uat-' . $key . ':'), 'editable global color: ' . $key);
 }
+foreach (UAT_Content::fields() as $key => $field) {
+    $control = $controls['uat_text_' . $key] ?? [];
+    check_theme(in_array($control['type'] ?? '', ['text', 'textarea'], true), 'editable content: ' . $key);
+}
+foreach (['body', 'headings', 'hero', 'subtitles', 'numbers', 'buttons'] as $group) {
+    check_theme(isset($controls['uat_typography_' . $group . '_typography']), 'typography controls: ' . $group);
+}
+update_option('uat_texts', ['hero_title' => 'Titre commun']);
+check_theme(UAT_Content::values(['hero_title' => 'Titre local'])['hero_title'] === 'Titre local', 'widget text overrides global text');
+check_theme(UAT_Content::values(['hero_title' => ''])['hero_title'] === 'Titre commun', 'empty widget text inherits global text');
+delete_option('uat_texts');
+check_theme(UAT_Content::values()['hero_title'] === UAT_Content::fields()['hero_title']['default'], 'empty global settings restore defaults');
+$safe_text = UAT_Content::sanitize(['hero_title' => "Bonjour\n<script>alert(1)</script><b>bière</b>", 'unknown' => 'ignored']);
+check_theme(!str_contains($safe_text['hero_title'], '<') && !isset($safe_text['unknown']) && str_contains($safe_text['hero_title'], "\n"), 'text sanitation strips HTML, preserves line breaks and ignores unknown keys');
 check_theme(UAT_Theme::color('#aabbcc88') === '#aabbcc88', 'alpha hex preserved');
 check_theme(UAT_Theme::color('rgba(0, 1, 2, 0.5)') !== '', 'RGBA preserved');
 check_theme(UAT_Theme::color('red; background:url(https://example.com)') === '', 'CSS injection rejected');

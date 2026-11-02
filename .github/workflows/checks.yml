@@ -10,10 +10,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/core.test.js tests/theme.test.js
+      - run: node --test tests/core.test.js tests/theme.test.js tests/content.test.js
       - run: node --check untappd-atlas/assets/dashboard.js
       - run: node --check untappd-atlas/assets/export.js
       - run: node --check untappd-atlas/assets/theme.js
+      - run: node --check untappd-atlas/assets/content.js
   php:
     runs-on: ubuntu-latest
     strategy:
