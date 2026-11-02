@@ -1,0 +1,334 @@
+(function () {
+  'use strict';
+  const C = window.UATCore, E = window.UATExport, esc = E.xml;
+  const colors = Array.from({length: 10}, (_, i) => `var(--uat-series-${i + 1})`);
+  let discCounter = 0;
+  const fmt = (n, digits = 0) => n == null ? '—' : Number(n).toLocaleString('fr-FR', {maximumFractionDigits: digits, minimumFractionDigits: digits});
+  const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
+  const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
+  const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
+  const svg = (width, height, content, title) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"><title>${esc(title)}</title>${content}</svg>`;
+  function ring(s, texts = {}) {
+    const cx = 500, cy = 500, inner = 126, outer = 391;
+    const polar = (r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    let body = '<defs><radialGradient id="uat-disc"><stop offset="0" stop-color="var(--uat-disc-inner)"/><stop offset="1" stop-color="var(--uat-disc-outer)"/></radialGradient></defs><ellipse cx="500" cy="531" rx="386" ry="386" fill="var(--uat-disc-shadow)" opacity=".05"/><circle cx="500" cy="500" r="396" fill="url(#uat-disc)"/>';
+    const gradientId = 'uat-disc-' + (++discCounter);
+    body = body.replace('id="uat-disc"', 'id="' + gradientId + '"').replace('url(#uat-disc)', 'url(#' + gradientId + ')');
+    const span = Math.max(1, s.calendarDays - 1), start = s.first ? new Date(s.first.local.day).getTime() : 0;
+    for (let i = 0; i <= Math.min(1100, span); i++) body += `<circle cx="500" cy="500" r="${inner + i / Math.min(1100, span) * (outer - inner)}" fill="none" stroke="var(--uat-disc-groove)" stroke-width=".28" opacity=".1"/>`;
+    const styleMap = new Map(s.styles.slice(0, 10).map((x, i) => [x.key, colors[i]]));
+    for (const row of s.rows) {
+      const day = (new Date(row.local.day).getTime() - start) / 86400000;
+      const r = inner + day / span * (outer - inner), angle = ((row.local.hour * 60 + row.local.minute) / 1440) * Math.PI * 2 - Math.PI / 2;
+      const p1 = polar(r, angle), p2 = polar(r, angle + .007);
+      body += `<path d="M${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}" fill="none" stroke="${styleMap.get(row.style) || 'var(--uat-other)'}" stroke-width="${Math.max(.75, Math.min(2.8, (outer - inner) / span * 1.4)).toFixed(2)}" opacity=".95"/>`;
+    }
+    body += '<circle cx="500" cy="500" r="116" fill="var(--uat-disc-label)"/><circle cx="500" cy="500" r="108" fill="none" stroke="var(--uat-disc-label-border)" stroke-width="1"/>';
+    body += text(500, 481, fmt(s.total), 42, 'var(--uat-ink)', 800, 'text-anchor="middle"') + text(500, 509, short(texts.kpi_checkins || 'check-ins', 26), 14, 'var(--uat-muted)', 400, 'text-anchor="middle"') + text(500, 538, s.first ? `${s.first.local.year} — ${s.last.local.year}` : 'Aucune donnée', 12, 'var(--uat-muted)', 600, 'text-anchor="middle"');
+    for (let i = 0; i < 24; i++) {
+      const a = i / 24 * Math.PI * 2 - Math.PI / 2, p1 = polar(410, a), p2 = polar(i % 3 === 0 ? 425 : 417, a);
+      body += `<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="var(--uat-disc-ticks)" stroke-width="1.4"/>`;
+      if (i % 3 === 0) { const p = polar(457, a); body += text(p[0], p[1] + 5, i === 0 ? 'minuit' : i === 12 ? 'midi' : `${i} h`, 16, 'var(--uat-muted)', 500, 'text-anchor="middle"'); }
+    }
+    if (s.first) {
+      const years = [...new Set(s.rows.map(r => r.local.year))];
+      years.filter((_, i) => years.length <= 8 || i % Math.ceil(years.length / 8) === 0).forEach(year => {
+        const row = s.rows.find(r => r.local.year === year), day = (new Date(row.local.day).getTime() - start) / 86400000;
+        const r = inner + day / span * (outer - inner), p = polar(r, -.7);
+        body += `<rect x="${p[0] - 26}" y="${p[1] - 13}" width="52" height="26" rx="13" fill="var(--uat-disc-marker)" opacity=".84"/>` + text(p[0], p[1] + 4, year, 13, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
+      });
+      [s.first, s.rows.find(r => r.local.day === s.biggestDay?.key), s.last].forEach((r, i) => {
+        if (!r) return; const p = polar(inner + ((new Date(r.local.day).getTime() - start) / 86400000) / span * (outer - inner), (r.local.hour * 60 + r.local.minute) / 1440 * Math.PI * 2 - Math.PI / 2);
+        body += `<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="var(--uat-disc-marker)" stroke="var(--uat-disc-marker-text)" stroke-width="2"/>` + text(p[0], p[1] + 4, i + 1, 12, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
+      });
+    }
+    return svg(1000, 1000, body, `${s.total} check-ins disposés par date et heure ; couleur selon le style de bière.`);
+  }
+  function heat(s) {
+    const width = 430, height = 205, left = 36, top = 26, cellW = 15.6, cellH = 18, max = Math.max(1, ...s.heat.flat());
+    let body = '';
+    s.heat.forEach((row, day) => {
+      body += text(0, top + day * cellH + 12, ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'][day], 11);
+      row.forEach((n, h) => { body += `<rect x="${left + h * cellW}" y="${top + day * cellH}" width="12.8" height="14.5" rx="2.5" fill="${n ? 'var(--uat-accent)' : 'var(--uat-heat-empty)'}" opacity="${n ? .18 + .82 * n / max : 1}"><title>${n} check-ins, ${['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][day]}, ${h} h</title></rect>`; });
+    });
+    [0, 6, 12, 18, 23].forEach(h => { body += text(left + h * cellW, 175, `${h} h`, 10, 'var(--uat-subtle)'); });
+    body += text(36, 12, 'moins', 9, 'var(--uat-subtle)');
+    for (let i = 0; i < 6; i++) body += `<rect x="${75 + i * 13}" y="3" width="10" height="10" rx="2" fill="var(--uat-accent)" opacity="${.15 + i * .17}"/>`;
+    body += text(160, 12, 'plus', 9, 'var(--uat-subtle)');
+    return svg(width, height, body, 'Nombre de check-ins par jour de la semaine et heure.');
+  }
+  function ratings(s) {
+    const W = 430, H = 205, max = Math.max(1, ...s.distribution.map(r => r.count)); let body = '';
+    [0, .5, 1].forEach(p => { const y = 165 - 135 * p; body += `<path d="M28 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(Math.round(max * p)), 9); });
+    s.distribution.forEach((r, i) => {
+      const x = 32 + i * 18.3, h = r.count / max * 135;
+      body += `<rect x="${x}" y="${165 - h}" width="13" height="${h}" rx="3" fill="${r.rating >= 4 ? 'var(--uat-accent)' : 'var(--uat-chart-neutral)'}"><title>${r.rating} / 5 : ${r.count} check-ins</title></rect>`;
+      if (i % 4 === 0) body += text(x + 6, 185, r.rating, 10, 'var(--uat-subtle)', 400, 'text-anchor="middle"');
+    });
+    return svg(W, H, body, `Distribution des ${s.rated} notes. Moyenne : ${fmt(s.average, 2)} sur 5.`);
+  }
+  function timeline(s, grain, average = false) {
+    const raw = s.periods(grain), cap = 130, bucket = Math.ceil(raw.length / cap) || 1, rows = [];
+    for (let i = 0; i < raw.length; i += bucket) {
+      const slice = raw.slice(i, i + bucket), rated = slice.reduce((n, r) => n + r.rated, 0);
+      rows.push({key: slice[0].key, end: slice[slice.length - 1].key, count: slice.reduce((n, r) => n + r.count, 0), average: rated ? slice.reduce((n, r) => n + r.sum, 0) / rated : null});
+    }
+    const max = average ? 5 : Math.max(1, ...rows.map(r => r.count)), left = 27, base = 165, width = 390 / Math.max(1, rows.length); let body = '';
+    [0, .5, 1].forEach(p => { const y = base - p * 135; body += `<path d="M27 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p, average ? 1 : 0), 9); });
+    let line = '', previous = false;
+    rows.forEach((r, i) => {
+      const x = left + (i + .5) * width, value = average ? r.average : r.count;
+      if (average) { if (value == null) { previous = false; return; } const y = base - value / max * 135; line += `${previous ? 'L' : 'M'}${x} ${y}`; previous = true; body += `<circle cx="${x}" cy="${y}" r="2.3" fill="var(--uat-accent)"><title>${esc(r.key)} : ${fmt(value, 2)} / 5</title></circle>`; }
+      else body += `<rect x="${left + i * width + 1}" y="${base - value / max * 135}" width="${Math.max(.6, width - 2)}" height="${value / max * 135}" rx="${Math.min(3, width / 4)}" fill="var(--uat-accent)"><title>${esc(r.key)}${r.end !== r.key ? ' → ' + esc(r.end) : ''} : ${r.count} check-ins</title></rect>`;
+    });
+    if (average) body += `<path d="${line}" stroke="var(--uat-accent)" stroke-width="2.4" fill="none"/>`;
+    if (rows.length) [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i).forEach((i, index, all) => { body += text(left + (i + .5) * width, 187, rows[i].key, 9, 'var(--uat-subtle)', 400, `text-anchor="${index === 0 ? 'start' : index === all.length - 1 ? 'end' : 'middle'}"`); });
+    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / point. Détail dans Excel.`, 8, 'var(--uat-subtle)');
+    return svg(430, 210, body, average ? 'Évolution de la note moyenne, périodes sans note laissées vides.' : 'Évolution du nombre de check-ins, périodes vides incluses.');
+  }
+  function styleTimeline(s, grain) {
+    const periods = s.periods(grain), bucket = Math.ceil(periods.length / 100) || 1, top = s.styles.slice(0, 5), indices = new Map(top.map((r, i) => [r.key, i]));
+    const map = new Map(s.stylePeriods(grain).map(r => [r.key, r.count])), rows = [];
+    for (let i = 0; i < periods.length; i += bucket) {
+      const slice = periods.slice(i, i + bucket), counts = Array(6).fill(0);
+      slice.forEach(p => s.styles.forEach(st => counts[indices.has(st.key) ? indices.get(st.key) : 5] += map.get(`${p.key}\t${st.key}`) || 0));
+      rows.push({key: slice[0].key, counts});
+    }
+    const max = Math.max(1, ...rows.map(r => r.counts.reduce((a, b) => a + b, 0))), width = 390 / Math.max(1, rows.length); let body = '';
+    [0, .5, 1].forEach(p => { const y = 165 - p * 135; body += `<path d="M27 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p), 9); });
+    rows.forEach((r, i) => { let y = 165; r.counts.forEach((n, j) => { const h = n / max * 135; y -= h; body += `<rect x="${27 + i * width + 1}" y="${y}" width="${Math.max(.6, width - 2)}" height="${h}" fill="${j < 5 ? colors[j] : 'var(--uat-other)'}"><title>${esc(r.key)} · ${esc(top[j]?.label || 'Autres styles')} : ${n}</title></rect>`; }); });
+    if (rows.length) { body += text(27, 187, rows[0].key, 9) + text(420, 187, rows[rows.length - 1].key, 9, 'var(--uat-muted)', 400, 'text-anchor="end"'); }
+    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / colonne.`, 8);
+    return svg(430, 210, body, 'Styles par période, cinq principaux styles et autres.');
+  }
+  function ranking(rows, maxRows = 7, color = 'var(--uat-accent)') {
+    if (!rows.length) return '<p class="uat-empty">Aucune donnée disponible.</p>';
+    const max = Math.max(1, rows[0].count);
+    return rows.slice(0, maxRows).map((r, i) => `<div class="uat-rank"><span>${String(i + 1).padStart(2, '0')}</span><div><strong title="${esc(r.label)}">${esc(r.label)}</strong><div class="uat-track"><i style="width:${r.count / max * 100}%;background:${Array.isArray(color) ? color[i % color.length] : color}"></i></div></div><b>${fmt(r.count)}</b></div>`).join('');
+  }
+  function poster(s, meta) {
+    const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
+    const W = 1800, H = 3410; let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
+    const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;
+    const embed = (chart, x, y, w) => chart.replace('<svg ', `<svg x="${x}" y="${y}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${w * Number(chart.match(/viewBox="0 0 \d+ (\d+)"/)[1]) / Number(chart.match(/viewBox="0 0 (\d+)/)[1])}"`);
+    out += text(80, 70, short(t('brand') + ' / ' + t('tagline'), 140), 15, 'var(--uat-ink)', 700);
+    out += text(80, 150, short(t(meta.demo ? 'poster_demo_title' : 'poster_title'), 48), 60, 'var(--uat-heading)', 800);
+    out += text(80, 193, `${s.first ? dayLabel(s.first.local.day) : '—'} — ${s.last ? dayLabel(s.last.local.day) : '—'} · ${s.timezone} · ${meta.style || 'Tous les styles'}`, 18);
+    if (meta.demo) out += text(80, 225, 'DONNÉES FICTIVES — AUCUN RÉSULTAT PERSONNEL', 16, 'var(--uat-demo-text)', 700);
+    [[s.total, t('kpi_checkins')], [s.uniqueBeers, t('kpi_beers')], [s.uniqueBreweries, t('kpi_breweries')], [fmt(s.average, 2), t('kpi_average')]].forEach(([n, label], i) => { out += text(80 + i * 420, 329, typeof n === 'number' ? fmt(n) : n, 76, 'var(--uat-ink)', 800) + text(80 + i * 420, 365, short(label, 34), 21); });
+    out += text(80, 415, short(t('ring_description'), 150), 19);
+    out += embed(ring(s, meta.texts), 280, 425, 1240);
+    out += text(80, 850, short('01 / ' + t('first_label'), 32), 13, 'var(--uat-muted)', 700) + text(80, 885, short(s.first?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 914, dayLabel(s.first?.local.day), 17);
+    out += text(1410, 1160, short('02 / ' + t('biggest_label'), 32), 13, 'var(--uat-muted)', 700) + text(1410, 1200, `${fmt(s.biggestDay?.count || 0)} check-ins`, 29, 'var(--uat-ink)', 800) + text(1410, 1230, dayLabel(s.biggestDay?.key), 17);
+    out += text(1410, 760, 'JOURS ACTIFS', 13, 'var(--uat-muted)', 700) + text(1410, 800, fmt(s.activeDays), 38, 'var(--uat-ink)', 800);
+    out += text(80, 1240, short('03 / ' + t('last_label'), 32), 13, 'var(--uat-muted)', 700) + text(80, 1277, short(s.last?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 1307, dayLabel(s.last?.local.day), 17);
+    s.styles.slice(0, 6).forEach((st, i) => { const x = 110 + (i % 3) * 555, y = 1660 + Math.floor(i / 3) * 34; out += `<circle cx="${x}" cy="${y - 5}" r="6" fill="${colors[i]}"/>` + text(x + 15, y, `${short(st.label, 32)} · ${fmt(st.count)}`, 15); });
+    const chartPanels = [[t('heat_title'), t('heat_subtitle'), heat(s)], [t('styles_time_title'), t('styles_time_subtitle'), styleTimeline(s, meta.grain || 'month')], [t('ratings_title'), t('ratings_subtitle'), ratings(s)], [t('activity_title'), t('activity_subtitle'), timeline(s, meta.grain || 'month')], [t('average_title'), t('average_subtitle'), timeline(s, meta.grain || 'month', true)]];
+    chartPanels.forEach(([title, sub, chart], i) => { const x = 80 + i % 3 * 555, y = 1750 + Math.floor(i / 3) * 345; out += panel(x, y, 530, 320) + text(x + 25, y + 43, short(title, 36), 23, 'var(--uat-heading)', 800) + text(x + 25, y + 72, short(sub, 65), 14) + embed(chart, x + 25, y + 100, 480); });
+    out += panel(1190, 2095, 530, 320) + text(1215, 2138, t('social_title'), 23, 'var(--uat-heading)', 800);
+    [[s.withPhotos, 'avec photo'], [s.withoutPhotos, 'sans photo (connu)'], [s.withShout, 'textes personnels'], [s.commentsUnknown === s.total ? '—' : s.comments, 'commentaires connus'], [s.distinctCommenters, 'auteurs observés'], [s.toastsUnknown === s.total ? '—' : s.toasts, 'toasts connus']].forEach(([n, label], i) => { const x = 1215 + i % 2 * 245, y = 2205 + Math.floor(i / 2) * 64; out += text(x, y, typeof n === 'number' ? fmt(n) : n, 27, 'var(--uat-ink)', 800) + text(x, y + 20, label, 12); });
+    [[t('styles_title'), s.styles], [t('breweries_title'), s.breweries], [t('beers_title'), s.beers]].forEach(([title, rows], i) => { const x = 80 + i * 555, y = 2440; out += panel(x, y, 530, 405) + text(x + 25, y + 44, short(title, 32), 25, 'var(--uat-heading)', 800); rows.slice(0, 7).forEach((r, j) => { const yy = y + 88 + j * 41; out += text(x + 25, yy, `${String(j + 1).padStart(2, '0')}  ${short(r.label, 34)}`, 16, 'var(--uat-ink)') + text(x + 502, yy, fmt(r.count), 16, 'var(--uat-ink)', 700, 'text-anchor="end"') + `<rect x="${x + 52}" y="${yy + 9}" width="${Math.max(1, r.count / rows[0].count * 410)}" height="4" rx="2" fill="${colors[i]}"/>`; }); });
+    out += text(80, 2910, t('yearly_title'), 30, 'var(--uat-heading)', 800);
+    const winners = s.yearlyWinners.slice(-12), yearWidth = 1640 / Math.max(1, winners.length);
+    winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, 'var(--uat-ink)', 800) + `<rect x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5" fill="${colors[s.styles.findIndex(st => st.key === r.style) % colors.length]}"/>` + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, `${fmt(r.count)} check-ins`, 12); });
+    out += text(80, 3110, 'COUVERTURE DES DONNÉES', 14, 'var(--uat-heading)', 700);
+    [meta.status || 'Analyse du fichier fourni.', `${s.photoUnknown} check-ins sans information photo ; ${s.commentsUnknown} sans total de commentaires ; ${s.toastsUnknown} sans total de toasts.`, s.commentersComplete ? 'Auteurs des commentaires : liste complète dans les données importées.' : 'Auteurs des commentaires : minimum observé. Les listes fournies peuvent être partielles.', 'Les champs absents ne sont pas assimilés à zéro. Statistiques limitées aux données importées et aux filtres.', 'Identités sans ID regroupées par nom. Notes à zéro considérées non notées. Dates sans fuseau interprétées en UTC.', 'Le fichier Excel contient les tableaux détaillés, les périodes, les classements et les check-ins.'].forEach((line, i) => { out += text(80, 3147 + i * 29, short(line, 150), 15); });
+    out += `<path d="M80 3340H1720" stroke="var(--uat-border)"/>` + text(80, 3373, short(t('footer_left'), 140), 13) + text(1720, 3373, short(t('brand'), 36), 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
+    return svg(W, H, out, 'Rapport Untappd Atlas');
+  }
+
+  window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster};
+  function boot(scope = document) {
+    if (scope.matches?.('.uat-app')) mount(scope);
+    scope.querySelectorAll('.uat-app').forEach(mount);
+  }
+  boot();
+  function editorHook() { window.elementorFrontend?.hooks.addAction('frontend/element_ready/untappd-atlas.default', scope => boot(scope[0] || scope)); }
+  if (window.elementorFrontend?.hooks) editorHook();
+  else if (window.jQuery) window.jQuery(window).on('elementor/frontend/init.uat', editorHook);
+  function mount(app) {
+    if (app.dataset.uatMounted) return;
+    app.dataset.uatMounted = '1';
+    const config = JSON.parse(app.dataset.config || '{}');
+    const texts = config.texts || {};
+    let context = {};
+    const t = key => window.UATContent.format(texts[key] || '', context);
+    const safe = window.UATContent.html;
+    const h = key => safe(t(key));
+    let items = [], rawMap = new Map(), source = '', profile = '', isDemo = false, state = null, running = false, generation = 0, pending = false, currentStats = null;
+    let token = ''; const storageKey = 'untappd-atlas-session:' + config.api;
+    try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
+    let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    try { C.zoned(new Date().toISOString(), zone); } catch (_) { zone = 'UTC'; }
+    const zones = [...new Set([zone, Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Paris', 'Europe/Brussels', 'Europe/London', 'America/Montreal', 'America/New_York', 'UTC'].filter(Boolean))];
+    app.innerHTML = `<header class="uat-topline"><div class="uat-brand"><i class="uat-logo" aria-hidden="true"></i> ${h('brand')}</div><small>${h('tagline')}</small><span>${h('top_note')}</span></header>
+      <section class="uat-intro"><h2>${h('hero_title')}</h2><p>${h('hero_subtitle')}</p></section>
+      <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field"><span>${h('profile_label')}</span><input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary">${h('connect_button')}</button></form>
+      <div class="uat-import-bottom"><label><input type="checkbox" data-enrich> Approfondir les commentaires et les toasts <span title="Un appel API supplémentaire par check-in. Les identités peuvent rester partielles.">ⓘ</span></label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
+      <p class="uat-import-help">${config.configured ? 'L’import par lien utilise l’API Untappd configurée sur ce site. La connexion permet d’autoriser l’accès à votre compte.' : 'L’import par lien et la connexion nécessitent des clés API configurées par l’administrateur. L’import d’un export CSV/JSON fonctionne dès maintenant.'} Les fichiers sont analysés dans votre navigateur. Les imports API sont conservés 24 h et peuvent être effacés ici.</p></section>
+      <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">Pause</button><button data-action="resume" type="button">Reprendre</button><button class="uat-secondary" data-action="erase" type="button">Effacer</button></div></section>
+      <section class="uat-report" hidden><div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
+      <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons"><button type="button" class="uat-text-button" data-action="clear">Effacer mes données</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
+      <div class="uat-filters"><label class="uat-field"><span>Du</span><input type="date" name="from"></label><label class="uat-field"><span>Au</span><input type="date" name="to"></label><label class="uat-field uat-style-field"><span>Style de bière</span><select name="style"><option value="">Tous les styles</option></select></label><label class="uat-field"><span>Périodes</span><select name="grain"><option value="day">Jour</option><option value="week">Semaine</option><option value="month" selected>Mois</option><option value="year">Année</option></select></label><label class="uat-field"><span>Fuseau horaire</span><select name="timezone">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">Tout afficher</button></div>
+      <div class="uat-results"></div></section><div class="uat-onboard"><strong>${h('onboard_title')}</strong><p>${h('onboard_subtitle')}</p></div>
+      <footer class="uat-footer"><span>${h('footer_left')}</span><span>${h('footer_right')}</span></footer>`;
+    const $ = q => app.querySelector(q);
+    const field = name => $(`[name="${name}"]`);
+    const action = name => $(`[data-action="${name}"]`);
+    const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('demo').disabled = value; $('.uat-file input').disabled = value; };
+    const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
+    function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
+    function statusLabel() {
+      if (isDemo) return 'Démonstration — données fictives.';
+      if (source === 'file') return 'Analyse du fichier fourni ; la complétude de l’historique dépend de cet export.';
+      if (!state || state.phase === 'idle') return 'Import non démarré.';
+      if (state.phase === 'done') return `Pagination API terminée : ${fmt(state.count)} check-ins importés.${state.profile?.expected && state.count !== state.profile.expected ? ` Le profil annonce ${fmt(state.profile.expected)} check-ins : écart à vérifier.` : ''}`;
+      return `Historique partiel : ${fmt(state.count)} check-ins importés. ${state.phase === 'details' ? `Enrichissement des échanges : ${fmt(state.details_done)} / ${fmt(state.count)}.` : 'Import en cours ou en pause.'}`;
+    }
+    function progress() {
+      $('.uat-progress').hidden = !state || source !== 'api';
+      if (!state) return;
+      $('[data-progress-text]').textContent = statusLabel();
+      $('[data-progress-sub]').textContent = state.retry_at > Date.now() / 1000 ? `Quota atteint. Reprise possible à ${new Date(state.retry_at * 1000).toLocaleString('fr-FR')}.` : 'La progression est conservée dans cette session pendant 24 heures.';
+      action('pause').hidden = !running; action('resume').hidden = running || state.phase === 'done' || state.phase === 'idle';
+    }
+    async function api(path, data, method = 'POST') {
+      const res = await fetch(config.api + path, {method, credentials: 'same-origin', headers: {'Content-Type': 'application/json', ...(token ? {'X-UAT-Session': token} : {})}, ...(method === 'GET' ? {} : {body: JSON.stringify(data || {})})});
+      let payload; try { payload = await res.json(); } catch (_) { throw new Error('Le serveur n’a pas renvoyé de JSON. Vérifiez les permaliens WordPress et le pare-feu du site.'); }
+      if (!res.ok) { if (res.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } const error = new Error(payload.message || 'La requête a échoué.'); error.code = payload.code; error.retryAt = payload.data?.retry_at; error.status = res.status; throw error; }
+      return payload;
+    }
+    async function session() {
+      if (token) return;
+      const res = await api('session'); token = res.session;
+      try { sessionStorage.setItem(storageKey, token); } catch (_) { /* Current tab only. */ }
+    }
+    function merge(rawItems) { rawItems.forEach(r => { const n = C.normalize(r, rawMap.size); if (n) rawMap.set(n.id, n); }); items = [...rawMap.values()]; }
+    function refreshStyles() {
+      const prior = field('style').value;
+      field('style').innerHTML = '<option value="">Tous les styles</option>' + [...new Set(items.map(r => r.style))].sort().map(st => `<option value="${esc(st)}">${esc(st)}</option>`).join('');
+      field('style').value = prior;
+    }
+    function setData(data, nextSource, nextProfile, demo = false) {
+      items = data; source = nextSource; profile = nextProfile; isDemo = demo;
+      field('from').value = ''; field('to').value = ''; field('style').value = '';
+      refreshStyles(); render(); progress();
+    }
+    function render() {
+      $('.uat-report').hidden = !items.length; $('.uat-onboard').hidden = !!items.length;
+      $('.uat-demo-notice').hidden = !isDemo;
+      if (!items.length) { currentStats = null; return; }
+      const opts = options();
+      if (opts.from && opts.to && opts.from > opts.to) { notify('La date de début doit précéder la date de fin.', 'error'); return; }
+      const s = currentStats = C.analyze(items, opts), grain = field('grain').value;
+      const years = s.first ? Number(s.last.local.year) - Number(s.first.local.year) + 1 : 0;
+      context = {profile, years, years_label: fmt(years) + (years === 1 ? ' année' : ' années'), count: fmt(s.total), rated: fmt(s.rated), median: fmt(s.median, 2), styles: fmt(s.styles.length), breweries: fmt(s.uniqueBreweries), beers: fmt(s.uniqueBeers), venues: fmt(s.venues.length), timezone: s.timezone};
+      $('[data-source]').textContent = isDemo ? 'EXEMPLE FICTIF / 2021 — 2025' : (source === 'file' ? 'HISTORIQUE IMPORTÉ / ' : 'PROFIL UNTAPPD / ') + profile;
+      $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
+      const metric = (n, label, small = '') => `<div class="uat-kpi"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
+      const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
+      const card = (title, sub, content, cls = '') => `<article class="uat-card ${cls}"><h3>${safe(title)}</h3><p>${safe(sub)}</p>${content}</article>`;
+      const callout = (number, label, value, sub) => `<div class="uat-callout"><h3><span class="uat-number">${number}</span>${safe(label)}</h3><strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
+      const yearlyCards = s.yearlyWinners.map(r => `<div class="uat-year"><strong>${r.year}</strong><i style="background:${colors[Math.max(0, s.styles.findIndex(x => x.key === r.style)) % colors.length]}"></i><span>${esc(r.style)}</span><small>${fmt(r.count)} check-ins</small></div>`).join('');
+      const allUnknown = (total, unknown, value) => unknown === total && total > 0 ? '—' : fmt(value);
+      const coverage = `<section class="uat-coverage"><h3>Ce que racontent ces données</h3><p>${esc(statusLabel())}</p><p>${fmt(s.photoUnknown)} check-ins sans information photo · ${fmt(s.commentsUnknown)} sans total de commentaires · ${fmt(s.toastsUnknown)} sans total de toasts.</p><p>${s.commentersComplete ? 'Les auteurs de tous les commentaires des check-ins sélectionnés sont identifiés.' : 'Les auteurs distincts représentent un minimum observé : Untappd ou le fichier peut ne fournir qu’une partie des identités.'}</p><p>Les champs absents restent inconnus. Les notes à zéro sont considérées non notées. Sans identifiant, les bières et brasseries sont regroupées par nom ; des homonymes peuvent se confondre. Les dates sans fuseau sont interprétées en UTC.</p></section>`;
+      $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), t('kpi_checkins'), `${fmt(s.rated)} notés · ${fmt(s.unrated)} non notés`)}${metric(fmt(s.uniqueBeers), t('kpi_beers'), fmt(s.ratedUniqueBeers) + ' avec une note')}${metric(fmt(s.uniqueBreweries), t('kpi_breweries'), fmt(s.ratedUniqueBreweries) + ' avec une note')}${metric(fmt(s.average, 2), t('kpi_average'), 'Sur les check-ins notés')}</div>
+        <p class="uat-ring-description">${h('ring_description')} ${s.first ? `${dayLabel(s.first.local.day)} — ${dayLabel(s.last.local.day)}.` : ''}</p>
+        <div class="uat-vinyl-layout"><aside class="uat-callouts">${callout(1, t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}</aside><div class="uat-ring">${ring(s, texts)}</div><aside class="uat-callouts">${callout(2, t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day))}</aside></div>
+        <div class="uat-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:var(--uat-other)"></i>Autres styles</span>' : ''}</div>
+        <div class="uat-section-head"><h3>${h('rhythm_title')}</h3><p>${h('rhythm_subtitle')}</p></div><div class="uat-card-grid">${card(t('heat_title'), t('heat_subtitle'), `<div class="uat-chart">${heat(s)}</div>`)}${card(t('styles_time_title'), t('styles_time_subtitle'), `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card(t('ratings_title'), t('ratings_subtitle'), `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card(t('activity_title'), t('activity_subtitle'), `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card(t('average_title'), t('average_subtitle'), `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card(t('venues_title'), t('venues_subtitle'), ranking(s.venues, 6, 'var(--uat-series-2)'))}</div>
+        <div class="uat-section-head"><h3>${h('favorites_title')}</h3><p>${h('favorites_subtitle')}</p></div><div class="uat-card-grid">${card(t('styles_title'), t('styles_subtitle'), ranking(s.styles, 8, colors))}${card(t('breweries_title'), t('breweries_subtitle'), ranking(s.breweries, 8, 'var(--uat-series-2)'))}${card(t('beers_title'), t('beers_subtitle'), ranking(s.beers, 8, 'var(--uat-series-3)'))}</div>
+        <div class="uat-section-head"><h3>${h('social_title')}</h3><p>${h('social_subtitle')}</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
+        <div class="uat-section-head"><h3>${h('details_title')}</h3></div><div class="uat-card-grid">${card(t('commenters_title'), t('commenters_subtitle'), ranking(s.commenters, 7, 'var(--uat-accent)'))}${card(t('countries_title'), t('countries_subtitle'), ranking(s.countries, 7, 'var(--uat-series-5)'))}${card(t('servings_title'), t('servings_subtitle'), ranking(s.servings, 7, 'var(--uat-series-4)'))}</div>
+        <div class="uat-section-head"><h3>${h('yearly_title')}</h3></div><div class="uat-year-grid">${yearlyCards || '<p class="uat-empty">Aucune donnée.</p>'}</div>${coverage}
+        <details class="uat-details"><summary>${h('periods_title')}</summary><div class="uat-table-wrap"><table><thead><tr><th>Période</th><th>Check-ins</th><th>Bières uniques</th><th>Notés</th><th>Moyenne / 5</th><th>Avec photo</th><th>Commentaires connus</th></tr></thead><tbody>${s.periods(grain).map(r => `<tr><td>${esc(r.key)}</td><td>${fmt(r.count)}</td><td>${fmt(r.beers)}</td><td>${fmt(r.rated)}</td><td>${fmt(r.average, 2)}</td><td>${r.photosKnown < r.count ? '≥ ' : ''}${fmt(r.photos)}</td><td>${r.commentsKnown < r.count ? '≥ ' : ''}${fmt(r.comments)}</td></tr>`).join('')}</tbody></table></div></details>
+        <details class="uat-details"><summary>${h('history_title')}</summary><p class="uat-subtle">${h('history_subtitle')}</p><div class="uat-table-wrap"><table><thead><tr><th>Date locale</th><th>Bière</th><th>Brasserie</th><th>Style</th><th>Note / 5</th><th>Photos</th><th>Commentaires</th></tr></thead><tbody>${s.rows.slice(0, 500).map(r => `<tr><td>${esc(r.local.day)} ${r.local.hour}:${String(r.local.minute).padStart(2, '0')}</td><td>${esc(r.beer)}</td><td>${esc(r.brewery)}</td><td>${esc(r.style)}</td><td>${fmt(r.rating, 2)}</td><td>${fmt(r.photos)}</td><td>${fmt(r.commentsCount)}</td></tr>`).join('')}</tbody></table></div></details>`;
+      progress();
+    }
+    async function loop() {
+      if (running || pending || !state || !['feed', 'details'].includes(state.phase)) return;
+      running = true; const version = ++generation; busy(true); progress();
+      try {
+        while (running && version === generation && ['feed', 'details'].includes(state.phase)) {
+          if (state.retry_at > Date.now() / 1000) { notify(`Quota API atteint. Reprise possible à ${new Date(state.retry_at * 1000).toLocaleString('fr-FR')}.`); break; }
+          const res = await api('step');
+          state = res.state; merge(res.items || []); refreshStyles(); render(); progress();
+          if (!running || version !== generation || state.phase === 'done') break;
+          await new Promise(resolve => setTimeout(resolve, 450));
+        }
+        if (state.phase === 'done') notify('Import terminé. Vos statistiques et exports sont prêts. Consultez la couverture des données en bas du rapport.', 'success');
+      } catch (error) {
+        if (error.retryAt) state.retry_at = error.retryAt;
+        notify(error.message, 'error');
+      } finally { running = false; busy(false); progress(); }
+    }
+    $('.uat-import-top').addEventListener('submit', async event => {
+      event.preventDefault(); if (pending) return;
+      if (!config.configured) { notify('L’administrateur doit renseigner les clés API dans Réglages → Untappd Atlas. Vous pouvez importer votre export CSV/JSON dès maintenant.'); return; }
+      busy(true); notify('Vérification du profil auprès d’Untappd…');
+      try {
+        await session(); const res = await api('start', {profile: field('profile').value.trim(), enrich: $('[data-enrich]').checked});
+        rawMap = new Map(); state = res.state;
+        setData([], 'api', state.profile.username); notify('Import de votre historique…');
+        busy(false); await loop();
+      } catch (error) { if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } notify(error.message, 'error'); busy(false); }
+    });
+    $('.uat-file input').addEventListener('change', async event => {
+      const file = event.target.files[0]; if (!file || pending) return;
+      if (file.size > 50 * 1024 * 1024) { notify('Le fichier dépasse 50 Mo. Réduisez-le ou utilisez l’import API.', 'error'); return; }
+      busy(true); notify('Analyse du fichier dans votre navigateur…');
+      try {
+        const result = C.parse(await file.text(), file.name);
+        setData(result.items, 'file', file.name);
+        notify(`${fmt(result.items.length)} check-ins importés. ${result.duplicates} doublons par identifiant écartés. ${result.invalid} lignes ignorées (date ou nom de bière absent/invalide).${result.missingIds ? ` ${result.missingIds} lignes sans ID : conservées sans déduplication.` : ''}`, result.invalid ? 'info' : 'success');
+      } catch (error) { notify(error.message, 'error'); } finally { busy(false); event.target.value = ''; }
+    });
+    action('demo').addEventListener('click', () => { if (pending) return; notify(''); setData(C.demo(), 'demo', 'Démonstration', true); });
+    action('pause').addEventListener('click', () => { running = false; notify('Pause demandée. La requête en cours sera enregistrée avant l’arrêt.'); progress(); });
+    action('resume').addEventListener('click', () => { notify(''); loop(); });
+    action('reset').addEventListener('click', () => { field('from').value = ''; field('to').value = ''; field('style').value = ''; notify(''); render(); });
+    $('.uat-filters').addEventListener('change', () => { notify(''); render(); });
+    async function eraseData() {
+      if (pending) { running = false; notify('La requête en cours doit se terminer. Cliquez ensuite sur Effacer.'); return; }
+      busy(true);
+      try { if (token) await api('erase'); token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} state = null; rawMap = new Map(); setData([], '', ''); notify('Les données et le jeton de cette session ont été effacés.', 'success'); }
+      catch (error) { notify(error.message, 'error'); } finally { busy(false); }
+    }
+    action('erase').addEventListener('click', eraseData);
+    action('clear').addEventListener('click', eraseData);
+    action('oauth').addEventListener('click', async () => {
+      if (pending) return; busy(true);
+      try { await session(); const clean = new URL(location.href); clean.hash = ''; const res = await api('oauth', {return: clean.href}); location.assign(res.url); }
+      catch (error) { notify(error.message, 'error'); busy(false); }
+    });
+    function meta() { return {texts, variables: {...context}, profile, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : 'API Untappd', status: statusLabel(), ...options(), grain: field('grain').value}; }
+    for (const type of ['xlsx', 'png']) action(type).addEventListener('click', async () => {
+      if (!currentStats) return;
+      const button = action(type); button.disabled = true;
+      try {
+        if (options().from && options().to && options().from > options().to) throw new Error('Corrigez les dates avant d’exporter.');
+        notify(type === 'png' ? 'Création de votre affiche PNG…' : 'Création du classeur Excel…');
+        await new Promise(resolve => setTimeout(resolve, 20));
+        const blob = type === 'xlsx' ? E.xlsx(currentStats, meta()) : await E.png(window.UATTheme.inlineSvg(poster(currentStats, meta()), app));
+        E.download(blob, `untappd-atlas${isDemo ? '-DEMO' : ''}-${new Date().toISOString().slice(0, 10)}.${type}`); notify('Votre export est prêt.', 'success');
+      } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
+    });
+    // Exposed rendering helper is useful for standalone previews and export verification.
+    window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster};
+    if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
+    if (token) (async () => {
+      busy(true);
+      try {
+        const res = await api('status', null, 'GET'); state = res.state; merge(res.items || []);
+        const connected = location.hash === '#uat-connected';
+        if (connected || location.hash === '#uat-denied') history.replaceState(null, '', location.pathname + location.search);
+        if (connected && state.connected_username) field('profile').value = state.connected_username;
+        if (items.length) setData(items, 'api', state.profile?.username || 'Profil Untappd');
+        else progress();
+        if (connected) notify('Connexion Untappd autorisée. Cliquez sur Créer mes statistiques pour démarrer.', 'success');
+        else if (state.phase !== 'idle' && state.phase !== 'done') notify('Votre import précédent est disponible. Cliquez sur Reprendre pour continuer.');
+      } catch (error) { if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } else notify(error.message, 'error'); }
+      finally { busy(false); }
+    })();
+  }
+})();

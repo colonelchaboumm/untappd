@@ -1,0 +1,7 @@
+test-artifacts/
+node_modules/
+.env
+.env.*
+*.log
+*.zip
+preview.html
