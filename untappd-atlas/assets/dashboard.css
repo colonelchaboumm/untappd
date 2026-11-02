@@ -13,3 +13,5 @@
 .uat-app h1,.uat-app h2,.uat-app h3{color:var(--uat-heading)}
 .uat-demo-notice{color:var(--uat-demo-text)}
 .uat-app input::placeholder{color:var(--uat-subtle);opacity:1}
+
+.uat-badge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px;margin:18px 0 30px}.uat-badge{display:flex;gap:14px;align-items:center;background:var(--uat-surface);border:1px solid var(--uat-surface-border);border-radius:14px;padding:16px;min-width:0}.uat-badge img{object-fit:contain;flex:0 0 64px}.uat-badge strong{overflow-wrap:anywhere}.uat-badge p{font-size:12px;color:var(--uat-muted);margin-top:5px!important}.uat-badge-icon{font-size:38px;flex:0 0 64px;text-align:center}

@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/core.test.js tests/theme.test.js tests/content.test.js
+      - run: node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js
       - run: node --check untappd-atlas/assets/dashboard.js
       - run: node --check untappd-atlas/assets/export.js
       - run: node --check untappd-atlas/assets/theme.js
@@ -33,4 +33,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/build-package.py
-      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.2.1.zip
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.3.0.zip

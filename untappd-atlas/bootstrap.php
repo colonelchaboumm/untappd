@@ -2,10 +2,11 @@
 // Shared bootstrap. The single WordPress plugin header lives in the root entry point.
 defined('ABSPATH') || exit;
 if (defined('UAT_VERSION')) { return; }
-define('UAT_VERSION', '1.2.1');
+define('UAT_VERSION', '1.3.0');
 if (!defined('UAT_MAIN_FILE')) { define('UAT_MAIN_FILE', __FILE__); }
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
+require_once __DIR__ . '/includes/class-uat-public.php';
 require_once __DIR__ . '/includes/class-uat-theme.php';
 require_once __DIR__ . '/includes/class-uat-content.php';
 
@@ -69,7 +70,7 @@ function uat_settings() {
     ?>
     <div class="wrap"><h1>Untappd Atlas</h1>
     <p>Ajoutez le shortcode <code>[untappd_atlas]</code> à la page de votre choix. Les visiteurs y importent leur profil et consultent leurs statistiques.</p>
-    <p>L’import CSV/JSON fonctionne sans API. L’import par lien et OAuth nécessitent des identifiants d’application autorisés par Untappd.</p>
+    <p>Sans clés API, le bouton lit uniquement les pages publiques accessibles. L’historique ancien et le catalogue de badges peuvent être masqués par Untappd. Une connexion OAuth complète nécessite toujours une application autorisée.</p>
     <form method="post" action="options.php"><?php settings_fields('uat_settings'); ?>
     <table class="form-table"><tr><th><label for="uat-id">Client ID</label></th><td><input class="regular-text" id="uat-id" name="uat_credentials[id]" value="<?php echo esc_attr($c['id'] ?? ''); ?>" autocomplete="off"></td></tr>
     <tr><th><label for="uat-secret">Client Secret</label></th><td><input class="regular-text" type="password" id="uat-secret" name="uat_credentials[secret]" autocomplete="new-password" placeholder="<?php echo !empty($c['secret']) ? 'Déjà enregistré — laisser vide pour conserver' : ''; ?>"><p><label><input type="checkbox" name="uat_credentials[clear]" value="1"> Effacer le secret enregistré</label></p></td></tr>

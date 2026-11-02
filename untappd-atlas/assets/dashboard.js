@@ -106,9 +106,13 @@
     const max = Math.max(1, rows[0].count);
     return rows.slice(0, maxRows).map((r, i) => `<div class="uat-rank"><span>${String(i + 1).padStart(2, '0')}</span><div><strong title="${esc(r.label)}">${esc(r.label)}</strong><div class="uat-track"><i style="width:${r.count / max * 100}%;background:${Array.isArray(color) ? color[i % color.length] : color}"></i></div></div><b>${fmt(r.count)}</b></div>`).join('');
   }
+  function badgeTiles(s) {
+    if (!s.badges.length) return '<p class="uat-empty">Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.</p>';
+    return s.badges.slice(0, 100).map(b => `<article class="uat-badge">${C.badgeImage(b.image) ? `<img src="${esc(C.badgeImage(b.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" width="64" height="64">` : '<span class="uat-badge-icon" aria-hidden="true">🏅</span>'}<div><strong>${esc(b.label)}</strong><p>${b.level == null ? 'Niveau non renseigné' : `Niveau ${fmt(b.level)} observé`} · ${fmt(b.count)} obtention(s) observée(s)</p></div></article>`).join('') + (s.badges.length > 100 ? '<p class="uat-subtle">100 premiers badges affichés ; liste complète dans Excel.</p>' : '');
+  }
   function poster(s, meta) {
     const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
-    const W = 1800, H = 3410; let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
+    const W = 1800, H = 3660; let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
     const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;
     const embed = (chart, x, y, w) => chart.replace('<svg ', `<svg x="${x}" y="${y}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${w * Number(chart.match(/viewBox="0 0 \d+ (\d+)"/)[1]) / Number(chart.match(/viewBox="0 0 (\d+)/)[1])}"`);
     out += text(80, 70, short(t('brand') + ' / ' + t('tagline'), 140), 15, 'var(--uat-ink)', 700);
@@ -133,11 +137,14 @@
     winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, 'var(--uat-ink)', 800) + `<rect x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5" fill="${colors[s.styles.findIndex(st => st.key === r.style) % colors.length]}"/>` + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, `${fmt(r.count)} check-ins`, 12); });
     out += text(80, 3110, 'COUVERTURE DES DONNÉES', 14, 'var(--uat-heading)', 700);
     [meta.status || 'Analyse du fichier fourni.', `${s.photoUnknown} check-ins sans information photo ; ${s.commentsUnknown} sans total de commentaires ; ${s.toastsUnknown} sans total de toasts.`, s.commentersComplete ? 'Auteurs des commentaires : liste complète dans les données importées.' : 'Auteurs des commentaires : minimum observé. Les listes fournies peuvent être partielles.', 'Les champs absents ne sont pas assimilés à zéro. Statistiques limitées aux données importées et aux filtres.', 'Identités sans ID regroupées par nom. Notes à zéro considérées non notées. Dates sans fuseau interprétées en UTC.', 'Le fichier Excel contient les tableaux détaillés, les périodes, les classements et les check-ins.'].forEach((line, i) => { out += text(80, 3147 + i * 29, short(line, 150), 15); });
-    out += `<path d="M80 3340H1720" stroke="var(--uat-border)"/>` + text(80, 3373, short(t('footer_left'), 140), 13) + text(1720, 3373, short(t('brand'), 36), 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
+    out += panel(80, 3320, 1640, 190) + text(105, 3355, short(t('badges_title'), 70), 24, 'var(--uat-heading)', 800);
+    out += text(105, 3380, s.badgesUnknown === s.total ? 'Badges non renseignés dans les données importées.' : `${fmt(s.badges.length)} badges distincts observés · ${fmt(s.badgeAwards)} obtentions connues · ${fmt(s.badgesUnknown)} check-ins non renseignés`, 15);
+    s.badges.slice(0, 6).forEach((b, i) => { out += text(105 + i % 3 * 535, 3425 + Math.floor(i / 3) * 35, short(b.label, 35) + (b.level == null ? '' : ` · niv. ${b.level}`), 16, 'var(--uat-ink)'); });
+    out += `<path d="M80 3580H1720" stroke="var(--uat-border)"/>` + text(80, 3613, short(t('footer_left'), 140), 13) + text(1720, 3613, short(t('brand'), 36), 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
     return svg(W, H, out, 'Rapport Untappd Atlas');
   }
 
-  window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster};
+  window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
   function boot(scope = document) {
     if (scope.matches?.('.uat-app')) mount(scope);
     scope.querySelectorAll('.uat-app').forEach(mount);
@@ -163,9 +170,9 @@
     const zones = [...new Set([zone, Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Paris', 'Europe/Brussels', 'Europe/London', 'America/Montreal', 'America/New_York', 'UTC'].filter(Boolean))];
     app.innerHTML = `<header class="uat-topline"><div class="uat-brand"><i class="uat-logo" aria-hidden="true"></i> ${h('brand')}</div><small>${h('tagline')}</small><span>${h('top_note')}</span></header>
       <section class="uat-intro"><h2>${h('hero_title')}</h2><p>${h('hero_subtitle')}</p></section>
-      <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field"><span>${h('profile_label')}</span><input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary">${h('connect_button')}</button></form>
-      <div class="uat-import-bottom"><label><input type="checkbox" data-enrich> Approfondir les commentaires et les toasts <span title="Un appel API supplémentaire par check-in. Les identités peuvent rester partielles.">ⓘ</span></label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
-      <p class="uat-import-help">${config.configured ? 'L’import par lien utilise l’API Untappd configurée sur ce site. La connexion permet d’autoriser l’accès à votre compte.' : 'L’import par lien et la connexion nécessitent des clés API configurées par l’administrateur. L’import d’un export CSV/JSON fonctionne dès maintenant.'} Les fichiers sont analysés dans votre navigateur. Les imports API sont conservés 24 h et peuvent être effacés ici.</p></section>
+      <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field"><span>${h('profile_label')}</span><input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
+      <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> Approfondir les commentaires et les toasts <span title="Un appel API supplémentaire par check-in. Les identités peuvent rester partielles.">ⓘ</span></label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
+      <p class="uat-import-help">${config.configured ? 'L’import par lien utilise l’API Untappd configurée sur ce site. La connexion permet d’autoriser l’accès à votre compte.' : 'Sans clé : lecture des pages publiques uniquement. Untappd peut masquer l’historique ancien et les badges. Aucune connexion à votre compte n’est effectuée.'} Les fichiers sont analysés dans votre navigateur. Les imports par profil sont conservés 24 h et peuvent être effacés ici.</p></section>
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">Pause</button><button data-action="resume" type="button">Reprendre</button><button class="uat-secondary" data-action="erase" type="button">Effacer</button></div></section>
       <section class="uat-report" hidden><div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons"><button type="button" class="uat-text-button" data-action="clear">Effacer mes données</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
@@ -180,6 +187,7 @@
     function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
     function statusLabel() {
       if (isDemo) return 'Démonstration — données fictives.';
+      if (state?.source === 'public' && source === 'api') return `Lecture publique : ${fmt(state.count)} check-ins importés${state.profile?.expected != null ? ` sur ${fmt(state.profile.expected)} annoncés par le profil` : ''}. ${state.phase === 'done' ? 'Lecture des pages accessibles terminée.' : 'Lecture des informations de bière en cours.'} ${state.public_complete ? '' : 'HISTORIQUE PARTIEL. '}Aucun accès aux données réservées à la connexion Untappd.`;
       if (source === 'file') return 'Analyse du fichier fourni ; la complétude de l’historique dépend de cet export.';
       if (!state || state.phase === 'idle') return 'Import non démarré.';
       if (state.phase === 'done') return `Pagination API terminée : ${fmt(state.count)} check-ins importés.${state.profile?.expected && state.count !== state.profile.expected ? ` Le profil annonce ${fmt(state.profile.expected)} check-ins : écart à vérifier.` : ''}`;
@@ -222,8 +230,8 @@
       if (opts.from && opts.to && opts.from > opts.to) { notify('La date de début doit précéder la date de fin.', 'error'); return; }
       const s = currentStats = C.analyze(items, opts), grain = field('grain').value;
       const years = s.first ? Number(s.last.local.year) - Number(s.first.local.year) + 1 : 0;
-      context = {profile, years, years_label: fmt(years) + (years === 1 ? ' année' : ' années'), count: fmt(s.total), rated: fmt(s.rated), median: fmt(s.median, 2), styles: fmt(s.styles.length), breweries: fmt(s.uniqueBreweries), beers: fmt(s.uniqueBeers), venues: fmt(s.venues.length), timezone: s.timezone};
-      $('[data-source]').textContent = isDemo ? 'EXEMPLE FICTIF / 2021 — 2025' : (source === 'file' ? 'HISTORIQUE IMPORTÉ / ' : 'PROFIL UNTAPPD / ') + profile;
+      context = {profile, years, years_label: fmt(years) + (years === 1 ? ' année' : ' années'), count: fmt(s.total), rated: fmt(s.rated), median: fmt(s.median, 2), styles: fmt(s.styles.length), breweries: fmt(s.uniqueBreweries), beers: fmt(s.uniqueBeers), venues: fmt(s.venues.length), badges: fmt(s.badges.length), badge_awards: fmt(s.badgeAwards), timezone: s.timezone};
+      $('[data-source]').textContent = isDemo ? 'EXEMPLE FICTIF / 2021 — 2025' : (source === 'file' ? 'HISTORIQUE IMPORTÉ / ' : (state?.source === 'public' ? 'PROFIL PUBLIC / ' : 'PROFIL UNTAPPD / ')) + profile;
       $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
       const metric = (n, label, small = '') => `<div class="uat-kpi"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
       const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
@@ -231,14 +239,16 @@
       const callout = (number, label, value, sub) => `<div class="uat-callout"><h3><span class="uat-number">${number}</span>${safe(label)}</h3><strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
       const yearlyCards = s.yearlyWinners.map(r => `<div class="uat-year"><strong>${r.year}</strong><i style="background:${colors[Math.max(0, s.styles.findIndex(x => x.key === r.style)) % colors.length]}"></i><span>${esc(r.style)}</span><small>${fmt(r.count)} check-ins</small></div>`).join('');
       const allUnknown = (total, unknown, value) => unknown === total && total > 0 ? '—' : fmt(value);
-      const coverage = `<section class="uat-coverage"><h3>Ce que racontent ces données</h3><p>${esc(statusLabel())}</p><p>${fmt(s.photoUnknown)} check-ins sans information photo · ${fmt(s.commentsUnknown)} sans total de commentaires · ${fmt(s.toastsUnknown)} sans total de toasts.</p><p>${s.commentersComplete ? 'Les auteurs de tous les commentaires des check-ins sélectionnés sont identifiés.' : 'Les auteurs distincts représentent un minimum observé : Untappd ou le fichier peut ne fournir qu’une partie des identités.'}</p><p>Les champs absents restent inconnus. Les notes à zéro sont considérées non notées. Sans identifiant, les bières et brasseries sont regroupées par nom ; des homonymes peuvent se confondre. Les dates sans fuseau sont interprétées en UTC.</p></section>`;
+      const badgeKnown = s.badgesUnknown < s.total;
+      const badgeSection = `<div class="uat-section-head"><h3>${h('badges_title')}</h3><p>${h('badges_subtitle')}</p></div><div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), 'Minimum observé')}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), 'Niveaux successifs inclus si fournis')}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), 'Absence de champ : inconnu, jamais zéro')}${mini(state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), 'Total du profil, hors filtres ; catalogue parfois masqué')}</div><div class="uat-badge-grid">${badgeTiles(s)}</div>`;
+      const coverage = `<section class="uat-coverage"><h3>Ce que racontent ces données</h3><p>${esc(statusLabel())}</p><p>${fmt(s.photoUnknown)} check-ins sans information photo · ${fmt(s.commentsUnknown)} sans total de commentaires · ${fmt(s.toastsUnknown)} sans total de toasts.</p><p>${state?.source === 'public' && source === 'api' ? `Badges annoncés par le profil : ${state.profile?.expected_badges == null ? 'inconnus' : fmt(state.profile.expected_badges)}. Le catalogue complet exige une connexion Untappd ; seules les obtentions visibles sont listées ici.` : 'Les badges sont limités aux champs fournis dans le fichier ou les réponses importées.'}</p><p>${s.commentersComplete ? 'Les auteurs de tous les commentaires des check-ins sélectionnés sont identifiés.' : 'Les auteurs distincts représentent un minimum observé : Untappd ou le fichier peut ne fournir qu’une partie des identités.'}</p><p>Les champs absents restent inconnus. Les notes à zéro sont considérées non notées. Sans identifiant, les bières et brasseries sont regroupées par nom ; des homonymes peuvent se confondre. Les dates sans fuseau sont interprétées en UTC.</p></section>`;
       $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), t('kpi_checkins'), `${fmt(s.rated)} notés · ${fmt(s.unrated)} non notés`)}${metric(fmt(s.uniqueBeers), t('kpi_beers'), fmt(s.ratedUniqueBeers) + ' avec une note')}${metric(fmt(s.uniqueBreweries), t('kpi_breweries'), fmt(s.ratedUniqueBreweries) + ' avec une note')}${metric(fmt(s.average, 2), t('kpi_average'), 'Sur les check-ins notés')}</div>
         <p class="uat-ring-description">${h('ring_description')} ${s.first ? `${dayLabel(s.first.local.day)} — ${dayLabel(s.last.local.day)}.` : ''}</p>
         <div class="uat-vinyl-layout"><aside class="uat-callouts">${callout(1, t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}</aside><div class="uat-ring">${ring(s, texts)}</div><aside class="uat-callouts">${callout(2, t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day))}</aside></div>
         <div class="uat-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:var(--uat-other)"></i>Autres styles</span>' : ''}</div>
         <div class="uat-section-head"><h3>${h('rhythm_title')}</h3><p>${h('rhythm_subtitle')}</p></div><div class="uat-card-grid">${card(t('heat_title'), t('heat_subtitle'), `<div class="uat-chart">${heat(s)}</div>`)}${card(t('styles_time_title'), t('styles_time_subtitle'), `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card(t('ratings_title'), t('ratings_subtitle'), `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card(t('activity_title'), t('activity_subtitle'), `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card(t('average_title'), t('average_subtitle'), `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card(t('venues_title'), t('venues_subtitle'), ranking(s.venues, 6, 'var(--uat-series-2)'))}</div>
         <div class="uat-section-head"><h3>${h('favorites_title')}</h3><p>${h('favorites_subtitle')}</p></div><div class="uat-card-grid">${card(t('styles_title'), t('styles_subtitle'), ranking(s.styles, 8, colors))}${card(t('breweries_title'), t('breweries_subtitle'), ranking(s.breweries, 8, 'var(--uat-series-2)'))}${card(t('beers_title'), t('beers_subtitle'), ranking(s.beers, 8, 'var(--uat-series-3)'))}</div>
-        <div class="uat-section-head"><h3>${h('social_title')}</h3><p>${h('social_subtitle')}</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
+        ${badgeSection}<div class="uat-section-head"><h3>${h('social_title')}</h3><p>${h('social_subtitle')}</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
         <div class="uat-section-head"><h3>${h('details_title')}</h3></div><div class="uat-card-grid">${card(t('commenters_title'), t('commenters_subtitle'), ranking(s.commenters, 7, 'var(--uat-accent)'))}${card(t('countries_title'), t('countries_subtitle'), ranking(s.countries, 7, 'var(--uat-series-5)'))}${card(t('servings_title'), t('servings_subtitle'), ranking(s.servings, 7, 'var(--uat-series-4)'))}</div>
         <div class="uat-section-head"><h3>${h('yearly_title')}</h3></div><div class="uat-year-grid">${yearlyCards || '<p class="uat-empty">Aucune donnée.</p>'}</div>${coverage}
         <details class="uat-details"><summary>${h('periods_title')}</summary><div class="uat-table-wrap"><table><thead><tr><th>Période</th><th>Check-ins</th><th>Bières uniques</th><th>Notés</th><th>Moyenne / 5</th><th>Avec photo</th><th>Commentaires connus</th></tr></thead><tbody>${s.periods(grain).map(r => `<tr><td>${esc(r.key)}</td><td>${fmt(r.count)}</td><td>${fmt(r.beers)}</td><td>${fmt(r.rated)}</td><td>${fmt(r.average, 2)}</td><td>${r.photosKnown < r.count ? '≥ ' : ''}${fmt(r.photos)}</td><td>${r.commentsKnown < r.count ? '≥ ' : ''}${fmt(r.comments)}</td></tr>`).join('')}</tbody></table></div></details>
@@ -246,17 +256,17 @@
       progress();
     }
     async function loop() {
-      if (running || pending || !state || !['feed', 'details'].includes(state.phase)) return;
+      if (running || pending || !state || !['feed', 'details', 'public_beers'].includes(state.phase)) return;
       running = true; const version = ++generation; busy(true); progress();
       try {
-        while (running && version === generation && ['feed', 'details'].includes(state.phase)) {
+        while (running && version === generation && ['feed', 'details', 'public_beers'].includes(state.phase)) {
           if (state.retry_at > Date.now() / 1000) { notify(`Quota API atteint. Reprise possible à ${new Date(state.retry_at * 1000).toLocaleString('fr-FR')}.`); break; }
           const res = await api('step');
           state = res.state; merge(res.items || []); refreshStyles(); render(); progress();
           if (!running || version !== generation || state.phase === 'done') break;
-          await new Promise(resolve => setTimeout(resolve, 450));
+          await new Promise(resolve => setTimeout(resolve, state.source === 'public' ? 1100 : 450));
         }
-        if (state.phase === 'done') notify('Import terminé. Vos statistiques et exports sont prêts. Consultez la couverture des données en bas du rapport.', 'success');
+        if (state.phase === 'done') notify(state.source === 'public' ? statusLabel() : 'Import terminé. Vos statistiques et exports sont prêts.', state.source === 'public' && !state.public_complete ? 'info' : 'success');
       } catch (error) {
         if (error.retryAt) state.retry_at = error.retryAt;
         notify(error.message, 'error');
@@ -264,12 +274,11 @@
     }
     $('.uat-import-top').addEventListener('submit', async event => {
       event.preventDefault(); if (pending) return;
-      if (!config.configured) { notify('L’administrateur doit renseigner les clés API dans Réglages → Untappd Atlas. Vous pouvez importer votre export CSV/JSON dès maintenant.'); return; }
       busy(true); notify('Vérification du profil auprès d’Untappd…');
       try {
-        await session(); const res = await api('start', {profile: field('profile').value.trim(), enrich: $('[data-enrich]').checked});
+        await session(); const res = await api('start', {profile: field('profile').value.trim(), source: config.configured ? 'api' : 'public', enrich: $('[data-enrich]').checked});
         rawMap = new Map(); state = res.state;
-        setData([], 'api', state.profile.username); notify('Import de votre historique…');
+        merge(res.items || []); setData(items, 'api', state.profile.username); notify(state.source === 'public' ? statusLabel() : 'Import de votre historique…');
         busy(false); await loop();
       } catch (error) { if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } notify(error.message, 'error'); busy(false); }
     });
@@ -301,7 +310,7 @@
       try { await session(); const clean = new URL(location.href); clean.hash = ''; const res = await api('oauth', {return: clean.href}); location.assign(res.url); }
       catch (error) { notify(error.message, 'error'); busy(false); }
     });
-    function meta() { return {texts, variables: {...context}, profile, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : 'API Untappd', status: statusLabel(), ...options(), grain: field('grain').value}; }
+    function meta() { return {texts, variables: {...context}, profile, profileBadgesTotal: state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), ...options(), grain: field('grain').value}; }
     for (const type of ['xlsx', 'png']) action(type).addEventListener('click', async () => {
       if (!currentStats) return;
       const button = action(type); button.disabled = true;
@@ -314,7 +323,7 @@
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
     // Exposed rendering helper is useful for standalone previews and export verification.
-    window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster};
+    window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
     if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);

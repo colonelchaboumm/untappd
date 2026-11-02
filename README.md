@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.2.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.2.1.zip)**
+**[Télécharger Untappd Atlas 1.3.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.3.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.2.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.3.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -20,11 +20,11 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 3. Choisir une mise en page large si le thème le permet. Le plugin utilise `alignwide` et s’adapte aussi aux colonnes étroites et aux mobiles.
 4. Sans accès API, importer un fichier CSV/JSON Untappd : l’analyse et les exports fonctionnent entièrement dans le navigateur.
 
-Prérequis : WordPress 6.4+, PHP 8.1+. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
+Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
 ## Textes et typographie — version 1.2.0
 
-Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **65 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères du disque, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **71 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères du disque, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
 
 Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
 
@@ -57,9 +57,23 @@ Le shortcode existant continue de fonctionner. Pour disposer des 52 réglages di
 
 Intégration testée avec **Elementor 4.3.5** sur WordPress 7.1.4 : contrôles natifs, couleurs globales, deux palettes indépendantes sur une même page et export PNG. [Documentation Elementor sur les couleurs globales](https://developers.elementor.com/docs/editor-controls/global-style/).
 
-## Import automatique et connexion Untappd
+## Import par bouton sans API — version 1.3.0
 
-**Un lien public ne suffit pas à obtenir tout l’historique sans accès API.** L’API officielle exige un Client ID et un Client Secret, ou un jeton OAuth. Le plugin ne contourne pas cette exigence et ne récupère pas les pages par scraping.
+Sans identifiants API, le visiteur colle son profil et clique sur **Créer mes statistiques**. Le serveur lit la page publique du profil, importe les check-ins visibles et complète leurs styles, ABV et IBU depuis les pages publiques des bières. Le bouton de connexion et l’option d’approfondissement API sont masqués dans ce mode. Aucun mot de passe, cookie de connexion ou jeton Untappd n’est demandé.
+
+**Ce mode ne peut pas récupérer tout le compte.** Untappd affiche seulement une partie de l’historique aux visiteurs non connectés et réserve le catalogue complet des badges à la connexion. L’autorisation du visiteur sur WordPress ne modifie pas ces restrictions. Le rapport indique le nombre importé et le total annoncé par le profil, signale un **historique partiel**, et affiche séparément le total de badges annoncé et les badges effectivement observés. Aucun contournement de connexion, redirection vers une connexion ou CAPTCHA n’est effectué. Les noms de styles peuvent manquer si Untappd limite aussi une page de bière.
+
+La lecture est plafonnée à 100 pages non mises en cache par heure pour le site. Les pages HTML publiques sont mises en cache pendant une heure ; les données de session restent effaçables et expirent après 24 h. Pause et reprise sont disponibles. La lecture des pages publiques dépend du format HTML et de l’accès accordé par Untappd à l’hébergeur : une modification ou un refus est signalé, sans prétendre que l’import est complet.
+
+## Badges obtenus
+
+Galerie des badges observés (100 premiers à l’écran), noms, images lorsque disponibles, niveau maximal observé, nombre d’obtentions connues et nombre de check-ins sans information badges. Le classement regroupe les niveaux successifs d’un même badge ; les obtentions restent détaillées dans **Badges obtenus** dans Excel. Les tableaux **Badges par jour/semaine/mois/année** suivent la date du check-in. Les champs absents ne deviennent pas zéro ; les totaux partiels sont présentés comme un minimum. Sans identifiant, les badges sont regroupés par nom.
+
+Les formats JSON API `badges.items`, les tableaux de badges et les colonnes CSV `badges` / `badge_names` sont pris en charge. En CSV, plusieurs noms peuvent être séparés par `|` ; un tableau JSON peut aussi être placé dans la cellule. Les champs de titre, sous-titre et compteurs de badges sont personnalisables dans Elementor. Le PNG contient une synthèse textuelle des badges ; les images de badges restent dans la page et ne sont pas incorporées au PNG.
+
+## Import API et connexion Untappd (facultatif)
+
+**Un lien public ne suffit pas à obtenir tout l’historique sans accès API.** L’API officielle exige un Client ID et un Client Secret, ou un jeton OAuth. La connexion OAuth officielle conserve cette exigence. Le mode sans clé décrit ci-dessus lit uniquement les pages HTML publiques et ne donne pas accès au compte connecté.
 
 1. Obtenir des identifiants d’application autorisés par Untappd. La disponibilité et les conditions de cet accès dépendent d’Untappd.
 2. Renseigner le **Client ID** et le **Client Secret** dans **Réglages → Untappd Atlas**.
@@ -85,6 +99,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | Bières et brasseries | Classements par check-ins, bières uniques et moyennes par groupe dans Excel |
 | Photos | Check-ins avec/sans photo, données inconnues et total de photos connu |
 | Textes et échanges | Textes personnels, commentaires sur les check-ins, auteurs distincts observés, commentaires par auteur, toasts connus |
+| Badges | Badges distincts observés, niveaux, obtentions, images disponibles et couverture ; détails et périodes dans Excel |
 | Autres | Lieux, villes dans l’historique, pays des lieux et des brasseries, types de service, degré alcoolique moyen et IBU moyen |
 | Excel seulement | Série de jours actifs, plus grand intervalle entre jours actifs, listes exhaustives, commentaires identifiés et données ligne par ligne |
 
@@ -115,7 +130,7 @@ Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines 
 - OAuth utilise un état aléatoire à usage unique, lié à un cookie HttpOnly/Secure/SameSite=Lax, valable dix minutes.
 - La désinstallation supprime tables, réglages et transients du plugin. Désactiver le plugin conserve les données jusqu’à leur suppression ou à sa réactivation et au nettoyage.
 
-Services externes utilisés par l’import API ou la connexion demandée : `api.untappd.com` et `untappd.com/oauth/`. Aucun suivi analytique ou téléversement de fichiers. Le chargement des polices sélectionnées dans le widget utilise les réglages d’Elementor.
+Services externes utilisés par l’import API ou la connexion demandée : `api.untappd.com` et `untappd.com/oauth/`. Les pages publiques sont lues sur `untappd.com` sans connexion ; les images de badges approuvées sont chargées depuis les domaines Untappd `assets.untappd.com`, `images.untp.beer` ou `untappd.s3.amazonaws.com`. Aucun suivi analytique ou téléversement de fichiers. Le chargement des polices sélectionnées dans le widget utilise les réglages d’Elementor.
 
 ## Développement et validation
 
@@ -128,13 +143,13 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.2.1.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.3.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
 
 ```sh
-node --test tests/core.test.js tests/theme.test.js tests/content.test.js
+node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js
 php -l untappd-atlas.php
 php -l untappd-atlas/bootstrap.php
 php -l untappd-atlas/includes/class-uat-api.php
@@ -149,7 +164,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 couleurs, les 65 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 couleurs, les 71 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 
@@ -160,5 +175,7 @@ node tests/build-preview.js
 Ouvrir `preview.html` dans un navigateur. Ce fichier n’est pas le plugin WordPress ; il sert à examiner le design et tester l’import local et les exports sans configurer de site.
 
 **Limite de validation :** le flux REST a été testé dans WordPress avec des réponses API simulées. La connexion OAuth et les réponses du profil réel nécessitent vos identifiants d’application autorisés ; ils n’ont pas été testés avec un compte Untappd réel.
+
+Le test `php tests/public.php /chemin/vers/wordpress` vérifie le parcours public sans clés avec des pages fictives, les restrictions d’accès et la distinction entre import partiel et historique complet.
 
 Licence : GPL-2.0-or-later. Projet indépendant, sans affiliation avec Untappd.

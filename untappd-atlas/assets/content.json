@@ -1,67 +1,371 @@
 {
-  "brand": {"label":"Nom affiché","default":"UNTAPPD ATLAS","group":"intro"},
-  "tagline": {"label":"Signature","default":"Votre histoire, en sillons.","group":"intro"},
-  "top_note": {"label":"Texte en haut à droite","default":"À chaque bière, son histoire ↗","group":"intro"},
-  "hero_title": {"label":"Titre principal","default":"Chaque bière,\nun nouveau sillon.","group":"intro","multiline":true},
-  "hero_subtitle": {"label":"Sous-titre principal","default":"Vos découvertes, vos habitudes et vos coups de cœur. Tout votre parcours Untappd, réuni sur une seule page.","group":"intro","multiline":true},
-  "profile_label": {"label":"Libellé du profil","default":"Votre profil Untappd","group":"form"},
-  "profile_placeholder": {"label":"Exemple dans le champ de profil","default":"https://untappd.com/user/Colonelchaboum","group":"form"},
-  "import_button": {"label":"Bouton d’import","default":"Créer mes statistiques ↗","group":"form"},
-  "connect_button": {"label":"Bouton de connexion","default":"Connecter Untappd","group":"form"},
-  "file_button": {"label":"Bouton de fichier","default":"Importer un CSV / JSON","group":"form"},
-  "demo_button": {"label":"Bouton de démonstration","default":"Voir la démonstration","group":"form"},
-  "onboard_title": {"label":"Titre avant l’import","default":"Votre histoire commence par un lien.","group":"form"},
-  "onboard_subtitle": {"label":"Texte avant l’import","default":"Importez votre profil, un fichier de votre historique\nou découvrez un exemple avec la démonstration.","group":"form","multiline":true},
-  "report_title": {"label":"Titre du rapport","default":"{years_label} de découvertes, en un regard.","group":"report","vars":"years_label, years, profile, count"},
-  "report_empty_title": {"label":"Titre sans résultat","default":"Aucun résultat pour ces filtres.","group":"report"},
-  "kpi_checkins": {"label":"Libellé du nombre de check-ins","default":"check-ins","group":"report"},
-  "kpi_beers": {"label":"Libellé des bières uniques","default":"bières uniques","group":"report"},
-  "kpi_breweries": {"label":"Libellé des brasseries","default":"brasseries identifiées","group":"report"},
-  "kpi_average": {"label":"Libellé de la note moyenne","default":"note moyenne / 5","group":"report"},
-  "export_png": {"label":"Bouton PNG","default":"↓ Image PNG","group":"report"},
-  "export_excel": {"label":"Bouton Excel","default":"↓ Excel","group":"report"},
-  "ring_description": {"label":"Explication du disque","default":"Chaque cercle est un jour, du centre vers l’extérieur. Chaque trait est un check-in, placé à son heure et coloré selon le style de bière.","group":"report","multiline":true},
-  "first_label": {"label":"Repère : premier check-in","default":"Premier check-in","group":"report"},
-  "favorite_label": {"label":"Repère : style favori","default":"Style favori","group":"report"},
-  "biggest_label": {"label":"Repère : jour le plus actif","default":"Jour le plus actif","group":"report"},
-  "last_label": {"label":"Repère : dernier check-in","default":"Dernier check-in","group":"report"},
-  "rhythm_title": {"label":"Titre : rythme des découvertes","default":"Le rythme de mes découvertes","group":"sections"},
-  "rhythm_subtitle": {"label":"Sous-titre : rythme","default":"Fuseau : {timezone} · semaines ISO, du lundi au dimanche","group":"sections","vars":"timezone"},
-  "favorites_title": {"label":"Titre : favoris","default":"Mes favoris, sous toutes leurs formes","group":"sections"},
-  "favorites_subtitle": {"label":"Sous-titre : favoris","default":"Classements par nombre de check-ins · listes complètes dans Excel","group":"sections"},
-  "social_title": {"label":"Titre : photos et échanges","default":"Photos, mots & échanges","group":"sections"},
-  "social_subtitle": {"label":"Sous-titre : photos et échanges","default":"Les données manquantes sont comptées séparément","group":"sections"},
-  "details_title": {"label":"Titre : détails du parcours","default":"Les détails qui font mon parcours","group":"sections"},
-  "yearly_title": {"label":"Titre : favoris annuels","default":"Mon style favori, année après année","group":"sections"},
-  "heat_title": {"label":"Titre : horaires","default":"Quand je découvre","group":"charts"},
-  "heat_subtitle": {"label":"Sous-titre : horaires","default":"Nombre de check-ins par heure de la semaine","group":"charts"},
-  "styles_time_title": {"label":"Titre : styles dans le temps","default":"Mes styles au fil du temps","group":"charts"},
-  "styles_time_subtitle": {"label":"Sous-titre : styles dans le temps","default":"Les 5 premiers styles et les autres, par période","group":"charts"},
-  "ratings_title": {"label":"Titre : notes","default":"Mes notes, en détail","group":"charts"},
-  "ratings_subtitle": {"label":"Sous-titre : notes","default":"{rated} notes · médiane {median} / 5","group":"charts","vars":"rated, median"},
-  "activity_title": {"label":"Titre : activité","default":"Mon activité","group":"charts"},
-  "activity_subtitle": {"label":"Sous-titre : activité","default":"Nombre de check-ins par période sélectionnée","group":"charts"},
-  "average_title": {"label":"Titre : évolution de la moyenne","default":"Ma moyenne évolue","group":"charts"},
-  "average_subtitle": {"label":"Sous-titre : évolution de la moyenne","default":"Sur les notes connues ; les périodes vides restent vides","group":"charts"},
-  "venues_title": {"label":"Titre : lieux","default":"Les lieux de mes découvertes","group":"charts"},
-  "venues_subtitle": {"label":"Sous-titre : lieux","default":"{venues} lieux renseignés · classement par check-ins","group":"charts","vars":"venues"},
-  "styles_title": {"label":"Titre : classement des styles","default":"Mes styles","group":"rankings"},
-  "styles_subtitle": {"label":"Sous-titre : classement des styles","default":"{styles} styles explorés","group":"rankings","vars":"styles"},
-  "breweries_title": {"label":"Titre : classement des brasseries","default":"Mes brasseries","group":"rankings"},
-  "breweries_subtitle": {"label":"Sous-titre : classement des brasseries","default":"{breweries} brasseries identifiées","group":"rankings","vars":"breweries"},
-  "beers_title": {"label":"Titre : classement des bières","default":"Mes bières","group":"rankings"},
-  "beers_subtitle": {"label":"Sous-titre : classement des bières","default":"{beers} bières différentes","group":"rankings","vars":"beers"},
-  "commenters_title": {"label":"Titre : auteurs des commentaires","default":"Les voix de mon historique","group":"rankings"},
-  "commenters_subtitle": {"label":"Sous-titre : auteurs","default":"Commentaires par auteur identifié · minimum observé","group":"rankings"},
-  "countries_title": {"label":"Titre : pays","default":"Les pays de mes découvertes","group":"rankings"},
-  "countries_subtitle": {"label":"Sous-titre : pays","default":"Pays des lieux · nombre de check-ins","group":"rankings"},
-  "servings_title": {"label":"Titre : service","default":"Comment mes bières sont servies","group":"rankings"},
-  "servings_subtitle": {"label":"Sous-titre : service","default":"Selon les données de service disponibles","group":"rankings"},
-  "periods_title": {"label":"Titre du tableau par période","default":"Tableau par période : volume, moyenne, photos et commentaires","group":"footer"},
-  "history_title": {"label":"Titre de l’historique","default":"Historique des check-ins ({count})","group":"footer","vars":"count"},
-  "history_subtitle": {"label":"Texte de l’historique","default":"Les 500 premiers résultats sont affichés ici. L’export Excel contient tous les résultats filtrés.","group":"footer","multiline":true},
-  "footer_left": {"label":"Pied de page, à gauche","default":"Une visualisation indépendante. Aucune affiliation avec Untappd.","group":"footer"},
-  "footer_right": {"label":"Pied de page, à droite","default":"Conçu pour explorer vos données, à votre rythme.","group":"footer"},
-  "poster_title": {"label":"Titre de l’export PNG","default":"L’histoire de {profile}.","group":"export","vars":"profile, years, count"},
-  "poster_demo_title": {"label":"Titre du PNG de démonstration","default":"Une histoire de bière. Démonstration.","group":"export"}
+  "brand": {
+    "label": "Nom affiché",
+    "default": "UNTAPPD ATLAS",
+    "group": "intro"
+  },
+  "tagline": {
+    "label": "Signature",
+    "default": "Votre histoire, en sillons.",
+    "group": "intro"
+  },
+  "top_note": {
+    "label": "Texte en haut à droite",
+    "default": "À chaque bière, son histoire ↗",
+    "group": "intro"
+  },
+  "hero_title": {
+    "label": "Titre principal",
+    "default": "Chaque bière,\nun nouveau sillon.",
+    "group": "intro",
+    "multiline": true
+  },
+  "hero_subtitle": {
+    "label": "Sous-titre principal",
+    "default": "Vos découvertes, vos habitudes et vos coups de cœur, réunis sur une page selon les données disponibles.",
+    "group": "intro",
+    "multiline": true
+  },
+  "profile_label": {
+    "label": "Libellé du profil",
+    "default": "Votre profil Untappd",
+    "group": "form"
+  },
+  "profile_placeholder": {
+    "label": "Exemple dans le champ de profil",
+    "default": "https://untappd.com/user/Colonelchaboum",
+    "group": "form"
+  },
+  "import_button": {
+    "label": "Bouton d’import",
+    "default": "Créer mes statistiques ↗",
+    "group": "form"
+  },
+  "connect_button": {
+    "label": "Bouton de connexion",
+    "default": "Connecter Untappd",
+    "group": "form"
+  },
+  "file_button": {
+    "label": "Bouton de fichier",
+    "default": "Importer un CSV / JSON",
+    "group": "form"
+  },
+  "demo_button": {
+    "label": "Bouton de démonstration",
+    "default": "Voir la démonstration",
+    "group": "form"
+  },
+  "onboard_title": {
+    "label": "Titre avant l’import",
+    "default": "Votre histoire commence par un lien.",
+    "group": "form"
+  },
+  "onboard_subtitle": {
+    "label": "Texte avant l’import",
+    "default": "Importez votre profil, un fichier de votre historique\nou découvrez un exemple avec la démonstration.",
+    "group": "form",
+    "multiline": true
+  },
+  "report_title": {
+    "label": "Titre du rapport",
+    "default": "{years_label} de découvertes, en un regard.",
+    "group": "report",
+    "vars": "years_label, years, profile, count"
+  },
+  "report_empty_title": {
+    "label": "Titre sans résultat",
+    "default": "Aucun résultat pour ces filtres.",
+    "group": "report"
+  },
+  "kpi_checkins": {
+    "label": "Libellé du nombre de check-ins",
+    "default": "check-ins",
+    "group": "report"
+  },
+  "kpi_beers": {
+    "label": "Libellé des bières uniques",
+    "default": "bières uniques",
+    "group": "report"
+  },
+  "kpi_breweries": {
+    "label": "Libellé des brasseries",
+    "default": "brasseries identifiées",
+    "group": "report"
+  },
+  "kpi_average": {
+    "label": "Libellé de la note moyenne",
+    "default": "note moyenne / 5",
+    "group": "report"
+  },
+  "export_png": {
+    "label": "Bouton PNG",
+    "default": "↓ Image PNG",
+    "group": "report"
+  },
+  "export_excel": {
+    "label": "Bouton Excel",
+    "default": "↓ Excel",
+    "group": "report"
+  },
+  "ring_description": {
+    "label": "Explication du disque",
+    "default": "Chaque cercle est un jour, du centre vers l’extérieur. Chaque trait est un check-in, placé à son heure et coloré selon le style de bière.",
+    "group": "report",
+    "multiline": true
+  },
+  "first_label": {
+    "label": "Repère : premier check-in",
+    "default": "Premier check-in",
+    "group": "report"
+  },
+  "favorite_label": {
+    "label": "Repère : style favori",
+    "default": "Style favori",
+    "group": "report"
+  },
+  "biggest_label": {
+    "label": "Repère : jour le plus actif",
+    "default": "Jour le plus actif",
+    "group": "report"
+  },
+  "last_label": {
+    "label": "Repère : dernier check-in",
+    "default": "Dernier check-in",
+    "group": "report"
+  },
+  "rhythm_title": {
+    "label": "Titre : rythme des découvertes",
+    "default": "Le rythme de mes découvertes",
+    "group": "sections"
+  },
+  "rhythm_subtitle": {
+    "label": "Sous-titre : rythme",
+    "default": "Fuseau : {timezone} · semaines ISO, du lundi au dimanche",
+    "group": "sections",
+    "vars": "timezone"
+  },
+  "favorites_title": {
+    "label": "Titre : favoris",
+    "default": "Mes favoris, sous toutes leurs formes",
+    "group": "sections"
+  },
+  "favorites_subtitle": {
+    "label": "Sous-titre : favoris",
+    "default": "Classements par nombre de check-ins · listes complètes dans Excel",
+    "group": "sections"
+  },
+  "social_title": {
+    "label": "Titre : photos et échanges",
+    "default": "Photos, mots & échanges",
+    "group": "sections"
+  },
+  "social_subtitle": {
+    "label": "Sous-titre : photos et échanges",
+    "default": "Les données manquantes sont comptées séparément",
+    "group": "sections"
+  },
+  "details_title": {
+    "label": "Titre : détails du parcours",
+    "default": "Les détails qui font mon parcours",
+    "group": "sections"
+  },
+  "yearly_title": {
+    "label": "Titre : favoris annuels",
+    "default": "Mon style favori, année après année",
+    "group": "sections"
+  },
+  "heat_title": {
+    "label": "Titre : horaires",
+    "default": "Quand je découvre",
+    "group": "charts"
+  },
+  "heat_subtitle": {
+    "label": "Sous-titre : horaires",
+    "default": "Nombre de check-ins par heure de la semaine",
+    "group": "charts"
+  },
+  "styles_time_title": {
+    "label": "Titre : styles dans le temps",
+    "default": "Mes styles au fil du temps",
+    "group": "charts"
+  },
+  "styles_time_subtitle": {
+    "label": "Sous-titre : styles dans le temps",
+    "default": "Les 5 premiers styles et les autres, par période",
+    "group": "charts"
+  },
+  "ratings_title": {
+    "label": "Titre : notes",
+    "default": "Mes notes, en détail",
+    "group": "charts"
+  },
+  "ratings_subtitle": {
+    "label": "Sous-titre : notes",
+    "default": "{rated} notes · médiane {median} / 5",
+    "group": "charts",
+    "vars": "rated, median"
+  },
+  "activity_title": {
+    "label": "Titre : activité",
+    "default": "Mon activité",
+    "group": "charts"
+  },
+  "activity_subtitle": {
+    "label": "Sous-titre : activité",
+    "default": "Nombre de check-ins par période sélectionnée",
+    "group": "charts"
+  },
+  "average_title": {
+    "label": "Titre : évolution de la moyenne",
+    "default": "Ma moyenne évolue",
+    "group": "charts"
+  },
+  "average_subtitle": {
+    "label": "Sous-titre : évolution de la moyenne",
+    "default": "Sur les notes connues ; les périodes vides restent vides",
+    "group": "charts"
+  },
+  "venues_title": {
+    "label": "Titre : lieux",
+    "default": "Les lieux de mes découvertes",
+    "group": "charts"
+  },
+  "venues_subtitle": {
+    "label": "Sous-titre : lieux",
+    "default": "{venues} lieux renseignés · classement par check-ins",
+    "group": "charts",
+    "vars": "venues"
+  },
+  "styles_title": {
+    "label": "Titre : classement des styles",
+    "default": "Mes styles",
+    "group": "rankings"
+  },
+  "styles_subtitle": {
+    "label": "Sous-titre : classement des styles",
+    "default": "{styles} styles explorés",
+    "group": "rankings",
+    "vars": "styles"
+  },
+  "breweries_title": {
+    "label": "Titre : classement des brasseries",
+    "default": "Mes brasseries",
+    "group": "rankings"
+  },
+  "breweries_subtitle": {
+    "label": "Sous-titre : classement des brasseries",
+    "default": "{breweries} brasseries identifiées",
+    "group": "rankings",
+    "vars": "breweries"
+  },
+  "beers_title": {
+    "label": "Titre : classement des bières",
+    "default": "Mes bières",
+    "group": "rankings"
+  },
+  "beers_subtitle": {
+    "label": "Sous-titre : classement des bières",
+    "default": "{beers} bières différentes",
+    "group": "rankings",
+    "vars": "beers"
+  },
+  "commenters_title": {
+    "label": "Titre : auteurs des commentaires",
+    "default": "Les voix de mon historique",
+    "group": "rankings"
+  },
+  "commenters_subtitle": {
+    "label": "Sous-titre : auteurs",
+    "default": "Commentaires par auteur identifié · minimum observé",
+    "group": "rankings"
+  },
+  "countries_title": {
+    "label": "Titre : pays",
+    "default": "Les pays de mes découvertes",
+    "group": "rankings"
+  },
+  "countries_subtitle": {
+    "label": "Sous-titre : pays",
+    "default": "Pays des lieux · nombre de check-ins",
+    "group": "rankings"
+  },
+  "servings_title": {
+    "label": "Titre : service",
+    "default": "Comment mes bières sont servies",
+    "group": "rankings"
+  },
+  "servings_subtitle": {
+    "label": "Sous-titre : service",
+    "default": "Selon les données de service disponibles",
+    "group": "rankings"
+  },
+  "periods_title": {
+    "label": "Titre du tableau par période",
+    "default": "Tableau par période : volume, moyenne, photos et commentaires",
+    "group": "footer"
+  },
+  "history_title": {
+    "label": "Titre de l’historique",
+    "default": "Historique des check-ins ({count})",
+    "group": "footer",
+    "vars": "count"
+  },
+  "history_subtitle": {
+    "label": "Texte de l’historique",
+    "default": "Les 500 premiers résultats sont affichés ici. L’export Excel contient tous les résultats filtrés.",
+    "group": "footer",
+    "multiline": true
+  },
+  "footer_left": {
+    "label": "Pied de page, à gauche",
+    "default": "Une visualisation indépendante. Aucune affiliation avec Untappd.",
+    "group": "footer"
+  },
+  "footer_right": {
+    "label": "Pied de page, à droite",
+    "default": "Conçu pour explorer vos données, à votre rythme.",
+    "group": "footer"
+  },
+  "poster_title": {
+    "label": "Titre de l’export PNG",
+    "default": "L’histoire de {profile}.",
+    "group": "export",
+    "vars": "profile, years, count"
+  },
+  "poster_demo_title": {
+    "label": "Titre du PNG de démonstration",
+    "default": "Une histoire de bière. Démonstration.",
+    "group": "export"
+  },
+  "badges_title": {
+    "label": "Titre : badges obtenus",
+    "default": "Mes badges obtenus",
+    "group": "sections"
+  },
+  "badges_subtitle": {
+    "label": "Sous-titre : badges",
+    "default": "Badges observés sur les check-ins sélectionnés. Les niveaux indiquent le maximum observé dans cette sélection.",
+    "group": "sections"
+  },
+  "badges_unique_label": {
+    "label": "Libellé : badges distincts",
+    "default": "badges distincts observés",
+    "group": "report"
+  },
+  "badges_awards_label": {
+    "label": "Libellé : obtentions",
+    "default": "obtentions connues",
+    "group": "report"
+  },
+  "badges_unknown_label": {
+    "label": "Libellé : badges manquants",
+    "default": "check-ins sans information badges",
+    "group": "report"
+  },
+  "badges_total_label": {
+    "label": "Libellé : total annoncé par le profil",
+    "default": "badges annoncés par le profil",
+    "group": "report"
+  }
 }

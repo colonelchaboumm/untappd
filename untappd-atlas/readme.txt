@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,9 +23,11 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 3. Ajoutez [untappd_atlas] dans une page avec un bloc Code court.
 4. Pour l’import par lien / OAuth, configurez les clés d’application dans Réglages > Untappd Atlas et recopiez l’URL de retour dans votre application Untappd.
 5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 52 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
-6. L’onglet Contenu du widget propose 65 textes personnalisables. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
+6. L’onglet Contenu du widget propose 71 textes personnalisables. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
 
 == External services ==
+
+Public mode fetches only unauthenticated HTML on https://untappd.com. It does not collect passwords, login cookies, or bypass sign-in restrictions. Public HTML is cached for one hour. Badge images may load from assets.untappd.com, images.untp.beer or untappd.s3.amazonaws.com.
 
 Untappd is used only when a visitor explicitly starts a profile import or account connection. Requests to https://api.untappd.com/v4/ transmit the requested username/check-in IDs and server-side application credentials or an OAuth token. OAuth uses https://untappd.com/oauth/authenticate/ and https://untappd.com/oauth/authorize/. API access must be granted by Untappd. No scraping is performed.
 
@@ -38,7 +40,7 @@ CSV/JSON file imports and exports are processed in the visitor’s browser and a
 == Frequently Asked Questions ==
 
 = Peut-on tout importer avec un simple lien sans clés API ? =
-Non. L’accès officiel nécessite des identifiants d’application autorisés par Untappd, même pour un profil public. Utilisez un export CSV/JSON si cet accès n’est pas disponible.
+Le bouton sans clés lit les pages publiques accessibles et signale l’historique partiel ; il ne donne pas accès au compte connecté ni au catalogue complet des badges. L’accès officiel nécessite des identifiants d’application autorisés par Untappd, même pour un profil public. Utilisez un export CSV/JSON si cet accès n’est pas disponible.
 
 = L’import peut-il être long ? =
 Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou utilisateur authentifié. Le plugin utilise un budget prudent de 95 appels/heure et permet pause et reprise. Approfondir les commentaires ajoute un appel par check-in.
@@ -47,6 +49,11 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.3.0 =
+* Import par bouton sans clé API des pages publiques accessibles, avec historique partiel clairement indiqué.
+* Badges observés, niveaux, compteurs, galerie et exports Excel / PNG.
+* Aucun accès aux pages réservées à la connexion ; aucun mot de passe ou cookie Untappd collecté.
 
 = 1.2.1 =
 * Installation directe de l’archive GitHub avec un fichier principal à la racine du dépôt.

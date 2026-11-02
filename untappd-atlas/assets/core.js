@@ -86,8 +86,32 @@
       country: str(venue.location?.venue_country ?? raw.venue_country),
       breweryCountry: str(brewery.country_name ?? raw.brewery_country),
       serving: str(raw.serving_type ?? raw.serving_style ?? raw.serving?.serving_type),
-      badges: Array.isArray(raw.badges?.items) ? raw.badges.items.map(b => str(b.badge_name)).filter(Boolean) : []
+      ...badgeData(raw)
     };
+  }
+  function badgeImage(value) {
+    try { const u = new URL(str(value)); return u.protocol === 'https:' && !u.username && !u.password && ['assets.untappd.com', 'images.untp.beer', 'untappd.s3.amazonaws.com'].includes(u.hostname) ? u.href : ''; } catch (_) { return ''; }
+  }
+  function badgeData(raw) {
+    let value = raw.badges ?? raw.badge_names;
+    if (typeof value === 'string') { try { value = JSON.parse(value); } catch (_) { value = value.trim() ? value.split(/[|;\n]/) : []; } }
+    const list = Array.isArray(value) ? value : (Array.isArray(value?.items) ? value.items : null);
+    const explicit = num(value?.count ?? raw.badges_count);
+    const count = explicit != null && explicit >= 0 ? Math.max(explicit, list?.length || 0) : (list ? list.length : null);
+    const seen = new Set(), badges = [];
+    for (const original of list || []) {
+      const b = typeof original === 'string' ? {badge_name: original} : original;
+      if (!b || typeof b !== 'object') continue;
+      const label = str(b.badge_name ?? b.name).trim(); if (!label) continue;
+      const suffix = label.match(/\s*\((?:Level|Niveau)\s+(\d+)\)\s*$/i);
+      const name = suffix ? label.slice(0, suffix.index).trim() : label;
+      const level = num(b.badge_level ?? b.level ?? suffix?.[1]);
+      const id = str(b.badge_id ?? b.id) || 'name:' + name.toLowerCase();
+      const key = id + '|' + (level ?? ''); if (seen.has(key)) continue; seen.add(key);
+      const d = dateValue(b.created_at ?? b.earned_at);
+      badges.push({id, name, level: level != null && level > 0 ? level : null, image: badgeImage(b.badge_image?.sm ?? b.badge_image?.md ?? b.badge_image ?? b.image), earnedAt: Number.isFinite(d.getTime()) ? d.toISOString() : null});
+    }
+    return {badges, badgesCount: count, badgesComplete: count != null && badges.length >= count && raw.badges_partial !== true};
   }
   function parse(text, filename = '') {
     const raw = /\.json$/i.test(filename) || /^[\s\uFEFF]*[\[{]/.test(text) ? extract(JSON.parse(text.replace(/^\uFEFF/, ''))) : csv(text);
@@ -158,8 +182,20 @@
     const n = rows.length, avg = rated.length ? rated.reduce((a, r) => a + r.rating, 0) / rated.length : null;
     const activeDays = dayRows.length, calendarDays = n ? Math.round((new Date(rows[n - 1].local.day) - new Date(rows[0].local.day)) / 86400000) + 1 : 0;
     const periodCache = new Map(), styleCache = new Map();
+    const badgeMap = new Map(), badgeEvents = [];
+    for (const r of rows) for (const b of r.badges || []) {
+      const event = {...b, checkin: r.id, date: b.earnedAt || r.date, checkinDate: r.date}; badgeEvents.push(event);
+      const prior = badgeMap.get(b.id) || {key: b.id, label: b.name, count: 0, level: null, image: b.image, first: event.date, last: event.date};
+      prior.count++; prior.level = b.level == null ? prior.level : Math.max(prior.level || 0, b.level); prior.image ||= b.image;
+      if (event.date < prior.first) prior.first = event.date; if (event.date > prior.last) prior.last = event.date;
+      badgeMap.set(b.id, prior);
+    }
+    const badgeKnown = rows.filter(r => r.badgesCount != null);
     return {
       rows, timezone, total: n, rated: rated.length, unrated: n - rated.length, average: avg,
+      badges: [...badgeMap.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)), badgeEvents,
+      badgeAwards: badgeKnown.reduce((sum, r) => sum + r.badgesCount, 0), badgesUnknown: n - badgeKnown.length,
+      badgesComplete: rows.every(r => r.badgesComplete),
       median: sortedRatings.length ? (sortedRatings[mid] + sortedRatings[Math.floor((sortedRatings.length - 1) / 2)]) / 2 : null,
       min: sortedRatings[0] ?? null, max: sortedRatings[sortedRatings.length - 1] ?? null,
       uniqueBeers: new Set(rows.map(r => r.beerId)).size, uniqueBreweries: new Set(rows.map(r => r.breweryId).filter(Boolean)).size,
@@ -194,12 +230,12 @@
         const style = Math.floor(Math.pow(random(), 1.7) * styles.length), beer = Math.floor(random() * 380), brewer = beer % breweries.length;
         const date = new Date(Date.UTC(2021, 0, day + 1, 15 + Math.floor(random() * 8), Math.floor(random() * 60)));
         const commentsCount = random() < .3 ? Math.floor(random() * 5) : 0;
-        rows.push(normalize({checkin_id: String(10000 + rows.length), created_at: date.toISOString(), beer: {bid: beer + 1, beer_name: ['Brume', 'Éclipse', 'Mirage', 'Horizon', 'Équinoxe'][beer % 5] + ' ' + (beer + 1), beer_style: styles[style], beer_abv: 4 + Math.round(random() * 70) / 10, beer_ibu: Math.round(random() * 85)}, brewery: {brewery_id: brewer + 1, brewery_name: breweries[brewer], country_name: 'France'}, rating_score: random() < .08 ? 0 : Math.min(5, 2 + Math.floor(random() * 13) / 4), media: {count: random() < .65 ? 1 : 0}, checkin_comment: random() < .4 ? 'Une belle découverte.' : '', comments: {count: commentsCount, items: Array.from({length: commentsCount}, () => { const id = 1 + Math.floor(random() * 24); return {user: {uid: id, user_name: `Amateur ${id}`}, comment: 'À découvrir !'}; })}, toasts: {count: Math.floor(random() * 15)}, venue: {venue_name: ['Chez les copains', 'La Cave', 'Le Comptoir'][beer % 3], location: {venue_country: ['France', 'Belgique', 'Pays-Bas'][beer % 3], venue_city: 'Lille'}}, serving_type: ['Canette', 'Pression', 'Bouteille'][beer % 3]}, rows.length));
+        rows.push(normalize({checkin_id: String(10000 + rows.length), created_at: date.toISOString(), beer: {bid: beer + 1, beer_name: ['Brume', 'Éclipse', 'Mirage', 'Horizon', 'Équinoxe'][beer % 5] + ' ' + (beer + 1), beer_style: styles[style], beer_abv: 4 + Math.round(random() * 70) / 10, beer_ibu: Math.round(random() * 85)}, brewery: {brewery_id: brewer + 1, brewery_name: breweries[brewer], country_name: 'France'}, rating_score: random() < .08 ? 0 : Math.min(5, 2 + Math.floor(random() * 13) / 4), media: {count: random() < .65 ? 1 : 0}, checkin_comment: random() < .4 ? 'Une belle découverte.' : '', comments: {count: commentsCount, items: Array.from({length: commentsCount}, () => { const id = 1 + Math.floor(random() * 24); return {user: {uid: id, user_name: `Amateur ${id}`}, comment: 'À découvrir !'}; })}, toasts: {count: Math.floor(random() * 15)}, venue: {venue_name: ['Chez les copains', 'La Cave', 'Le Comptoir'][beer % 3], location: {venue_country: ['France', 'Belgique', 'Pays-Bas'][beer % 3], venue_city: 'Lille'}}, badges: {count: beer % 3 === 0 ? 1 : 0, items: beer % 3 === 0 ? [{badge_name: ['Wheel of Styles', 'IPA Day', 'Cheers to Independent U.S. Craft Breweries'][beer % 3], badge_level: 1 + beer % 10}] : []}, serving_type: ['Canette', 'Pression', 'Bouteille'][beer % 3]}, rows.length));
       }
     }
     return rows;
   }
-  const api = {csv, extract, normalize, parse, analyze, zoned, weekKey, periods, demo};
+  const api = {csv, extract, normalize, parse, analyze, zoned, weekKey, periods, demo, badgeImage};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.UATCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

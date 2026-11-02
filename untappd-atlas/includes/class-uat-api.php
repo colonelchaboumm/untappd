@@ -101,7 +101,7 @@ final class UAT_API {
         return $response;
     }
     private static function public_state($s) {
-        return array_intersect_key($s, array_flip(['phase', 'count', 'cursor', 'profile', 'retry_at', 'enrich', 'details_done', 'connected_username']));
+        return array_intersect_key($s, array_flip(['phase', 'count', 'cursor', 'profile', 'retry_at', 'enrich', 'details_done', 'connected_username', 'source', 'public_complete']));
     }
     public static function status($r) {
         global $wpdb;
@@ -123,12 +123,21 @@ final class UAT_API {
             $s = self::read($id);
             $username = self::username($r->get_param('profile'));
             if (is_wp_error($username)) { return $username; }
+            if ($r->get_param('source') === 'public' || is_wp_error(self::credentials($s))) {
+                $data = UAT_Public::profile($username);
+                if (is_wp_error($data)) { return $data; }
+                $wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]);
+                foreach ($data['items'] as $item) { self::put($id, $item); }
+                $s = array_merge($s, ['source' => 'public', 'phase' => $data['beer_paths'] ? 'public_beers' : 'done', 'username' => $username, 'profile' => $data['profile'], 'count' => count($data['items']), 'public_complete' => $data['complete'], 'beer_paths' => $data['beer_paths'], 'beer_index' => 0, 'details_done' => 0, 'retry_at' => 0, 'token' => '']);
+                self::save($id, $s);
+                return self::response(['state' => self::public_state($s), 'items' => $data['items']]);
+            }
             $data = self::call('user/info/' . rawurlencode($username), $s);
             if (is_wp_error($data)) { return $data; }
             $u = $data['response']['user'] ?? null;
             if (!$u || empty($u['user_name'])) { return new WP_Error('profile', 'Profil introuvable ou inaccessible.', ['status' => 404]); }
             $wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]);
-            $s = array_merge($s, ['phase' => 'feed', 'username' => $u['user_name'], 'count' => 0, 'cursor' => null, 'retry_at' => 0, 'enrich' => (bool) $r->get_param('enrich'), 'detail_cursor' => '', 'details_done' => 0, 'profile' => ['username' => sanitize_text_field($u['user_name']), 'name' => sanitize_text_field(trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''))) ?: $u['user_name'], 'expected' => (int) ($u['stats']['total_checkins'] ?? 0)]]);
+            $s = array_merge($s, ['source' => 'api', 'phase' => 'feed', 'username' => $u['user_name'], 'count' => 0, 'cursor' => null, 'retry_at' => 0, 'enrich' => (bool) $r->get_param('enrich'), 'detail_cursor' => '', 'details_done' => 0, 'profile' => ['username' => sanitize_text_field($u['user_name']), 'name' => sanitize_text_field(trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''))) ?: $u['user_name'], 'expected' => (int) ($u['stats']['total_checkins'] ?? 0)]]);
             self::save($id, $s);
             return self::response(['state' => self::public_state($s)]);
         } finally { delete_option('uat_lock_' . $id); }
@@ -170,6 +179,21 @@ final class UAT_API {
         if (!self::lock($id)) { return new WP_Error('busy', 'Import déjà en cours.', ['status' => 409]); }
         try {
             $s = self::read($id);
+            if ($s['phase'] === 'public_beers') {
+                $path = $s['beer_paths'][$s['beer_index']] ?? null;
+                if (!$path) { $s['phase'] = 'done'; self::save($id, $s); return self::response(['state' => self::public_state($s), 'items' => []]); }
+                $beer = UAT_Public::beer($path);
+                if (is_wp_error($beer)) { return self::step_error($id, $s, $beer); }
+                $changed = [];
+                foreach ($wpdb->get_col($wpdb->prepare("SELECT data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", $id)) as $json) {
+                    $item = json_decode($json, true);
+                    if ((string) ($item['beer']['bid'] ?? '') === (string) $beer['bid']) { $item['beer'] = array_replace($item['beer'], $beer); self::put($id, $item); $changed[] = $item; }
+                }
+                $s['beer_index']++; $s['details_done']++; $s['retry_at'] = 0;
+                if ($s['beer_index'] >= count($s['beer_paths'])) { $s['phase'] = 'done'; }
+                self::save($id, $s);
+                return self::response(['state' => self::public_state($s), 'items' => $changed]);
+            }
             if (!in_array($s['phase'], ['feed', 'details'], true)) { return self::response(['state' => self::public_state($s), 'items' => []]); }
             if ($s['phase'] === 'details') {
                 $row = $wpdb->get_row($wpdb->prepare("SELECT checkin_id,data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s AND checkin_id>%s ORDER BY checkin_id LIMIT 1", $id, $s['detail_cursor']), ARRAY_A);
@@ -181,7 +205,7 @@ final class UAT_API {
                 $previous = json_decode($row['data'], true);
                 $detail = $item;
                 $item = array_replace_recursive($previous, $detail);
-                foreach (['comments', 'toasts', 'media'] as $key) { if (isset($detail[$key])) { $item[$key] = $detail[$key]; } }
+                foreach (['comments', 'toasts', 'media', 'badges'] as $key) { if (isset($detail[$key])) { $item[$key] = $detail[$key]; } }
                 self::put($id, $item);
                 $s['detail_cursor'] = $row['checkin_id']; $s['details_done']++;
                 self::save($id, $s);
