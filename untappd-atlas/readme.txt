@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,7 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 2. Activez Untappd Atlas.
 3. Ajoutez [untappd_atlas] dans une page avec un bloc Code court.
 4. Pour l’import par lien / OAuth, configurez les clés d’application dans Réglages > Untappd Atlas et recopiez l’URL de retour dans votre application Untappd.
+5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 52 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
 
 == External services ==
 
@@ -45,6 +46,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.1.0 =
+* Widget Elementor natif : 52 réglages de couleurs avec couleurs globales et transparence.
+* Palette générale WordPress et héritage automatique des couleurs globales Elementor.
+* Couleurs des graphiques et de l’export PNG synchronisées avec chaque widget.
+* Initialisation des widgets ajoutés dynamiquement dans l’éditeur et isolation des dégradés entre widgets.
 
 = 1.0.0 =
 * Première version : imports API/OAuth/CSV/JSON, tableau de bord français, disque chronologique, exports PNG et XLSX.

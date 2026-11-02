@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
 const fs = require('node:fs');
+const path = require('node:path');
 const C = require('../untappd-atlas/assets/core.js');
 const E = require('../untappd-atlas/assets/export.js');
 const make = (id, date, rating = 4, extra = {}) => C.normalize({checkin_id: id, created_at: date, beer_name: 'Bière ' + id, brewery_name: 'Maison', beer_type: 'IPA', rating_score: rating, ...extra});
@@ -66,5 +67,6 @@ test('XLSX is a ZIP of OpenXML files; formula-looking strings remain text', asyn
   assert.deepEqual([...bytes.slice(0, 4)], [80, 75, 3, 4]);
   const content = new TextDecoder().decode(bytes);
   assert.ok(content.includes('t="inlineStr"')); assert.ok(!content.includes('<f>')); assert.ok(content.includes('&lt;script&gt;&amp;&quot;'));
-  fs.mkdirSync('test-artifacts', {recursive: true}); fs.writeFileSync('test-artifacts/export-test.xlsx', bytes);
+  const target = path.join(__dirname, '../test-artifacts');
+  fs.mkdirSync(target, {recursive: true}); fs.writeFileSync(path.join(target, 'export-test.xlsx'), bytes);
 });

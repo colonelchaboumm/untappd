@@ -1,42 +1,45 @@
 (function () {
   'use strict';
   const C = window.UATCore, E = window.UATExport, esc = E.xml;
-  const colors = ['#f72b7b', '#08a7b5', '#a14cf2', '#e59b05', '#12a37e', '#3777ed', '#b41690', '#758e19', '#d86427', '#7962b1'];
+  const colors = Array.from({length: 10}, (_, i) => `var(--uat-series-${i + 1})`);
+  let discCounter = 0;
   const fmt = (n, digits = 0) => n == null ? '—' : Number(n).toLocaleString('fr-FR', {maximumFractionDigits: digits, minimumFractionDigits: digits});
   const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
   const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
-  const text = (x, y, value, size = 12, fill = '#72716f', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
+  const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
   const svg = (width, height, content, title) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"><title>${esc(title)}</title>${content}</svg>`;
   function ring(s) {
     const cx = 500, cy = 500, inner = 126, outer = 391;
     const polar = (r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
-    let body = '<defs><radialGradient id="uat-disc"><stop offset="0" stop-color="#242329"/><stop offset="1" stop-color="#0c0c0e"/></radialGradient></defs><ellipse cx="500" cy="531" rx="386" ry="386" fill="#000" opacity=".05"/><circle cx="500" cy="500" r="396" fill="url(#uat-disc)"/>';
+    let body = '<defs><radialGradient id="uat-disc"><stop offset="0" stop-color="var(--uat-disc-inner)"/><stop offset="1" stop-color="var(--uat-disc-outer)"/></radialGradient></defs><ellipse cx="500" cy="531" rx="386" ry="386" fill="var(--uat-disc-shadow)" opacity=".05"/><circle cx="500" cy="500" r="396" fill="url(#uat-disc)"/>';
+    const gradientId = 'uat-disc-' + (++discCounter);
+    body = body.replace('id="uat-disc"', 'id="' + gradientId + '"').replace('url(#uat-disc)', 'url(#' + gradientId + ')');
     const span = Math.max(1, s.calendarDays - 1), start = s.first ? new Date(s.first.local.day).getTime() : 0;
-    for (let i = 0; i <= Math.min(1100, span); i++) body += `<circle cx="500" cy="500" r="${inner + i / Math.min(1100, span) * (outer - inner)}" fill="none" stroke="#fff" stroke-width=".28" opacity=".1"/>`;
+    for (let i = 0; i <= Math.min(1100, span); i++) body += `<circle cx="500" cy="500" r="${inner + i / Math.min(1100, span) * (outer - inner)}" fill="none" stroke="var(--uat-disc-groove)" stroke-width=".28" opacity=".1"/>`;
     const styleMap = new Map(s.styles.slice(0, 10).map((x, i) => [x.key, colors[i]]));
     for (const row of s.rows) {
       const day = (new Date(row.local.day).getTime() - start) / 86400000;
       const r = inner + day / span * (outer - inner), angle = ((row.local.hour * 60 + row.local.minute) / 1440) * Math.PI * 2 - Math.PI / 2;
       const p1 = polar(r, angle), p2 = polar(r, angle + .007);
-      body += `<path d="M${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}" fill="none" stroke="${styleMap.get(row.style) || '#8c8b90'}" stroke-width="${Math.max(.75, Math.min(2.8, (outer - inner) / span * 1.4)).toFixed(2)}" opacity=".95"/>`;
+      body += `<path d="M${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}" fill="none" stroke="${styleMap.get(row.style) || 'var(--uat-other)'}" stroke-width="${Math.max(.75, Math.min(2.8, (outer - inner) / span * 1.4)).toFixed(2)}" opacity=".95"/>`;
     }
-    body += '<circle cx="500" cy="500" r="116" fill="#eeede9"/><circle cx="500" cy="500" r="108" fill="none" stroke="#dad7d1" stroke-width="1"/>';
-    body += text(500, 481, fmt(s.total), 42, '#171717', 800, 'text-anchor="middle"') + text(500, 509, 'check-ins', 14, '#72716f', 400, 'text-anchor="middle"') + text(500, 538, s.first ? `${s.first.local.year} — ${s.last.local.year}` : 'Aucune donnée', 12, '#72716f', 600, 'text-anchor="middle"');
+    body += '<circle cx="500" cy="500" r="116" fill="var(--uat-disc-label)"/><circle cx="500" cy="500" r="108" fill="none" stroke="var(--uat-disc-label-border)" stroke-width="1"/>';
+    body += text(500, 481, fmt(s.total), 42, 'var(--uat-ink)', 800, 'text-anchor="middle"') + text(500, 509, 'check-ins', 14, 'var(--uat-muted)', 400, 'text-anchor="middle"') + text(500, 538, s.first ? `${s.first.local.year} — ${s.last.local.year}` : 'Aucune donnée', 12, 'var(--uat-muted)', 600, 'text-anchor="middle"');
     for (let i = 0; i < 24; i++) {
       const a = i / 24 * Math.PI * 2 - Math.PI / 2, p1 = polar(410, a), p2 = polar(i % 3 === 0 ? 425 : 417, a);
-      body += `<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="#99968f" stroke-width="1.4"/>`;
-      if (i % 3 === 0) { const p = polar(457, a); body += text(p[0], p[1] + 5, i === 0 ? 'minuit' : i === 12 ? 'midi' : `${i} h`, 16, '#72716f', 500, 'text-anchor="middle"'); }
+      body += `<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="var(--uat-disc-ticks)" stroke-width="1.4"/>`;
+      if (i % 3 === 0) { const p = polar(457, a); body += text(p[0], p[1] + 5, i === 0 ? 'minuit' : i === 12 ? 'midi' : `${i} h`, 16, 'var(--uat-muted)', 500, 'text-anchor="middle"'); }
     }
     if (s.first) {
       const years = [...new Set(s.rows.map(r => r.local.year))];
       years.filter((_, i) => years.length <= 8 || i % Math.ceil(years.length / 8) === 0).forEach(year => {
         const row = s.rows.find(r => r.local.year === year), day = (new Date(row.local.day).getTime() - start) / 86400000;
         const r = inner + day / span * (outer - inner), p = polar(r, -.7);
-        body += `<rect x="${p[0] - 26}" y="${p[1] - 13}" width="52" height="26" rx="13" fill="#171717" opacity=".84"/>` + text(p[0], p[1] + 4, year, 13, '#fff', 700, 'text-anchor="middle"');
+        body += `<rect x="${p[0] - 26}" y="${p[1] - 13}" width="52" height="26" rx="13" fill="var(--uat-disc-marker)" opacity=".84"/>` + text(p[0], p[1] + 4, year, 13, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
       });
       [s.first, s.rows.find(r => r.local.day === s.biggestDay?.key), s.last].forEach((r, i) => {
         if (!r) return; const p = polar(inner + ((new Date(r.local.day).getTime() - start) / 86400000) / span * (outer - inner), (r.local.hour * 60 + r.local.minute) / 1440 * Math.PI * 2 - Math.PI / 2);
-        body += `<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="#171717" stroke="#fff" stroke-width="2"/>` + text(p[0], p[1] + 4, i + 1, 12, '#fff', 700, 'text-anchor="middle"');
+        body += `<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="var(--uat-disc-marker)" stroke="var(--uat-disc-marker-text)" stroke-width="2"/>` + text(p[0], p[1] + 4, i + 1, 12, 'var(--uat-disc-marker-text)', 700, 'text-anchor="middle"');
       });
     }
     return svg(1000, 1000, body, `${s.total} check-ins disposés par date et heure ; couleur selon le style de bière.`);
@@ -46,21 +49,21 @@
     let body = '';
     s.heat.forEach((row, day) => {
       body += text(0, top + day * cellH + 12, ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'][day], 11);
-      row.forEach((n, h) => { body += `<rect x="${left + h * cellW}" y="${top + day * cellH}" width="12.8" height="14.5" rx="2.5" fill="${n ? '#f72b7b' : '#e9e6df'}" opacity="${n ? .18 + .82 * n / max : 1}"><title>${n} check-ins, ${['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][day]}, ${h} h</title></rect>`; });
+      row.forEach((n, h) => { body += `<rect x="${left + h * cellW}" y="${top + day * cellH}" width="12.8" height="14.5" rx="2.5" fill="${n ? 'var(--uat-accent)' : 'var(--uat-heat-empty)'}" opacity="${n ? .18 + .82 * n / max : 1}"><title>${n} check-ins, ${['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][day]}, ${h} h</title></rect>`; });
     });
-    [0, 6, 12, 18, 23].forEach(h => { body += text(left + h * cellW, 175, `${h} h`, 10, '#8a8882'); });
-    body += text(36, 12, 'moins', 9, '#8a8882');
-    for (let i = 0; i < 6; i++) body += `<rect x="${75 + i * 13}" y="3" width="10" height="10" rx="2" fill="#f72b7b" opacity="${.15 + i * .17}"/>`;
-    body += text(160, 12, 'plus', 9, '#8a8882');
+    [0, 6, 12, 18, 23].forEach(h => { body += text(left + h * cellW, 175, `${h} h`, 10, 'var(--uat-subtle)'); });
+    body += text(36, 12, 'moins', 9, 'var(--uat-subtle)');
+    for (let i = 0; i < 6; i++) body += `<rect x="${75 + i * 13}" y="3" width="10" height="10" rx="2" fill="var(--uat-accent)" opacity="${.15 + i * .17}"/>`;
+    body += text(160, 12, 'plus', 9, 'var(--uat-subtle)');
     return svg(width, height, body, 'Nombre de check-ins par jour de la semaine et heure.');
   }
   function ratings(s) {
     const W = 430, H = 205, max = Math.max(1, ...s.distribution.map(r => r.count)); let body = '';
-    [0, .5, 1].forEach(p => { const y = 165 - 135 * p; body += `<path d="M28 ${y}H420" stroke="#e4e0da" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(Math.round(max * p)), 9); });
+    [0, .5, 1].forEach(p => { const y = 165 - 135 * p; body += `<path d="M28 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(Math.round(max * p)), 9); });
     s.distribution.forEach((r, i) => {
       const x = 32 + i * 18.3, h = r.count / max * 135;
-      body += `<rect x="${x}" y="${165 - h}" width="13" height="${h}" rx="3" fill="${r.rating >= 4 ? '#f72b7b' : '#b5b0a9'}"><title>${r.rating} / 5 : ${r.count} check-ins</title></rect>`;
-      if (i % 4 === 0) body += text(x + 6, 185, r.rating, 10, '#8a8882', 400, 'text-anchor="middle"');
+      body += `<rect x="${x}" y="${165 - h}" width="13" height="${h}" rx="3" fill="${r.rating >= 4 ? 'var(--uat-accent)' : 'var(--uat-chart-neutral)'}"><title>${r.rating} / 5 : ${r.count} check-ins</title></rect>`;
+      if (i % 4 === 0) body += text(x + 6, 185, r.rating, 10, 'var(--uat-subtle)', 400, 'text-anchor="middle"');
     });
     return svg(W, H, body, `Distribution des ${s.rated} notes. Moyenne : ${fmt(s.average, 2)} sur 5.`);
   }
@@ -71,16 +74,16 @@
       rows.push({key: slice[0].key, end: slice[slice.length - 1].key, count: slice.reduce((n, r) => n + r.count, 0), average: rated ? slice.reduce((n, r) => n + r.sum, 0) / rated : null});
     }
     const max = average ? 5 : Math.max(1, ...rows.map(r => r.count)), left = 27, base = 165, width = 390 / Math.max(1, rows.length); let body = '';
-    [0, .5, 1].forEach(p => { const y = base - p * 135; body += `<path d="M27 ${y}H420" stroke="#e4e0da" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p, average ? 1 : 0), 9); });
+    [0, .5, 1].forEach(p => { const y = base - p * 135; body += `<path d="M27 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p, average ? 1 : 0), 9); });
     let line = '', previous = false;
     rows.forEach((r, i) => {
       const x = left + (i + .5) * width, value = average ? r.average : r.count;
-      if (average) { if (value == null) { previous = false; return; } const y = base - value / max * 135; line += `${previous ? 'L' : 'M'}${x} ${y}`; previous = true; body += `<circle cx="${x}" cy="${y}" r="2.3" fill="#f72b7b"><title>${esc(r.key)} : ${fmt(value, 2)} / 5</title></circle>`; }
-      else body += `<rect x="${left + i * width + 1}" y="${base - value / max * 135}" width="${Math.max(.6, width - 2)}" height="${value / max * 135}" rx="${Math.min(3, width / 4)}" fill="#f72b7b"><title>${esc(r.key)}${r.end !== r.key ? ' → ' + esc(r.end) : ''} : ${r.count} check-ins</title></rect>`;
+      if (average) { if (value == null) { previous = false; return; } const y = base - value / max * 135; line += `${previous ? 'L' : 'M'}${x} ${y}`; previous = true; body += `<circle cx="${x}" cy="${y}" r="2.3" fill="var(--uat-accent)"><title>${esc(r.key)} : ${fmt(value, 2)} / 5</title></circle>`; }
+      else body += `<rect x="${left + i * width + 1}" y="${base - value / max * 135}" width="${Math.max(.6, width - 2)}" height="${value / max * 135}" rx="${Math.min(3, width / 4)}" fill="var(--uat-accent)"><title>${esc(r.key)}${r.end !== r.key ? ' → ' + esc(r.end) : ''} : ${r.count} check-ins</title></rect>`;
     });
-    if (average) body += `<path d="${line}" stroke="#f72b7b" stroke-width="2.4" fill="none"/>`;
-    if (rows.length) [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i).forEach((i, index, all) => { body += text(left + (i + .5) * width, 187, rows[i].key, 9, '#8a8882', 400, `text-anchor="${index === 0 ? 'start' : index === all.length - 1 ? 'end' : 'middle'}"`); });
-    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / point. Détail dans Excel.`, 8, '#8a8882');
+    if (average) body += `<path d="${line}" stroke="var(--uat-accent)" stroke-width="2.4" fill="none"/>`;
+    if (rows.length) [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i).forEach((i, index, all) => { body += text(left + (i + .5) * width, 187, rows[i].key, 9, 'var(--uat-subtle)', 400, `text-anchor="${index === 0 ? 'start' : index === all.length - 1 ? 'end' : 'middle'}"`); });
+    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / point. Détail dans Excel.`, 8, 'var(--uat-subtle)');
     return svg(430, 210, body, average ? 'Évolution de la note moyenne, périodes sans note laissées vides.' : 'Évolution du nombre de check-ins, périodes vides incluses.');
   }
   function styleTimeline(s, grain) {
@@ -92,51 +95,59 @@
       rows.push({key: slice[0].key, counts});
     }
     const max = Math.max(1, ...rows.map(r => r.counts.reduce((a, b) => a + b, 0))), width = 390 / Math.max(1, rows.length); let body = '';
-    [0, .5, 1].forEach(p => { const y = 165 - p * 135; body += `<path d="M27 ${y}H420" stroke="#e4e0da" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p), 9); });
-    rows.forEach((r, i) => { let y = 165; r.counts.forEach((n, j) => { const h = n / max * 135; y -= h; body += `<rect x="${27 + i * width + 1}" y="${y}" width="${Math.max(.6, width - 2)}" height="${h}" fill="${colors[j] || '#999'}"><title>${esc(r.key)} · ${esc(top[j]?.label || 'Autres styles')} : ${n}</title></rect>`; }); });
-    if (rows.length) { body += text(27, 187, rows[0].key, 9) + text(420, 187, rows[rows.length - 1].key, 9, '#72716f', 400, 'text-anchor="end"'); }
+    [0, .5, 1].forEach(p => { const y = 165 - p * 135; body += `<path d="M27 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p), 9); });
+    rows.forEach((r, i) => { let y = 165; r.counts.forEach((n, j) => { const h = n / max * 135; y -= h; body += `<rect x="${27 + i * width + 1}" y="${y}" width="${Math.max(.6, width - 2)}" height="${h}" fill="${j < 5 ? colors[j] : 'var(--uat-other)'}"><title>${esc(r.key)} · ${esc(top[j]?.label || 'Autres styles')} : ${n}</title></rect>`; }); });
+    if (rows.length) { body += text(27, 187, rows[0].key, 9) + text(420, 187, rows[rows.length - 1].key, 9, 'var(--uat-muted)', 400, 'text-anchor="end"'); }
     if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / colonne.`, 8);
     return svg(430, 210, body, 'Styles par période, cinq principaux styles et autres.');
   }
-  function ranking(rows, maxRows = 7, color = '#f72b7b') {
+  function ranking(rows, maxRows = 7, color = 'var(--uat-accent)') {
     if (!rows.length) return '<p class="uat-empty">Aucune donnée disponible.</p>';
     const max = Math.max(1, rows[0].count);
     return rows.slice(0, maxRows).map((r, i) => `<div class="uat-rank"><span>${String(i + 1).padStart(2, '0')}</span><div><strong title="${esc(r.label)}">${esc(r.label)}</strong><div class="uat-track"><i style="width:${r.count / max * 100}%;background:${Array.isArray(color) ? color[i % color.length] : color}"></i></div></div><b>${fmt(r.count)}</b></div>`).join('');
   }
   function poster(s, meta) {
-    const W = 1800, H = 3410; let out = `<rect width="${W}" height="${H}" fill="#eeede9"/>`;
-    const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="#faf9f7"/>`;
+    const W = 1800, H = 3410; let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
+    const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;
     const embed = (chart, x, y, w) => chart.replace('<svg ', `<svg x="${x}" y="${y}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${w * Number(chart.match(/viewBox="0 0 \d+ (\d+)"/)[1]) / Number(chart.match(/viewBox="0 0 (\d+)/)[1])}"`);
-    out += text(80, 70, 'UNTAPPD ATLAS / VOTRE HISTOIRE EN SILLONS', 15, '#171717', 700);
-    out += text(80, 150, meta.demo ? 'Une histoire de bière. Démonstration.' : `L’histoire de ${short(meta.profile || 'vos découvertes', 30)}.`, 60, '#171717', 800);
+    out += text(80, 70, 'UNTAPPD ATLAS / VOTRE HISTOIRE EN SILLONS', 15, 'var(--uat-ink)', 700);
+    out += text(80, 150, meta.demo ? 'Une histoire de bière. Démonstration.' : `L’histoire de ${short(meta.profile || 'vos découvertes', 30)}.`, 60, 'var(--uat-heading)', 800);
     out += text(80, 193, `${s.first ? dayLabel(s.first.local.day) : '—'} — ${s.last ? dayLabel(s.last.local.day) : '—'} · ${s.timezone} · ${meta.style || 'Tous les styles'}`, 18);
-    if (meta.demo) out += text(80, 225, 'DONNÉES FICTIVES — AUCUN RÉSULTAT PERSONNEL', 16, '#bd1752', 700);
-    [[s.total, 'check-ins'], [s.uniqueBeers, 'bières uniques'], [s.uniqueBreweries, 'brasseries identifiées'], [fmt(s.average, 2), 'note moyenne / 5']].forEach(([n, label], i) => { out += text(80 + i * 420, 329, typeof n === 'number' ? fmt(n) : n, 76, '#171717', 800) + text(80 + i * 420, 365, label, 21); });
+    if (meta.demo) out += text(80, 225, 'DONNÉES FICTIVES — AUCUN RÉSULTAT PERSONNEL', 16, 'var(--uat-demo-text)', 700);
+    [[s.total, 'check-ins'], [s.uniqueBeers, 'bières uniques'], [s.uniqueBreweries, 'brasseries identifiées'], [fmt(s.average, 2), 'note moyenne / 5']].forEach(([n, label], i) => { out += text(80 + i * 420, 329, typeof n === 'number' ? fmt(n) : n, 76, 'var(--uat-ink)', 800) + text(80 + i * 420, 365, label, 21); });
     out += text(80, 415, 'Chaque cercle est un jour ; chaque trait est un check-in, placé à son heure et coloré par style.', 19);
     out += embed(ring(s), 280, 425, 1240);
-    out += text(80, 850, '01 / PREMIER CHECK-IN', 13, '#72716f', 700) + text(80, 885, short(s.first?.beer || '—', 19), 25, '#171717', 800) + text(80, 914, dayLabel(s.first?.local.day), 17);
-    out += text(1410, 1160, '02 / JOUR LE PLUS ACTIF', 13, '#72716f', 700) + text(1410, 1200, `${fmt(s.biggestDay?.count || 0)} check-ins`, 29, '#171717', 800) + text(1410, 1230, dayLabel(s.biggestDay?.key), 17);
-    out += text(1410, 760, 'JOURS ACTIFS', 13, '#72716f', 700) + text(1410, 800, fmt(s.activeDays), 38, '#171717', 800);
-    out += text(80, 1240, '03 / DERNIER CHECK-IN', 13, '#72716f', 700) + text(80, 1277, short(s.last?.beer || '—', 19), 25, '#171717', 800) + text(80, 1307, dayLabel(s.last?.local.day), 17);
+    out += text(80, 850, '01 / PREMIER CHECK-IN', 13, 'var(--uat-muted)', 700) + text(80, 885, short(s.first?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 914, dayLabel(s.first?.local.day), 17);
+    out += text(1410, 1160, '02 / JOUR LE PLUS ACTIF', 13, 'var(--uat-muted)', 700) + text(1410, 1200, `${fmt(s.biggestDay?.count || 0)} check-ins`, 29, 'var(--uat-ink)', 800) + text(1410, 1230, dayLabel(s.biggestDay?.key), 17);
+    out += text(1410, 760, 'JOURS ACTIFS', 13, 'var(--uat-muted)', 700) + text(1410, 800, fmt(s.activeDays), 38, 'var(--uat-ink)', 800);
+    out += text(80, 1240, '03 / DERNIER CHECK-IN', 13, 'var(--uat-muted)', 700) + text(80, 1277, short(s.last?.beer || '—', 19), 25, 'var(--uat-ink)', 800) + text(80, 1307, dayLabel(s.last?.local.day), 17);
     s.styles.slice(0, 6).forEach((st, i) => { const x = 110 + (i % 3) * 555, y = 1660 + Math.floor(i / 3) * 34; out += `<circle cx="${x}" cy="${y - 5}" r="6" fill="${colors[i]}"/>` + text(x + 15, y, `${short(st.label, 32)} · ${fmt(st.count)}`, 15); });
     const chartPanels = [['Quand je découvre', 'Jour de la semaine et heure', heat(s)], ['Mes styles au fil du temps', 'Volume par période', styleTimeline(s, meta.grain || 'month')], ['Mes notes', `${s.rated} notes · médiane ${fmt(s.median, 2)} / 5`, ratings(s)], ['Mon activité', 'Check-ins par période', timeline(s, meta.grain || 'month')], ['Ma moyenne évolue', 'Calculée sur les check-ins notés', timeline(s, meta.grain || 'month', true)]];
-    chartPanels.forEach(([title, sub, chart], i) => { const x = 80 + i % 3 * 555, y = 1750 + Math.floor(i / 3) * 345; out += panel(x, y, 530, 320) + text(x + 25, y + 43, title, 23, '#171717', 800) + text(x + 25, y + 72, sub, 14) + embed(chart, x + 25, y + 100, 480); });
-    out += panel(1190, 2095, 530, 320) + text(1215, 2138, 'Photos, textes & échanges', 23, '#171717', 800);
-    [[s.withPhotos, 'avec photo'], [s.withoutPhotos, 'sans photo (connu)'], [s.withShout, 'textes personnels'], [s.commentsUnknown === s.total ? '—' : s.comments, 'commentaires connus'], [s.distinctCommenters, 'auteurs observés'], [s.toastsUnknown === s.total ? '—' : s.toasts, 'toasts connus']].forEach(([n, label], i) => { const x = 1215 + i % 2 * 245, y = 2205 + Math.floor(i / 2) * 64; out += text(x, y, typeof n === 'number' ? fmt(n) : n, 27, '#171717', 800) + text(x, y + 20, label, 12); });
-    [['Mes styles', s.styles], ['Mes brasseries', s.breweries], ['Mes bières', s.beers]].forEach(([title, rows], i) => { const x = 80 + i * 555, y = 2440; out += panel(x, y, 530, 405) + text(x + 25, y + 44, title, 25, '#171717', 800); rows.slice(0, 7).forEach((r, j) => { const yy = y + 88 + j * 41; out += text(x + 25, yy, `${String(j + 1).padStart(2, '0')}  ${short(r.label, 34)}`, 16, '#4c4944') + text(x + 502, yy, fmt(r.count), 16, '#171717', 700, 'text-anchor="end"') + `<rect x="${x + 52}" y="${yy + 9}" width="${Math.max(1, r.count / rows[0].count * 410)}" height="4" rx="2" fill="${colors[i]}"/>`; }); });
-    out += text(80, 2910, 'Mes styles favoris, année après année', 30, '#171717', 800);
+    chartPanels.forEach(([title, sub, chart], i) => { const x = 80 + i % 3 * 555, y = 1750 + Math.floor(i / 3) * 345; out += panel(x, y, 530, 320) + text(x + 25, y + 43, title, 23, 'var(--uat-heading)', 800) + text(x + 25, y + 72, sub, 14) + embed(chart, x + 25, y + 100, 480); });
+    out += panel(1190, 2095, 530, 320) + text(1215, 2138, 'Photos, textes & échanges', 23, 'var(--uat-heading)', 800);
+    [[s.withPhotos, 'avec photo'], [s.withoutPhotos, 'sans photo (connu)'], [s.withShout, 'textes personnels'], [s.commentsUnknown === s.total ? '—' : s.comments, 'commentaires connus'], [s.distinctCommenters, 'auteurs observés'], [s.toastsUnknown === s.total ? '—' : s.toasts, 'toasts connus']].forEach(([n, label], i) => { const x = 1215 + i % 2 * 245, y = 2205 + Math.floor(i / 2) * 64; out += text(x, y, typeof n === 'number' ? fmt(n) : n, 27, 'var(--uat-ink)', 800) + text(x, y + 20, label, 12); });
+    [['Mes styles', s.styles], ['Mes brasseries', s.breweries], ['Mes bières', s.beers]].forEach(([title, rows], i) => { const x = 80 + i * 555, y = 2440; out += panel(x, y, 530, 405) + text(x + 25, y + 44, title, 25, 'var(--uat-heading)', 800); rows.slice(0, 7).forEach((r, j) => { const yy = y + 88 + j * 41; out += text(x + 25, yy, `${String(j + 1).padStart(2, '0')}  ${short(r.label, 34)}`, 16, 'var(--uat-ink)') + text(x + 502, yy, fmt(r.count), 16, 'var(--uat-ink)', 700, 'text-anchor="end"') + `<rect x="${x + 52}" y="${yy + 9}" width="${Math.max(1, r.count / rows[0].count * 410)}" height="4" rx="2" fill="${colors[i]}"/>`; }); });
+    out += text(80, 2910, 'Mes styles favoris, année après année', 30, 'var(--uat-heading)', 800);
     const winners = s.yearlyWinners.slice(-12), yearWidth = 1640 / Math.max(1, winners.length);
-    winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, '#171717', 800) + `<rect x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5" fill="${colors[s.styles.findIndex(st => st.key === r.style) % colors.length]}"/>` + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, `${fmt(r.count)} check-ins`, 12); });
-    out += text(80, 3110, 'COUVERTURE DES DONNÉES', 14, '#171717', 700);
+    winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, 'var(--uat-ink)', 800) + `<rect x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5" fill="${colors[s.styles.findIndex(st => st.key === r.style) % colors.length]}"/>` + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, `${fmt(r.count)} check-ins`, 12); });
+    out += text(80, 3110, 'COUVERTURE DES DONNÉES', 14, 'var(--uat-heading)', 700);
     [meta.status || 'Analyse du fichier fourni.', `${s.photoUnknown} check-ins sans information photo ; ${s.commentsUnknown} sans total de commentaires ; ${s.toastsUnknown} sans total de toasts.`, s.commentersComplete ? 'Auteurs des commentaires : liste complète dans les données importées.' : 'Auteurs des commentaires : minimum observé. Les listes fournies peuvent être partielles.', 'Les champs absents ne sont pas assimilés à zéro. Statistiques limitées aux données importées et aux filtres.', 'Identités sans ID regroupées par nom. Notes à zéro considérées non notées. Dates sans fuseau interprétées en UTC.', 'Le fichier Excel contient les tableaux détaillés, les périodes, les classements et les check-ins.'].forEach((line, i) => { out += text(80, 3147 + i * 29, short(line, 150), 15); });
-    out += `<path d="M80 3340H1720" stroke="#d6d3cc"/>` + text(80, 3373, 'Source : Untappd · Visualisation indépendante, sans affiliation avec Untappd.', 13) + text(1720, 3373, 'UNTAPPD ATLAS', 13, '#171717', 700, 'text-anchor="end"');
+    out += `<path d="M80 3340H1720" stroke="var(--uat-border)"/>` + text(80, 3373, 'Source : Untappd · Visualisation indépendante, sans affiliation avec Untappd.', 13) + text(1720, 3373, 'UNTAPPD ATLAS', 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
     return svg(W, H, out, 'Rapport Untappd Atlas');
   }
 
-  document.querySelectorAll('.uat-app').forEach(mount);
+  function boot(scope = document) {
+    if (scope.matches?.('.uat-app')) mount(scope);
+    scope.querySelectorAll('.uat-app').forEach(mount);
+  }
+  boot();
+  function editorHook() { window.elementorFrontend?.hooks.addAction('frontend/element_ready/untappd-atlas.default', scope => boot(scope[0] || scope)); }
+  if (window.elementorFrontend?.hooks) editorHook();
+  else if (window.jQuery) window.jQuery(window).on('elementor/frontend/init.uat', editorHook);
   function mount(app) {
+    if (app.dataset.uatMounted) return;
+    app.dataset.uatMounted = '1';
     const config = JSON.parse(app.dataset.config || '{}');
-    const uid = 'uat-' + Math.random().toString(36).slice(2, 9);
     let items = [], rawMap = new Map(), source = '', profile = '', isDemo = false, state = null, running = false, generation = 0, pending = false, currentStats = null;
     let token = ''; const storageKey = 'untappd-atlas-session:' + config.api;
     try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
@@ -215,11 +226,11 @@
       $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), 'check-ins', `${fmt(s.rated)} notés · ${fmt(s.unrated)} non notés`)}${metric(fmt(s.uniqueBeers), 'bières uniques', fmt(s.ratedUniqueBeers) + ' avec une note')}${metric(fmt(s.uniqueBreweries), 'brasseries identifiées', fmt(s.ratedUniqueBreweries) + ' avec une note')}${metric(fmt(s.average, 2), 'note moyenne / 5', 'Sur les check-ins notés')}</div>
         <p class="uat-ring-description">Chaque cercle est un jour, du centre vers l’extérieur. Chaque trait est un check-in, placé à son heure et coloré selon le style de bière. ${s.first ? `${dayLabel(s.first.local.day)} — ${dayLabel(s.last.local.day)}.` : ''}</p>
         <div class="uat-vinyl-layout"><aside class="uat-callouts">${callout(1, 'Premier check-in', s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', 'Style favori', s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}</aside><div class="uat-ring">${ring(s)}</div><aside class="uat-callouts">${callout(2, 'Jour le plus actif', `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, 'Dernier check-in', s.last?.beer || '—', dayLabel(s.last?.local.day))}</aside></div>
-        <div class="uat-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:#8c8b90"></i>Autres styles</span>' : ''}</div>
-        <div class="uat-section-head"><h3>Le rythme de mes découvertes</h3><p>Fuseau : ${esc(s.timezone)} · semaines ISO, du lundi au dimanche</p></div><div class="uat-card-grid">${card('Quand je découvre', 'Nombre de check-ins par heure de la semaine', `<div class="uat-chart">${heat(s)}</div>`)}${card('Mes styles au fil du temps', 'Les 5 premiers styles et les autres, par période', `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card('Mes notes, en détail', `${fmt(s.rated)} notes · médiane ${fmt(s.median, 2)} / 5`, `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card('Mon activité', 'Nombre de check-ins par période sélectionnée', `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card('Ma moyenne évolue', 'Sur les notes connues ; les périodes vides restent vides', `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card('Les lieux de mes découvertes', `${fmt(s.venues.length)} lieux renseignés · classement par check-ins`, ranking(s.venues, 6, '#08a7b5'))}</div>
-        <div class="uat-section-head"><h3>Mes favoris, sous toutes leurs formes</h3><p>Classements par nombre de check-ins · listes complètes dans Excel</p></div><div class="uat-card-grid">${card('Mes styles', `${fmt(s.styles.length)} styles explorés`, ranking(s.styles, 8, colors))}${card('Mes brasseries', `${fmt(s.uniqueBreweries)} brasseries identifiées`, ranking(s.breweries, 8, '#08a7b5'))}${card('Mes bières', `${fmt(s.uniqueBeers)} bières différentes`, ranking(s.beers, 8, '#a14cf2'))}</div>
+        <div class="uat-legend">${s.styles.slice(0, 10).map((r, i) => `<span><i class="uat-dot" style="background:${colors[i]}"></i>${esc(r.label)} <b>${fmt(r.count)}</b></span>`).join('')}${s.styles.length > 10 ? '<span><i class="uat-dot" style="background:var(--uat-other)"></i>Autres styles</span>' : ''}</div>
+        <div class="uat-section-head"><h3>Le rythme de mes découvertes</h3><p>Fuseau : ${esc(s.timezone)} · semaines ISO, du lundi au dimanche</p></div><div class="uat-card-grid">${card('Quand je découvre', 'Nombre de check-ins par heure de la semaine', `<div class="uat-chart">${heat(s)}</div>`)}${card('Mes styles au fil du temps', 'Les 5 premiers styles et les autres, par période', `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card('Mes notes, en détail', `${fmt(s.rated)} notes · médiane ${fmt(s.median, 2)} / 5`, `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card('Mon activité', 'Nombre de check-ins par période sélectionnée', `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card('Ma moyenne évolue', 'Sur les notes connues ; les périodes vides restent vides', `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card('Les lieux de mes découvertes', `${fmt(s.venues.length)} lieux renseignés · classement par check-ins`, ranking(s.venues, 6, 'var(--uat-series-2)'))}</div>
+        <div class="uat-section-head"><h3>Mes favoris, sous toutes leurs formes</h3><p>Classements par nombre de check-ins · listes complètes dans Excel</p></div><div class="uat-card-grid">${card('Mes styles', `${fmt(s.styles.length)} styles explorés`, ranking(s.styles, 8, colors))}${card('Mes brasseries', `${fmt(s.uniqueBreweries)} brasseries identifiées`, ranking(s.breweries, 8, 'var(--uat-series-2)'))}${card('Mes bières', `${fmt(s.uniqueBeers)} bières différentes`, ranking(s.beers, 8, 'var(--uat-series-3)'))}</div>
         <div class="uat-section-head"><h3>Photos, mots & échanges</h3><p>Les données manquantes sont comptées séparément</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
-        <div class="uat-section-head"><h3>Les détails qui font mon parcours</h3></div><div class="uat-card-grid">${card('Les voix de mon historique', 'Commentaires par auteur identifié · minimum observé', ranking(s.commenters, 7, '#f72b7b'))}${card('Les pays de mes découvertes', 'Pays des lieux · nombre de check-ins', ranking(s.countries, 7, '#12a37e'))}${card('Comment mes bières sont servies', 'Selon les données de service disponibles', ranking(s.servings, 7, '#e59b05'))}</div>
+        <div class="uat-section-head"><h3>Les détails qui font mon parcours</h3></div><div class="uat-card-grid">${card('Les voix de mon historique', 'Commentaires par auteur identifié · minimum observé', ranking(s.commenters, 7, 'var(--uat-accent)'))}${card('Les pays de mes découvertes', 'Pays des lieux · nombre de check-ins', ranking(s.countries, 7, 'var(--uat-series-5)'))}${card('Comment mes bières sont servies', 'Selon les données de service disponibles', ranking(s.servings, 7, 'var(--uat-series-4)'))}</div>
         <div class="uat-section-head"><h3>Mon style favori, année après année</h3></div><div class="uat-year-grid">${years || '<p class="uat-empty">Aucune donnée.</p>'}</div>${coverage}
         <details class="uat-details"><summary>Tableau par période : volume, moyenne, photos et commentaires</summary><div class="uat-table-wrap"><table><thead><tr><th>Période</th><th>Check-ins</th><th>Bières uniques</th><th>Notés</th><th>Moyenne / 5</th><th>Avec photo</th><th>Commentaires connus</th></tr></thead><tbody>${s.periods(grain).map(r => `<tr><td>${esc(r.key)}</td><td>${fmt(r.count)}</td><td>${fmt(r.beers)}</td><td>${fmt(r.rated)}</td><td>${fmt(r.average, 2)}</td><td>${r.photosKnown < r.count ? '≥ ' : ''}${fmt(r.photos)}</td><td>${r.commentsKnown < r.count ? '≥ ' : ''}${fmt(r.comments)}</td></tr>`).join('')}</tbody></table></div></details>
         <details class="uat-details"><summary>Historique des check-ins (${fmt(s.total)})</summary><p class="uat-subtle">Les 500 premiers résultats sont affichés ici. L’export Excel contient tous les résultats filtrés.</p><div class="uat-table-wrap"><table><thead><tr><th>Date locale</th><th>Bière</th><th>Brasserie</th><th>Style</th><th>Note / 5</th><th>Photos</th><th>Commentaires</th></tr></thead><tbody>${s.rows.slice(0, 500).map(r => `<tr><td>${esc(r.local.day)} ${r.local.hour}:${String(r.local.minute).padStart(2, '0')}</td><td>${esc(r.beer)}</td><td>${esc(r.brewery)}</td><td>${esc(r.style)}</td><td>${fmt(r.rating, 2)}</td><td>${fmt(r.photos)}</td><td>${fmt(r.commentsCount)}</td></tr>`).join('')}</tbody></table></div></details>`;
@@ -289,12 +300,13 @@
         if (options().from && options().to && options().from > options().to) throw new Error('Corrigez les dates avant d’exporter.');
         notify(type === 'png' ? 'Création de votre affiche PNG…' : 'Création du classeur Excel…');
         await new Promise(resolve => setTimeout(resolve, 20));
-        const blob = type === 'xlsx' ? E.xlsx(currentStats, meta()) : await E.png(poster(currentStats, meta()));
+        const blob = type === 'xlsx' ? E.xlsx(currentStats, meta()) : await E.png(window.UATTheme.inlineSvg(poster(currentStats, meta()), app));
         E.download(blob, `untappd-atlas${isDemo ? '-DEMO' : ''}-${new Date().toISOString().slice(0, 10)}.${type}`); notify('Votre export est prêt.', 'success');
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
     // Exposed rendering helper is useful for standalone previews and export verification.
     window.UATView = {ring, heat, ratings, timeline, styleTimeline, poster};
+    if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);
       try {

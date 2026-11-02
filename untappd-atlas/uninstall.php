@@ -4,6 +4,7 @@ global $wpdb;
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_checkins");
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_sessions");
 delete_option('uat_credentials');
+delete_option('uat_palette');
 wp_clear_scheduled_hook('uat_cleanup');
 // Also remove short-lived quota, OAuth and locking records from the options table.
 foreach (['uat_lock_', '_transient_uat_', '_transient_timeout_uat_'] as $prefix) {

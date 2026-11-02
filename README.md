@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.0.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin.
+1. Téléverser `untappd-atlas-1.1.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -15,6 +15,23 @@ Un tableau de bord français qui transforme un historique Untappd en disque chro
 4. Sans accès API, importer un fichier CSV/JSON Untappd : l’analyse et les exports fonctionnent entièrement dans le navigateur.
 
 Prérequis : WordPress 6.4+, PHP 8.1+. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
+
+## Couleurs et Elementor — version 1.1.0
+
+Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **52 couleurs** : fonds et textes, champs et boutons, messages, disque, graphiques et palette des dix styles de bière.
+
+- Cliquez sur le **globe** d’un réglage pour le relier à une couleur globale Elementor, y compris une couleur personnalisée de votre kit. Une modification de cette couleur globale s’applique aux éléments qui lui sont liés.
+- Choisissez une couleur locale pour personnaliser uniquement ce widget. Plusieurs widgets peuvent avoir des palettes différentes sur la même page.
+- Pour régler une base commune à tous les tableaux de bord, ouvrez **Réglages → Untappd Atlas → Couleurs et Elementor**. Cette palette s’applique aussi au shortcode.
+- L’option **Suivre automatiquement les couleurs globales Elementor** est activée par défaut : titres et boutons → Principale ; texte → Texte ; texte secondaire → Secondaire ; accent → Accent ; séries 1/2/3 → Accent/Principale/Secondaire. Les autres couleurs gardent la palette du plugin tant qu’elles ne sont pas personnalisées.
+- Une couleur vide dans le widget hérite de la palette du plugin. Une couleur vide dans les réglages WordPress suit le lien automatique, ou le défaut si l’option est désactivée. Une couleur définie dans le widget est prioritaire sur la palette WordPress.
+- L’export **PNG conserve les couleurs réellement affichées par le widget exporté**, y compris les couleurs globales résolues et les transparences. Le classeur Excel conserve ses tableaux de données.
+
+L’éditeur Elementor affiche une démonstration clairement identifiée ; la page publiée affiche le formulaire d’import. Aucun jeu de données personnel n’est enregistré dans la page Elementor. Les sélecteurs de couleurs utilisent des variables CSS : leurs changements s’appliquent aussi aux graphiques déjà affichés.
+
+Le shortcode existant continue de fonctionner. Pour disposer des 52 réglages directement dans l’onglet Style d’Elementor, utilisez le widget **Untappd Atlas**, plutôt que le widget générique **Code court**. Sans Elementor, les réglages WordPress et le shortcode restent utilisables.
+
+Intégration testée avec **Elementor 4.3.5** sur WordPress 7.1.4 : contrôles natifs, couleurs globales, deux palettes indépendantes sur une même page et export PNG. [Documentation Elementor sur les couleurs globales](https://developers.elementor.com/docs/editor-controls/global-style/).
 
 ## Import automatique et connexion Untappd
 
@@ -79,7 +96,7 @@ Services externes utilisés uniquement pour l’import API ou la connexion deman
 ## Développement et validation
 
 ```sh
-node --test tests/core.test.js
+node --test tests/core.test.js tests/theme.test.js
 php -l untappd-atlas/untappd-atlas.php
 php -l untappd-atlas/includes/class-uat-api.php
 php -l untappd-atlas/uninstall.php
@@ -92,6 +109,8 @@ php tests/integration.php /chemin/vers/wordpress
 ```
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
+
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 52 contrôles sur une installation locale isolée avec Elementor activé, les liens globaux et la validation de la palette. Il réinitialise les réglages de couleurs du plugin : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 
