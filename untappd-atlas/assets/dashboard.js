@@ -37,12 +37,8 @@
       years.get(year).rows.push(row);
     }
     return [...years.values()].sort((a, b) => a.year.localeCompare(b.year)).map(group => {
-      let left = group.rows.length;
-      while (left > 0) {
-        let height = Math.floor((Math.sqrt(8 * left + 1) - 1) / 2);
-        while (height * (height + 1) / 2 > left) height--;
-        group.piles.push(height); left -= height * (height + 1) / 2;
-      }
+      // A single annual pyramid; the remaining cans extend its supported edge.
+      group.piles = [Math.floor((Math.sqrt(8 * group.rows.length + 1) - 1) / 2)];
       return group;
     });
   }
@@ -53,14 +49,16 @@
     let index = 0;
     group.piles.forEach((height, depth) => {
       const scale = 1 + Math.min(depth, 3) * .07;
-      const localWidth = (height - 1) * pitch + 24, width = localWidth * scale;
+      const extra = group.rows.length - height * (height + 1) / 2;
+      const localWidth = (height - 1 + (extra ? 1 : 0)) * pitch + 24, width = localWidth * scale;
       const previous = piles[depth - 1];
       const x = previous ? previous.x + previous.width - Math.min(width * .65, pitch * previous.scale * 2) : 0;
       const baseline = previous ? previous.floor + 27 * scale - localWidth * slope * scale / 2 : 0;
       const project = (px, py) => ({x: x + px * scale, y: baseline + (py + px * slope) * scale});
       const cans = [];
       for (let level = 0; level < height; level++) {
-        for (let col = 0; col < height - level; col++) {
+        const columns = height - level + (level < extra ? 1 : 0);
+        for (let col = 0; col < columns; col++) {
           const localX = (col + level / 2) * pitch, localY = -34.4 - level * rise;
           cans.push({row: group.rows[index++], level, col, localX, localY, ...project(localX, localY)});
         }
@@ -81,8 +79,8 @@
     if (!piles.length) Object.assign(bounds, {left: 0, top: 0, right: 1, bottom: 1});
     return {piles, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
   }
-  function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
-    const uid = 'uat-can-' + (++canCounter), W = 500, H = 480;
+  function pyramidArtwork(group, paints) {
+    const uid = 'uat-can-' + (++canCounter);
     const styles = [...new Set(group.rows.map(row => row.style))], shapeIds = new Map(styles.map((key, i) => [key, `${uid}-shape-${i}`]));
     // Shared vector symbols retain the same style paint in the page and PNG.
     let body = `<defs>
@@ -95,7 +93,6 @@
       <linearGradient id="${uid}-neck" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".72"/><stop offset=".52" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity=".3"/></linearGradient>
       <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".45"/><stop offset=".48" stop-color="var(--uat-can-ground)" stop-opacity=".18"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
       <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".66"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
-      <radialGradient id="${uid}-backdrop" cx=".28" cy=".24" r=".88"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".7"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".18"/></radialGradient>
       <radialGradient id="${uid}-stage"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset=".6" stop-color="var(--uat-can-ground)" stop-opacity=".06"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>`;
     const labelPath = 'd="M2.6 10.9Q12 14.1 21.4 10.9V29.7Q21.4 33.7 12 33.7Q2.6 33.7 2.6 29.7Z"';
     for (const key of styles) {
@@ -129,17 +126,7 @@
       </g>`;
     }
     body += '</defs>';
-    const geometry = pyramidGeometry(group), b = geometry.bounds;
-    const scale = Math.min(3.4, 436 / geometry.width, 326 / geometry.height);
-    body += text(30, 48, group.year, 29, 'var(--uat-heading)', 800);
-    const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
-    body += text(470, 46, short(`${fmt(group.rows.length)} ${unit}`, 30), 19, 'var(--uat-muted)', 600, 'text-anchor="end"');
-    const floors = geometry.piles.map(pile => pile.floor);
-    const floorMin = Math.min(...floors), floorMax = Math.max(...floors);
-    const floorY = 409 + ((floorMin + floorMax) / 2 - b.bottom) * scale;
-    body += `<ellipse cx="250" cy="${floorY}" rx="204" ry="${Math.max(17, (floorMax - floorMin) / 2 * scale + 18)}" fill="url(#${uid}-stage)"/>`;
-    body += `<g transform="translate(${((W - geometry.width * scale) / 2 - b.left * scale).toFixed(3)} ${(409 - b.bottom * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
-    // Paint a complete stack at a time, from the farthest to the nearest plane.
+    const geometry = pyramidGeometry(group);
     for (const pile of geometry.piles) {
       const matrix = `matrix(${pile.scale} ${pile.slope * pile.scale} 0 ${pile.scale} ${pile.x} ${pile.baseline})`;
       body += `<g class="uat-can-pile" data-depth="${pile.depth}" transform="${matrix}">`;
@@ -154,33 +141,67 @@
       }
       body += '</g>';
     }
-    body += '</g>' + text(30, 443, short(texts.styles_title || 'Mes styles', 32), 12, 'var(--uat-muted)', 500) + text(470, 443, `${fmt(group.piles.length)} ${group.piles.length === 1 ? 'pyramide' : 'pyramides'}`, 12, 'var(--uat-muted)', 500, 'text-anchor="end"');
-    const counts = new Map(); group.rows.forEach(row => counts.set(row.style, (counts.get(row.style) || 0) + 1));
-    let bandX = 30;
-    body += `<defs><clipPath id="${uid}-band"><rect x="30" y="455" width="440" height="5" rx="2.5"/></clipPath></defs><g clip-path="url(#${uid}-band)">`;
-    for (const [key, paint] of paints) {
-      const count = counts.get(key) || 0; if (!count) continue;
-      const width = count / group.rows.length * 440;
-      body += `<g>${paintShape('rect', `x="${bandX}" y="455" width="${width}" height="5"`, paint)}<title>${esc(key)} : ${fmt(count)} check-ins</title></g>`;
-      bandX += width;
+    return body;
+  }
+  function pyramidScene(s) {
+    const groups = pyramidLayout(s), layers = [];
+    groups.forEach((group, depth) => {
+      const geometry = pyramidGeometry(group), scale = Math.max(.66, 1 / (1 + (groups.length - depth - 1) * .065));
+      const previous = layers[depth - 1];
+      const x = previous ? previous.x + Math.max(230, previous.geometry.width * previous.scale * .72) : 0;
+      const floor = depth * 90;
+      const y = floor - geometry.piles[0].floor * scale;
+      layers.push({group, geometry, depth, scale, x, y, floor});
+    });
+    const bounds = layers.reduce((b, layer) => ({
+      left: Math.min(b.left, layer.x + layer.geometry.bounds.left * layer.scale),
+      top: Math.min(b.top, layer.y + layer.geometry.bounds.top * layer.scale),
+      right: Math.max(b.right, layer.x + layer.geometry.bounds.right * layer.scale),
+      bottom: Math.max(b.bottom, layer.y + layer.geometry.bounds.bottom * layer.scale)
+    }), {left: 0, top: 0, right: 1, bottom: 1});
+    return {layers, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
+  }
+  function renderPyramidScene(scene, texts, paints) {
+    const W = Math.max(1100, scene.layers.length * 250), uid = 'uat-can-' + (++canCounter);
+    if (!scene.layers.length) return svg(W, 240, text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
+    const b = scene.bounds, scale = Math.min(1.55, (W - 230) / scene.width, 620 / scene.height);
+    const H = Math.max(420, Math.ceil(scene.height * scale + 156)), x = (W - scene.width * scale) / 2 - b.left * scale, y = 48 - b.top * scale;
+    let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".65"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".16"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
+    body += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-surface)" stroke="var(--uat-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
+    body += `<g transform="translate(${x} ${y}) scale(${scale})">`;
+    const first = scene.layers[0], last = scene.layers[scene.layers.length - 1];
+    const floorY = (first.floor + last.floor) / 2 + 16;
+    body += `<ellipse cx="${(b.left + b.right) / 2}" cy="${floorY}" rx="${scene.width * .55}" ry="${Math.max(30, (last.floor - first.floor) / 2 + 48)}" fill="url(#${uid}-floor)"/>`;
+    for (const layer of scene.layers) {
+      body += `<g class="uat-year-pyramid" data-year="${esc(layer.group.year)}" data-depth="${layer.depth}" transform="translate(${layer.x} ${layer.y}) scale(${layer.scale})"><title>${esc(layer.group.year)} : ${fmt(layer.group.rows.length)} check-ins</title>${pyramidArtwork(layer.group, paints)}</g>`;
     }
     body += '</g>';
-    body = `<rect x="1" y="1" width="498" height="478" rx="22" fill="var(--uat-surface)" stroke="var(--uat-border)" stroke-opacity=".48"/><rect x="2" y="2" width="496" height="476" rx="21" fill="url(#${uid}-backdrop)"/>` + body;
-    return svg(W, H, body, `${group.year} : ${group.rows.length} évaluations, une canette par évaluation, couleur selon le style, réparties en ${group.piles.length} pyramides en relief.`);
+    for (const layer of scene.layers) {
+      const group = layer.group, labelX = x + layer.x * scale, labelY = y + (layer.y + layer.geometry.bounds.bottom * layer.scale) * scale + 30;
+      const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
+      body += `<g class="uat-year-label" data-year="${esc(group.year)}">` + text(labelX, labelY, group.year, 25, 'var(--uat-heading)', 800) + text(labelX, labelY + 23, short(`${fmt(group.rows.length)} ${unit}`, 28), 14, 'var(--uat-muted)', 500);
+      const counts = new Map(); group.rows.forEach(row => counts.set(row.style, (counts.get(row.style) || 0) + 1));
+      let bandX = labelX;
+      for (const [key, paint] of paints) {
+        const count = counts.get(key) || 0; if (!count) continue;
+        const width = count / group.rows.length * 116;
+        body += `<g>${paintShape('rect', `x="${bandX}" y="${labelY + 34}" width="${width}" height="4"`, paint)}<title>${esc(group.year)} · ${esc(key)} : ${fmt(count)} check-ins</title></g>`;
+        bandX += width;
+      }
+      body += '</g>';
+    }
+    return svg(W, H, body, `${scene.layers.reduce((n, layer) => n + layer.group.rows.length, 0)} canettes, une pyramide par année. Années anciennes au fond, années récentes devant. Certaines canettes peuvent être masquées par la perspective.`);
+  }
+  function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
+    return renderPyramidScene(pyramidScene({rows: group.rows}), texts, paints);
   }
   function pyramidCards(s, texts = {}) {
-    const groups = pyramidLayout(s), paints = stylePalette(s);
-    if (!groups.length) return `<p class="uat-empty">${esc(texts.pyramids_empty || 'Aucune évaluation pour cette période.')}</p>`;
-    return groups.map(group => `<div class="uat-pyramid-year">${pyramidYear(group, texts, paints)}</div>`).join('');
+    if (!s.rows.length) return `<p class="uat-empty">${esc(texts.pyramids_empty || 'Aucune évaluation pour cette période.')}</p>`;
+    const count = new Set(s.rows.map(row => row.local.year)).size, minWidth = Math.max(660, count * 200);
+    return `<div class="uat-pyramid-viewport" tabindex="0" role="region" aria-label="Pyramides annuelles, défilement horizontal" style="--uat-pyramid-width:${minWidth}px">${pyramids(s, texts)}</div>`;
   }
   function pyramids(s, texts = {}) {
-    const groups = pyramidLayout(s), paints = stylePalette(s), width = 1024, height = groups.length ? Math.ceil(groups.length / 2) * 504 - 24 : 240;
-    if (!groups.length) return svg(width, height, text(width / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
-    const body = groups.map((group, i) => {
-      const row = Math.floor(i / 2), onRow = Math.min(2, groups.length - row * 2), x = (2 - onRow) * 262 + i % 2 * 524;
-      return pyramidYear(group, texts, paints).replace('<svg ', `<svg x="${x}" y="${row * 504}" `);
-    }).join('');
-    return svg(width, height, body, `${s.total} canettes colorées par style : une par évaluation importée, en pyramides regroupées par année.`);
+    return renderPyramidScene(pyramidScene(s), texts, stylePalette(s));
   }
 
   function heat(s) {
@@ -296,7 +317,7 @@
     return svg(W, H, out, 'Rapport Untappd Atlas — pyramides de canettes');
   }
 
-  window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+  window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
   function boot(scope = document) {
     if (scope.matches?.('.uat-app')) mount(scope);
     scope.querySelectorAll('.uat-app').forEach(mount);
@@ -476,7 +497,7 @@
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
     // Exposed rendering helper is useful for standalone previews and export verification.
-    window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+    window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
     if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);

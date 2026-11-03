@@ -110,7 +110,7 @@
   },
   "ring_description": {
     "label": "Explication des pyramides",
-    "default": "Chaque canette représente un check-in importé, noté ou non. Sa couleur indique le style de bière. Les pyramides sont regroupées par année. Au survol : bière, style, date et note.",
+    "default": "Chaque canette représente un check-in importé, noté ou non. Sa couleur indique le style de bière. Une pyramide par année : les anciennes au fond, les récentes devant. Les pyramides peuvent être incomplètes ; la perspective peut masquer certaines canettes. Au survol : bière, style, date et note.",
     "group": "report",
     "multiline": true
   },

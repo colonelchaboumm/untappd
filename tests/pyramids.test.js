@@ -12,11 +12,15 @@ const texts = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.
 const rows = n => Array.from({length:n}, (_,i) => C.normalize({checkin_id:String(i+1), beer_name:'Bière '+i, created_at:'2024-01-01T12:00:00Z', rating_score:i%2 ? 4 : 0}));
 const cans = svg => [...svg.matchAll(/class="uat-can" data-checkin-id="([^"]+)"/g)].map(m => m[1]);
 
-test('pyramids preserve every evaluation at triangular boundaries and in remainders', () => {
+test('each year has one supported pyramid and preserves every evaluation at triangular boundaries', () => {
   for (const n of [0,1,2,3,4,5,6,10,36,37,300,301,1510,5000]) {
     const s=C.analyze(rows(n));
     const layout=V.pyramidLayout(s);
-    assert.equal(layout.reduce((sum,g)=>sum+g.piles.reduce((k,h)=>k+h*(h+1)/2,0),0),n);
+    assert.equal(layout.length,n ? 1 : 0);
+    if (n) {
+      assert.equal(layout[0].piles.length,1);
+      assert.equal(V.pyramidGeometry(layout[0]).piles[0].cans.length,n);
+    }
     const actual=cans(V.pyramids(s,texts));
     assert.equal(actual.length,n); assert.equal(new Set(actual).size,n);
     assert.ok(!V.pyramids(s,texts).match(/NaN|Infinity/));
@@ -35,7 +39,7 @@ test('page and PNG have one can per imported row, with safe tooltips and unique 
   assert.equal(cans(page).length,s.total); assert.equal(cans(poster).length,s.total);
   const all=page+poster, ids=[...all.matchAll(/\bid="(uat-can-[^"]+)"/g)].map(m=>m[1]);
   assert.equal(new Set(ids).size,ids.length);
-  for (const match of all.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(match[1]));
+  for (const match of all.matchAll(/(?:href="#|url\(#)([^"\)]+)/g)) assert.ok(ids.includes(match[1]),match[1]);
   assert.ok(!all.includes('uat-disc'));
   const malicious=C.analyze([C.normalize({checkin_id:'1',created_at:'2024-01-01',beer_name:'<script>alert(1)</script>',rating:4})]);
   const graphic=V.pyramids(malicious,texts);
@@ -161,4 +165,37 @@ test('all styles have a legend, unknown styles stay neutral, and style captions 
   assert.ok(!legend.includes('<script>'));
   assert.ok(!V.pyramidCards(s,texts).includes('<script>'));
   assert.ok(legend.includes('&lt;script&gt;'));
+});
+
+test('all years share one SVG, advance from the oldest to the newest and keep their exact check-ins', () => {
+  const input = [1,2,37,295,500].flatMap((count,index) => Array.from({length:count},(_,i) => C.normalize({checkin_id:`${index}-${i}`,beer_name:'Bière',created_at:`${2020+index}-06-01T12:00:00Z`})));
+  const stats=C.analyze(input), scene=V.pyramidScene(stats), page=V.pyramidCards(stats,texts);
+  assert.equal((page.match(/<svg\b/g)||[]).length,1,'the years are drawn on one common canvas');
+  assert.deepEqual(Array.from(scene.layers,layer=>layer.group.year),['2020','2021','2022','2023','2024']);
+  assert.deepEqual([...page.matchAll(/class="uat-year-pyramid" data-year="([^"]+)"/g)].map(m=>m[1]),['2020','2021','2022','2023','2024']);
+  assert.equal(cans(page).length,input.length);
+  assert.equal(new Set(cans(page)).size,input.length);
+  scene.layers.forEach((layer,i)=>{
+    assert.equal(layer.geometry.piles.length,1,'one pyramid represents exactly one year');
+    assert.equal(layer.geometry.piles[0].cans.length,[1,2,37,295,500][i]);
+    if (i) {
+      assert.ok(layer.floor>scene.layers[i-1].floor,'newer years stand closer to the viewer');
+      assert.ok(layer.scale>scene.layers[i-1].scale,'nearer cans are larger');
+      assert.ok(layer.x>scene.layers[i-1].x,'years remain identifiable through lateral offsets');
+    }
+    const b=layer.geometry.bounds;
+    for (const px of [b.left,b.right]) for (const py of [b.top,b.bottom]) inside({x:layer.x+px*layer.scale,y:layer.y+py*layer.scale},scene.bounds,'annual pyramid remains in the common scene');
+    assert.ok(page.includes(`class="uat-year-label" data-year="${layer.group.year}"`));
+  });
+});
+
+test('a long history and an empty selection keep a valid common scene and PNG', () => {
+  const input=Array.from({length:24},(_,i)=>C.normalize({checkin_id:`year-${i}`,beer_name:'Bière',created_at:`${2000+i}-01-01T12:00:00Z`}));
+  for (const rows of [[],input]) {
+    const stats=C.analyze(rows), graphic=V.pyramids(stats,texts), poster=V.poster(stats,{texts});
+    assert.equal(cans(graphic).length,rows.length);
+    assert.equal(cans(poster).length,rows.length);
+    assert.ok(!/NaN|Infinity/.test(graphic+poster));
+    assert.equal((graphic.match(/class="uat-year-pyramid"/g)||[]).length,rows.length);
+  }
 });
