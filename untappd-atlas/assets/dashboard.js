@@ -47,24 +47,38 @@
     });
   }
   function pyramidGeometry(group) {
-    let index = 0, offset = 0;
-    const piles = group.piles.map((height, i) => {
-      const width = height * 24 - 4;
-      if (i) offset -= Math.min(width * .55, 90);
-      const baseline = offset * .10 + i * 22;
+    // One ground plane for the whole stack: lid and foot share this projection.
+    // The foot centre (34.4) rests on the supporting lids (6.1), hence 28.3.
+    const pitch = 22, rise = 28.3, slope = .12, piles = [];
+    let index = 0;
+    group.piles.forEach((height, depth) => {
+      const scale = 1 + Math.min(depth, 3) * .07;
+      const localWidth = (height - 1) * pitch + 24, width = localWidth * scale;
+      const previous = piles[depth - 1];
+      const x = previous ? previous.x + previous.width - Math.min(width * .65, pitch * previous.scale * 2) : 0;
+      const baseline = previous ? previous.floor + 27 * scale - localWidth * slope * scale / 2 : 0;
+      const project = (px, py) => ({x: x + px * scale, y: baseline + (py + px * slope) * scale});
       const cans = [];
       for (let level = 0; level < height; level++) {
         for (let col = 0; col < height - level; col++) {
-          const x = level * 12 + col * 24;
-          cans.push({row: group.rows[index++], x: offset + x, y: baseline - 36 - level * 31 + x * .10});
+          const localX = (col + level / 2) * pitch, localY = -34.4 - level * rise;
+          cans.push({row: group.rows[index++], level, col, localX, localY, ...project(localX, localY)});
         }
       }
-      const pile = {height, x: offset, baseline, width, cans};
-      offset += width + 8;
-      return pile;
+      piles.push({height, depth, x, baseline, width, localWidth, scale, slope, rise, pitch, floor: baseline + localWidth * slope * scale / 2, cans, project});
     });
-    const cans = piles.flatMap(pile => pile.cans);
-    const bounds = cans.reduce((b, can) => ({left: Math.min(b.left, can.x), top: Math.min(b.top, can.y), right: Math.max(b.right, can.x + 35), bottom: Math.max(b.bottom, can.y + 42)}), {left: 0, top: 0, right: 1, bottom: 1});
+    // Include the shared floor shadow, sheared silhouettes and contact shadows.
+    const bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity};
+    const include = p => { bounds.left = Math.min(bounds.left, p.x); bounds.top = Math.min(bounds.top, p.y); bounds.right = Math.max(bounds.right, p.x); bounds.bottom = Math.max(bounds.bottom, p.y); };
+    for (const pile of piles) {
+      for (const can of pile.cans) {
+        const bottom = can.level ? 37 : 43, right = can.level ? 24 : 36;
+        for (const dx of [0, right]) for (const dy of [2, bottom]) include(pile.project(can.localX + dx, can.localY + dy));
+      }
+      const shadowHeight = Math.max(5, pile.localWidth * .025);
+      for (const px of [-8, pile.localWidth + 24]) for (const py of [2 - shadowHeight, 2 + shadowHeight]) include(pile.project(px, py));
+    }
+    if (!piles.length) Object.assign(bounds, {left: 0, top: 0, right: 1, bottom: 1});
     return {piles, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
   }
   function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
@@ -85,8 +99,6 @@
     for (const key of styles) {
       const paint = paints.get(key);
       body += `<g id="${shapeIds.get(key)}">
-        <ellipse cx="19" cy="37" rx="15" ry="4.7" fill="url(#${uid}-ground)"/>
-        <ellipse cx="12" cy="35.7" rx="10.7" ry="2.1" fill="url(#${uid}-contact)"/>
         <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V29.8Q22 36 12 36Q2 36 2 29.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
         ${paintShape('path', labelPath, paint)}
         <path ${labelPath} fill="url(#${uid}-shade)"/>
@@ -96,7 +108,8 @@
         </g>
         <path ${labelPath} fill="url(#${uid}-gleam)"/>
         <path d="M3.2 31.8Q12 35.4 20.8 31.8V32.8Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.8Z" fill="url(#${uid}-rim)"/>
-        <path d="M4 33.7Q12 36 20 33.7" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".45" opacity=".8"/>
+        <path d="M3.5 33.8Q12 37.1 20.5 33.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
+        <path d="M4 33.6Q12 36.4 20 33.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
         <path d="M4.3 9Q12 12.5 19.7 9" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
         <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".65"/>
         <ellipse cx="12" cy="5.95" rx="7.1" ry="2.5" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".65"/>
@@ -112,20 +125,23 @@
     body += text(30, 48, group.year, 29, 'var(--uat-heading)', 800);
     const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
     body += text(470, 46, short(`${fmt(group.rows.length)} ${unit}`, 30), 19, 'var(--uat-muted)', 600, 'text-anchor="end"');
-    const floors = geometry.piles.map(pile => pile.baseline + pile.width * .05);
+    const floors = geometry.piles.map(pile => pile.floor);
     const floorMin = Math.min(...floors), floorMax = Math.max(...floors);
     const floorY = 409 + ((floorMin + floorMax) / 2 - b.bottom) * scale;
     body += `<ellipse cx="250" cy="${floorY}" rx="204" ry="${Math.max(17, (floorMax - floorMin) / 2 * scale + 18)}" fill="url(#${uid}-stage)"/>`;
     body += `<g transform="translate(${((W - geometry.width * scale) / 2 - b.left * scale).toFixed(3)} ${(409 - b.bottom * scale).toFixed(3)}) scale(${scale.toFixed(5)})">`;
+    // Paint a complete stack at a time, from the farthest to the nearest plane.
     for (const pile of geometry.piles) {
-      body += `<ellipse cx="${pile.x + pile.width / 2 + 8}" cy="${pile.baseline + pile.width * .05 + 2}" rx="${pile.width / 2 + 12}" ry="${Math.max(6, pile.width * .035)}" fill="url(#${uid}-ground)" transform="rotate(5.71 ${pile.x + pile.width / 2 + 8} ${pile.baseline + pile.width * .05 + 2})"/>`;
-    }
-    for (const pile of geometry.piles) {
-      body += `<g class="uat-can-pile" data-depth="${pile.baseline}">`;
-      for (const can of [...pile.cans].sort((a, b) => a.y - b.y || a.x - b.x)) {
+      const matrix = `matrix(${pile.scale} ${pile.slope * pile.scale} 0 ${pile.scale} ${pile.x} ${pile.baseline})`;
+      body += `<g class="uat-can-pile" data-depth="${pile.depth}" transform="${matrix}">`;
+      body += `<ellipse cx="${pile.localWidth / 2 + 8}" cy="2" rx="${pile.localWidth / 2 + 16}" ry="${Math.max(5, pile.localWidth * .025)}" fill="url(#${uid}-ground)"/>`;
+      for (const can of pile.cans) {
         const row = can.row;
         const title = `${row.beer} · ${row.style} · ${dayLabel(row.local.day)} ${String(row.local.hour).padStart(2, '0')}:${String(row.local.minute).padStart(2, '0')} · ${row.rating == null ? 'Non notée' : fmt(row.rating, 2) + ' / 5'}`;
-        body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}"><title>${esc(title)}</title><use href="#${shapeIds.get(row.style)}" x="${can.x}" y="${can.y}"/></g>`;
+        body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}" data-level="${can.level}" transform="translate(${can.localX} ${can.localY})"><title>${esc(title)}</title>`;
+        if (!can.level) body += `<ellipse class="uat-can-floor-shadow" cx="20" cy="37" rx="16" ry="5" fill="url(#${uid}-ground)"/>`;
+        // A tight contact shadow on the two supporting lids, never a floor halo in mid-air.
+        body += `<ellipse class="uat-can-contact" cx="12" cy="34.7" rx="10.5" ry="2.1" fill="url(#${uid}-contact)"/><use href="#${shapeIds.get(row.style)}"/></g>`;
       }
       body += '</g>';
     }

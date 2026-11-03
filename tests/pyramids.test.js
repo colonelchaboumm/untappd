@@ -51,22 +51,88 @@ test('can defaults are grey and are exposed as palette controls', () => {
   }
 });
 
-test('depth offsets overlap piles and keep every can inside the fitted scene', () => {
-  for (const n of [1,2,5,37,295,1510,5000]) {
-    const group=V.pyramidLayout(C.analyze(rows(n)))[0];
-    const scene=V.pyramidGeometry(group), b=scene.bounds;
+const near = (actual, expected, message) => assert.ok(Math.abs(actual-expected)<1e-7, message+`: ${actual} versus ${expected}`);
+const projected = (matrix,x,y) => ({x:matrix[0]*x+matrix[2]*y+matrix[4],y:matrix[1]*x+matrix[3]*y+matrix[5]});
+const inside = (point,bounds,message) => {
+  const epsilon=1e-7;
+  assert.ok(point.x>=bounds.left-epsilon && point.x<=bounds.right+epsilon,message+' (x)');
+  assert.ok(point.y>=bounds.top-epsilon && point.y<=bounds.bottom+epsilon,message+' (y)');
+};
+
+test('projected feet rest on the midpoint of two supporting lids at every level', () => {
+  for (const n of [1,2,3,5,6,10,37,295,1510,5000]) {
+    const scene=V.pyramidGeometry(V.pyramidLayout(C.analyze(rows(n)))[0]);
     assert.equal(scene.piles.flatMap(p=>p.cans).length,n);
-    scene.piles.forEach((pile,i)=>{
-      assert.ok(Math.abs(pile.baseline-pile.x*.10-i*22)<.0001);
-      if (i) {
-        const previous=scene.piles[i-1];
-        assert.ok(pile.x<previous.x+previous.width,'foreground pile overlaps the preceding pile');
-      }
+    for (const pile of scene.piles) {
+      assert.ok(Number.isFinite(pile.scale) && pile.scale>0);
+      assert.ok(Number.isFinite(pile.slope));
+      const supports=new Map(pile.cans.map(can=>[can.level+':'+can.col,can]));
       for (const can of pile.cans) {
-        assert.ok(can.x>=b.left && can.x+35<=b.right);
-        assert.ok(can.y>=b.top && can.y+42<=b.bottom);
+        const origin=pile.project(can.localX,can.localY);
+        near(can.x,origin.x,'can x follows the pile projection');
+        near(can.y,origin.y,'can y follows the pile projection');
+        if (!can.level) continue;
+        const left=supports.get((can.level-1)+':'+can.col);
+        const right=supports.get((can.level-1)+':'+(can.col+1));
+        assert.ok(left && right,'an upper can has two lower supports');
+        const foot=pile.project(can.localX+12,can.localY+34.4);
+        const leftLid=pile.project(left.localX+12,left.localY+6.1);
+        const rightLid=pile.project(right.localX+12,right.localY+6.1);
+        near(foot.x,(leftLid.x+rightLid.x)/2,'foot is centred between the supporting lids');
+        near(foot.y,(leftLid.y+rightLid.y)/2,'foot rests at the supporting lid height');
+      }
+    }
+  }
+});
+
+test('rendered matrices fit cans and shadows, paint nearer piles last and keep floor shadows on level zero', () => {
+  for (const n of [1,2,3,6,37,295]) {
+    const s=C.analyze(rows(n)),group=V.pyramidLayout(s)[0],scene=V.pyramidGeometry(group);
+    const graphic=V.pyramidYear(group,texts,V.stylePalette(s));
+    const pileTags=[...graphic.matchAll(/<g class="uat-can-pile" data-depth="([^"]+)" transform="matrix\(([^"]+)\)">/g)];
+    assert.equal(pileTags.length,scene.piles.length);
+    let previousDepth=-Infinity,total=0;
+    pileTags.forEach((tag,i)=>{
+      const pile=scene.piles[i],depth=Number(tag[1]),matrix=tag[2].split(/[,\s]+/).map(Number);
+      assert.ok(depth>previousDepth,'foreground piles are painted after background piles');
+      previousDepth=depth;
+      assert.equal(matrix.length,6);assert.ok(matrix.every(Number.isFinite));
+      const fragment=graphic.slice(tag.index,pileTags[i+1]?.index ?? graphic.length);
+      const painted=[...fragment.matchAll(/<g class="uat-can" ([^>]+)>([\s\S]*?)<\/g>/g)];
+      assert.equal(painted.length,pile.cans.length);
+      const byId=new Map(pile.cans.map(can=>[can.row.id,can]));
+      let previousLevel=-1;
+      for (const match of painted) {
+        const id=match[1].match(/data-checkin-id="([^"]+)"/)[1];
+        const level=Number(match[1].match(/data-level="([^"]+)"/)[1]);
+        const local=match[1].match(/transform="translate\(([^"]+)\)"/)[1].split(/[,\s]+/).map(Number);
+        const can=byId.get(id);assert.ok(can,'rendered can belongs to the source pile');
+        assert.equal(level,can.level);
+        assert.ok(level>=previousLevel,'supporting cans are painted before the cans resting on them');
+        previousLevel=level;
+        near(local[0],can.localX,'rendered local x follows the layout');
+        near(local[1],can.localY,'rendered local y follows the layout');
+        const origin=projected(matrix,...local);
+        near(origin.x,can.x,'rendered matrix projects the can to its scene x');
+        near(origin.y,can.y,'rendered matrix projects the can to its scene y');
+        // Independent envelope of the shared can artwork, including its rim.
+        for (const dx of [0,24]) for (const dy of [2,37]) inside(projected(matrix,local[0]+dx,local[1]+dy),scene.bounds,'can silhouette stays in fitted bounds');
+        const floorShadows=[...match[2].matchAll(/<ellipse class="uat-can-floor-shadow" ([^>]+)\/>/g)];
+        assert.equal(floorShadows.length,level===0?1:0,'only cans standing on the ground have a floor shadow');
+        assert.ok(match[2].includes('class="uat-can-contact"'),'every can retains a contact shadow');
+        assert.ok(match[2].indexOf('class="uat-can-contact"')<match[2].indexOf('<use '),'contact shadow is behind the can body');
+        for (const shadow of floorShadows) {
+          const attribute=name=>Number(shadow[1].match(new RegExp(name+'="([^"]+)"'))[1]);
+          const cx=local[0]+attribute('cx'),cy=local[1]+attribute('cy'),rx=attribute('rx'),ry=attribute('ry');
+          const centre=projected(matrix,cx,cy);
+          const extentX=Math.hypot(matrix[0]*rx,matrix[2]*ry),extentY=Math.hypot(matrix[1]*rx,matrix[3]*ry);
+          inside({x:centre.x-extentX,y:centre.y-extentY},scene.bounds,'projected floor shadow minimum stays in bounds');
+          inside({x:centre.x+extentX,y:centre.y+extentY},scene.bounds,'projected floor shadow maximum stays in bounds');
+        }
+        total++;
       }
     });
+    assert.equal(total,n);
   }
 });
 
