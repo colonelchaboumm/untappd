@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.6.1 =
+* Année récente centrée au premier plan, puis années précédentes en alternance à gauche et à droite.
+* Recul et réduction progressive vers un même point de fuite.
+* Repères annuels latéraux reliés aux bases, espacés pour rester lisibles.
+* Composition reprise dans le PNG, avec les couleurs Elementor et toutes les canettes.
 
 = 1.6.0 =
 * Toutes les années réunies sur une scène commune : une pyramide par année.

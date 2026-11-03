@@ -145,13 +145,18 @@
   }
   function pyramidScene(s) {
     const groups = pyramidLayout(s), layers = [];
+    const geometries = groups.map(pyramidGeometry);
+    const spread = Math.max(170, ...geometries.map(geometry => geometry.width * .65));
+    const distanceToHorizon = Math.max(210, ...geometries.map(geometry => geometry.height * 1.5));
     groups.forEach((group, depth) => {
-      const geometry = pyramidGeometry(group), scale = Math.max(.66, 1 / (1 + (groups.length - depth - 1) * .065));
-      const previous = layers[depth - 1];
-      const x = previous ? previous.x + Math.max(230, previous.geometry.width * previous.scale * .72) : 0;
-      const floor = depth * 90;
+      const geometry = geometries[depth], distance = groups.length - depth - 1;
+      // Project toward one central vanishing point, alternating on either side.
+      const scale = 1 / (1 + distance * .52), side = distance ? (distance % 2 ? -1 : 1) : 0;
+      const centerX = side * spread * scale;
+      const x = centerX - (geometry.bounds.left + geometry.bounds.right) / 2 * scale;
+      const floor = -distanceToHorizon * (1 - scale);
       const y = floor - geometry.piles[0].floor * scale;
-      layers.push({group, geometry, depth, scale, x, y, floor});
+      layers.push({group, geometry, depth, distance, side, centerX, scale, x, y, floor});
     });
     const bounds = layers.reduce((b, layer) => ({
       left: Math.min(b.left, layer.x + layer.geometry.bounds.left * layer.scale),
@@ -162,10 +167,21 @@
     return {layers, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
   }
   function renderPyramidScene(scene, texts, paints) {
-    const W = Math.max(1100, scene.layers.length * 250), uid = 'uat-can-' + (++canCounter);
+    const W = 1100, uid = 'uat-can-' + (++canCounter);
     if (!scene.layers.length) return svg(W, 240, text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
-    const b = scene.bounds, scale = Math.min(1.55, (W - 230) / scene.width, 620 / scene.height);
-    const H = Math.max(420, Math.ceil(scene.height * scale + 156)), x = (W - scene.width * scale) / 2 - b.left * scale, y = 48 - b.top * scale;
+    const b = scene.bounds, scale = Math.min(1.8, (W - 380) / (2 * Math.max(Math.abs(b.left), Math.abs(b.right))), 820 / scene.height);
+    const x = W / 2, y = 52 - b.top * scale;
+    const lastLabel = {left: 0, right: 0};
+    const labels = scene.layers.map(layer => {
+      const bounds = layer.geometry.bounds;
+      const anchorX = x + (layer.centerX + layer.side * layer.geometry.width * layer.scale / 2) * scale;
+      const anchorY = y + (layer.y + bounds.bottom * layer.scale) * scale;
+      const column = layer.side < 0 ? 'left' : 'right';
+      const labelY = layer.side ? Math.max(anchorY + 5, lastLabel[column] + 80) : anchorY + 44;
+      if (layer.side) lastLabel[column] = labelY;
+      return {layer, anchorX, anchorY, labelY, labelX: layer.side < 0 ? 44 : layer.side > 0 ? W - 44 : x + layer.centerX * scale};
+    });
+    const H = Math.max(520, Math.ceil(scene.height * scale + 180), ...labels.map(label => Math.ceil(label.labelY + 72)));
     let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".65"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".16"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
     body += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-surface)" stroke="var(--uat-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
     body += `<g transform="translate(${x} ${y}) scale(${scale})">`;
@@ -176,12 +192,19 @@
       body += `<g class="uat-year-pyramid" data-year="${esc(layer.group.year)}" data-depth="${layer.depth}" transform="translate(${layer.x} ${layer.y}) scale(${layer.scale})"><title>${esc(layer.group.year)} : ${fmt(layer.group.rows.length)} check-ins</title>${pyramidArtwork(layer.group, paints)}</g>`;
     }
     body += '</g>';
-    for (const layer of scene.layers) {
-      const group = layer.group, labelX = x + layer.x * scale, labelY = y + (layer.y + layer.geometry.bounds.bottom * layer.scale) * scale + 30;
+    for (const label of labels) {
+      const {layer, labelX, labelY, anchorX, anchorY} = label, group = layer.group;
       const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
-      body += `<g class="uat-year-label" data-year="${esc(group.year)}">` + text(labelX, labelY, group.year, 25, 'var(--uat-heading)', 800) + text(labelX, labelY + 23, short(`${fmt(group.rows.length)} ${unit}`, 28), 14, 'var(--uat-muted)', 500);
+      const textAnchor = layer.side < 0 ? 'start' : layer.side > 0 ? 'end' : 'middle';
+      const bandStart = layer.side < 0 ? labelX : layer.side > 0 ? labelX - 116 : labelX - 58;
+      body += `<g class="uat-year-label" data-year="${esc(group.year)}">`;
+      if (layer.side) {
+        const elbowX = layer.side < 0 ? 180 : W - 180, endX = layer.side < 0 ? labelX + 108 : labelX - 108;
+        body += `<path d="M${anchorX} ${anchorY}L${elbowX} ${labelY - 8}H${endX}" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".5" stroke-width="1"/><circle cx="${anchorX}" cy="${anchorY}" r="2.2" fill="var(--uat-can-outline)"/>`;
+      }
+      body += text(labelX, labelY, group.year, layer.side ? 24 : 30, 'var(--uat-heading)', 800, `text-anchor="${textAnchor}"`) + text(labelX, labelY + 23, short(`${fmt(group.rows.length)} ${unit}`, 28), 14, 'var(--uat-muted)', 500, `text-anchor="${textAnchor}"`);
       const counts = new Map(); group.rows.forEach(row => counts.set(row.style, (counts.get(row.style) || 0) + 1));
-      let bandX = labelX;
+      let bandX = bandStart;
       for (const [key, paint] of paints) {
         const count = counts.get(key) || 0; if (!count) continue;
         const width = count / group.rows.length * 116;
@@ -190,14 +213,14 @@
       }
       body += '</g>';
     }
-    return svg(W, H, body, `${scene.layers.reduce((n, layer) => n + layer.group.rows.length, 0)} canettes, une pyramide par année. Années anciennes au fond, années récentes devant. Certaines canettes peuvent être masquées par la perspective.`);
+    return svg(W, H, body, `${scene.layers.reduce((n, layer) => n + layer.group.rows.length, 0)} canettes, une pyramide par année. Année la plus récente au centre du premier plan ; années précédentes de plus en plus loin, à gauche puis à droite en alternance. Certaines canettes peuvent être masquées par la perspective.`);
   }
   function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
     return renderPyramidScene(pyramidScene({rows: group.rows}), texts, paints);
   }
   function pyramidCards(s, texts = {}) {
     if (!s.rows.length) return `<p class="uat-empty">${esc(texts.pyramids_empty || 'Aucune évaluation pour cette période.')}</p>`;
-    const count = new Set(s.rows.map(row => row.local.year)).size, minWidth = Math.max(660, count * 200);
+    const minWidth = 760;
     return `<div class="uat-pyramid-viewport" tabindex="0" role="region" aria-label="Pyramides annuelles, défilement horizontal" style="--uat-pyramid-width:${minWidth}px">${pyramids(s, texts)}</div>`;
   }
   function pyramids(s, texts = {}) {

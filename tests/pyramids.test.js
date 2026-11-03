@@ -175,13 +175,25 @@ test('all years share one SVG, advance from the oldest to the newest and keep th
   assert.deepEqual([...page.matchAll(/class="uat-year-pyramid" data-year="([^"]+)"/g)].map(m=>m[1]),['2020','2021','2022','2023','2024']);
   assert.equal(cans(page).length,input.length);
   assert.equal(new Set(cans(page)).size,input.length);
+  const front=scene.layers[scene.layers.length-1];
+  assert.equal(front.centerX,0,'the latest year is centred in the foreground');
+  assert.equal(front.scale,1,'the foreground establishes the reference size');
+  assert.equal(front.side,0);
+  const receding=Array.from(scene.layers).reverse();
+  for (let i=1;i<receding.length;i++) {
+    const current=receding[i],nearer=receding[i-1];
+    assert.ok(current.scale<nearer.scale,'every older year gets smaller in perspective');
+    assert.ok(current.floor<nearer.floor,'every older year recedes toward the horizon');
+    assert.equal(Math.sign(current.centerX),i%2 ? -1 : 1,'depth planes alternate around the central pyramid');
+    if (i>1) assert.ok(Math.abs(current.centerX)<Math.abs(nearer.centerX),'distant planes converge toward one vanishing point');
+  }
   scene.layers.forEach((layer,i)=>{
     assert.equal(layer.geometry.piles.length,1,'one pyramid represents exactly one year');
     assert.equal(layer.geometry.piles[0].cans.length,[1,2,37,295,500][i]);
     if (i) {
       assert.ok(layer.floor>scene.layers[i-1].floor,'newer years stand closer to the viewer');
       assert.ok(layer.scale>scene.layers[i-1].scale,'nearer cans are larger');
-      assert.ok(layer.x>scene.layers[i-1].x,'years remain identifiable through lateral offsets');
+      assert.equal(layer.side,layer.distance % 2 ? -1 : layer.distance ? 1 : 0,'older years alternate left and right');
     }
     const b=layer.geometry.bounds;
     for (const px of [b.left,b.right]) for (const py of [b.top,b.bottom]) inside({x:layer.x+px*layer.scale,y:layer.y+py*layer.scale},scene.bounds,'annual pyramid remains in the common scene');

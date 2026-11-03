@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.6.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.6.0.zip)**
+**[Télécharger Untappd Atlas 1.6.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.6.1.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.6.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.6.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -22,21 +22,21 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Pyramides de canettes — version 1.6.0
+## Pyramides de canettes — version 1.6.1
 
 Le disque est remplacé sur la page et dans le PNG par des canettes métalliques colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
 
-Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. Les plus anciennes sont au fond, les plus récentes devant ; le décalage latéral et les échelles de perspective les distinguent. Les canettes du même plan conservent la même taille. Chaque année et son total sont indiqués à sa base. Le relief et cette composition sont repris dans le PNG.
+Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. L’année la plus récente est centrée au premier plan. La précédente apparaît derrière à gauche, la suivante derrière à droite, puis les années continuent en alternance. Chaque plan recule et rétrécit progressivement vers un même point de fuite. Les canettes du même plan conservent la même taille. Les années et leurs totaux sont indiqués sur les côtés, avec un trait jusqu’à la base ; le total de l’année récente reste sous la pyramide centrale. Le relief et cette composition sont repris dans le PNG.
 
 Le volume de chaque canette est accentué par une ombre sur le côté droit et un reflet vertical à gauche. Le couvercle possède une cuvette, un rebord épais et une ombre sous la languette ; le col et le pied comportent des biseaux métalliques. La couleur par défaut de **Canettes : ombre métallique** est plus sombre (`#343434`) ; les couleurs personnalisées dans Elementor ou dans les réglages du plugin restent prioritaires. Tous ces effets utilisent les couleurs existantes et sont repris dans le PNG.
 
 Les étiquettes adoptent la couleur du style de bière, tandis que les couvercles et rebords restent métalliques. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout le fichier importé, hors filtres ; les styles suivants reçoivent des mélanges de ces couleurs. La correspondance reste stable entre années et lors des changements de filtres. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu conserve la couleur neutre du métal. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
 
-La scène remplace les panneaux annuels séparés. Sous chaque année, une barre indique la répartition des styles. Une pyramide complète est construite à partir des check-ins de l’année ; le reste prolonge son bord en conservant les appuis entre les rangées. Par exemple, 37 check-ins donnent **une seule pyramide de 37 canettes**. Les pyramides peuvent donc être incomplètes : aucune canette de remplissage n’est ajoutée.
+La scène remplace les panneaux annuels séparés. Sous chaque repère annuel, une barre indique la répartition des styles. Une pyramide complète est construite à partir des check-ins de l’année ; le reste prolonge son bord en conservant les appuis entre les rangées. Par exemple, 37 check-ins donnent **une seule pyramide de 37 canettes**. Les pyramides peuvent donc être incomplètes : aucune canette de remplissage n’est ajoutée.
 
 Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Au survol : bière, style, date, heure locale et note, ou « Non notée ». Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
 
-En colonne étroite ou pour un grand nombre d’années, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
+En colonne étroite, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
 
 Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le métal, les reflets, l’ombre, les contours, le couvercle et les ombres au sol. Ces matériaux sont gris par défaut et peuvent être reliés aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
 
@@ -161,7 +161,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.6.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.6.1.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
