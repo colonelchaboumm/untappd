@@ -44,7 +44,7 @@
   "series-10": {"label":"Style / série 10","default":"#7962b1","group":"series"},
   "can-body": {"label":"Canettes : métal et style inconnu","default":"#bdbdbd","group":"cans"},
   "can-highlight": {"label":"Canettes : reflet clair","default":"#ffffff","group":"cans"},
-  "can-shadow": {"label":"Canettes : ombre métallique","default":"#6b6b6b","group":"cans"},
+  "can-shadow": {"label":"Canettes : ombre métallique","default":"#343434","group":"cans"},
   "can-outline": {"label":"Canettes : contours","default":"#777777","group":"cans"},
   "can-lid": {"label":"Canettes : couvercle","default":"#dfdfdf","group":"cans"},
   "can-ground": {"label":"Pyramides : ombres au sol","default":"#757575","group":"cans"}

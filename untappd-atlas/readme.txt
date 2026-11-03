@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.5.3 =
+* Volume des canettes accentué : ombre cylindrique, reflet principal et centre coloré.
+* Couvercle embouti avec rebord épais, cuvette métallique et ombre sous la languette.
+* Col et pied biseautés ; ombre métallique plus sombre par défaut, toujours personnalisable dans Elementor.
+* Même relief dans le PNG, sans modifier les appuis ni le nombre de canettes.
 
 = 1.5.2 =
 * Perspective commune aux couvercles, bases et rangées : appuis alignés entre les canettes.

@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.5.2 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.5.2.zip)**
+**[Télécharger Untappd Atlas 1.5.3 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.5.3.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.5.2.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.5.3.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -22,11 +22,13 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Pyramides de canettes — version 1.5.2
+## Pyramides de canettes — version 1.5.3
 
 Le disque est remplacé sur la page et dans le PNG par des canettes métalliques colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
 
 Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Les couvercles, rebords et rangées partagent la même perspective. Chaque canette supérieure repose au milieu des deux couvercles qui la soutiennent ; les rangées sont dessinées du bas vers le haut pour conserver cet appui. Les petites pyramides avancent devant les grandes et leurs canettes grandissent légèrement à chaque plan. Leur chevauchement est limité à deux pas de canettes pour garder les piles distinctes. Les ombres larges restent au sol, tandis que de fines ombres marquent les contacts entre les étages. Le cadrage tient compte de la perspective et des ombres ; ce même rendu est exporté en PNG.
+
+Le volume de chaque canette est accentué par une ombre sur le côté droit et un reflet vertical à gauche. Le couvercle possède une cuvette, un rebord épais et une ombre sous la languette ; le col et le pied comportent des biseaux métalliques. La couleur par défaut de **Canettes : ombre métallique** est plus sombre (`#343434`) ; les couleurs personnalisées dans Elementor ou dans les réglages du plugin restent prioritaires. Tous ces effets utilisent les couleurs existantes et sont repris dans le PNG.
 
 Les étiquettes adoptent la couleur du style de bière, tandis que les couvercles et rebords restent métalliques. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout le fichier importé, hors filtres ; les styles suivants reçoivent des mélanges de ces couleurs. La correspondance reste stable entre années et lors des changements de filtres. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu conserve la couleur neutre du métal. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
 
@@ -157,7 +159,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.5.2.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.5.3.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

@@ -87,10 +87,12 @@
     // Shared vector symbols retain the same style paint in the page and PNG.
     let body = `<defs>
       <linearGradient id="${uid}-metal"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".23" stop-color="var(--uat-can-highlight)"/><stop offset=".48" stop-color="var(--uat-can-lid)"/><stop offset=".82" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <linearGradient id="${uid}-shade"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".82"/><stop offset=".17" stop-color="var(--uat-can-shadow)" stop-opacity=".08"/><stop offset=".42" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset=".73" stop-color="var(--uat-can-shadow)" stop-opacity=".05"/><stop offset=".91" stop-color="var(--uat-can-shadow)" stop-opacity=".38"/><stop offset="1" stop-color="var(--uat-can-shadow)" stop-opacity=".86"/></linearGradient>
-      <linearGradient id="${uid}-gleam"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".19" stop-color="var(--uat-can-highlight)" stop-opacity=".12"/><stop offset=".25" stop-color="var(--uat-can-highlight)" stop-opacity=".8"/><stop offset=".30" stop-color="var(--uat-can-highlight)" stop-opacity=".23"/><stop offset=".49" stop-color="var(--uat-can-highlight)" stop-opacity=".03"/><stop offset=".77" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".9" stop-color="var(--uat-can-highlight)" stop-opacity=".16"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></linearGradient>
-      <linearGradient id="${uid}-lid" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset=".55" stop-color="var(--uat-can-lid)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
+      <linearGradient id="${uid}-shade"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".8"/><stop offset=".12" stop-color="var(--uat-can-shadow)" stop-opacity=".25"/><stop offset=".32" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset=".5" stop-color="var(--uat-can-shadow)" stop-opacity=".03"/><stop offset=".68" stop-color="var(--uat-can-shadow)" stop-opacity=".26"/><stop offset=".85" stop-color="var(--uat-can-shadow)" stop-opacity=".72"/><stop offset=".97" stop-color="var(--uat-can-shadow)" stop-opacity=".96"/><stop offset="1" stop-color="var(--uat-can-shadow)" stop-opacity=".82"/></linearGradient>
+      <linearGradient id="${uid}-gleam"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".13" stop-color="var(--uat-can-highlight)" stop-opacity=".06"/><stop offset=".21" stop-color="var(--uat-can-highlight)" stop-opacity=".38"/><stop offset=".26" stop-color="var(--uat-can-highlight)" stop-opacity=".85"/><stop offset=".31" stop-color="var(--uat-can-highlight)" stop-opacity=".32"/><stop offset=".43" stop-color="var(--uat-can-highlight)" stop-opacity=".12"/><stop offset=".62" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".94" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity=".16"/></linearGradient>
+      <linearGradient id="${uid}-lid" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset=".38" stop-color="var(--uat-can-lid)"/><stop offset=".72" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
       <linearGradient id="${uid}-rim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".5" stop-color="var(--uat-can-highlight)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
+      <linearGradient id="${uid}-well" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".35" stop-color="var(--uat-can-body)"/><stop offset=".8" stop-color="var(--uat-can-lid)"/><stop offset="1" stop-color="var(--uat-can-highlight)"/></linearGradient>
+      <linearGradient id="${uid}-neck" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".72"/><stop offset=".52" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity=".3"/></linearGradient>
       <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".45"/><stop offset=".48" stop-color="var(--uat-can-ground)" stop-opacity=".18"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
       <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".66"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
       <radialGradient id="${uid}-backdrop" cx=".28" cy=".24" r=".88"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".7"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".18"/></radialGradient>
@@ -101,22 +103,29 @@
       body += `<g id="${shapeIds.get(key)}">
         <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V29.8Q22 36 12 36Q2 36 2 29.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
         ${paintShape('path', labelPath, paint)}
-        <path ${labelPath} fill="url(#${uid}-shade)"/>
-        <path d="M3 14Q12 18 21 14M3 28.6Q12 32.5 21 28.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4" opacity=".5"/>
+        <path d="M3 12.1Q12 15.3 21 12.1M3 29.4Q12 33.6 21 29.4" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".3" opacity=".3"/>
         <g fill="none" stroke="var(--uat-can-highlight)" stroke-width=".45" stroke-linecap="round" stroke-linejoin="round" opacity=".6">
           <path d="M12 19Q8.2 20 9.1 23Q10 25 12 26.4Q14 25 14.9 23Q15.8 20 12 19ZM12 19V26.4M9.1 21.3 12 23.3 14.9 21.3M9.5 23.6 12 25 14.5 23.6"/>
         </g>
+        <path ${labelPath} fill="url(#${uid}-shade)"/>
         <path ${labelPath} fill="url(#${uid}-gleam)"/>
+        <path d="M4.3 7.5Q12 11 19.7 7.5L21.2 10.5Q12 14.6 2.8 10.5Z" fill="url(#${uid}-neck)"/>
+        <path d="M3.1 30.7Q12 34.8 20.9 30.7" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".65" opacity=".8"/>
         <path d="M3.2 31.8Q12 35.4 20.8 31.8V32.8Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.8Z" fill="url(#${uid}-rim)"/>
         <path d="M3.5 33.8Q12 37.1 20.5 33.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
         <path d="M4 33.6Q12 36.4 20 33.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
-        <path d="M4.3 9Q12 12.5 19.7 9" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
-        <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".65"/>
-        <ellipse cx="12" cy="5.95" rx="7.1" ry="2.5" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".65"/>
-        <ellipse cx="12" cy="6" rx="5.8" ry="1.8" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".35"/>
-        <ellipse cx="15.1" cy="6.2" rx="2" ry="1" fill="var(--uat-can-shadow)"/>
-        <path d="M8.9 4.5Q10.5 3.7 12.1 4.5L12.6 6Q11.3 7.1 9.5 6.5Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
-        <ellipse cx="10.8" cy="5.2" rx=".9" ry=".5" fill="var(--uat-can-shadow)"/>
+        <path d="M3.7 6.1a8.3 3.4 0 0 0 16.6 0v1.1a8.3 3.4 0 0 1-16.6 0Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".3"/>
+        <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
+        <ellipse cx="12" cy="6.1" rx="7.7" ry="2.95" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
+        <ellipse cx="12" cy="6.2" rx="6.7" ry="2.25" fill="url(#${uid}-well)" stroke="var(--uat-can-shadow)" stroke-width=".28"/>
+        <path d="M5.7 6.6Q12 10.5 18.3 6.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".38" opacity=".85"/>
+        <ellipse cx="15" cy="6.65" rx="2.1" ry=".95" fill="var(--uat-can-shadow)"/>
+        <path d="M13.1 7Q15 8.2 17 6.9" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".25" opacity=".7"/>
+        <path d="M8.7 4.9Q10.6 4 12.4 4.8L13 6.4Q11.5 7.8 9.4 6.9Z" fill="var(--uat-can-shadow)" opacity=".6"/>
+        <path d="M8.6 4.5Q10.5 3.6 12.2 4.4L12.7 6Q11.2 7.3 9.2 6.5Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".35"/>
+        <path d="M9 4.6Q10.6 4 12 4.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4"/>
+        <ellipse cx="10.7" cy="5.2" rx="1.1" ry=".55" fill="var(--uat-can-shadow)"/>
+        <path d="M4.4 7.6Q12 11.2 19.6 7.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4" opacity=".85"/>
       </g>`;
     }
     body += '</defs>';
