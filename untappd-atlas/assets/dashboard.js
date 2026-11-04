@@ -308,7 +308,7 @@
   }
   function badgeTiles(s) {
     if (!s.badges.length) return '<p class="uat-empty">Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.</p>';
-    return s.badges.slice(0, 100).map(b => `<article class="uat-badge">${C.badgeImage(b.image) ? `<img src="${esc(C.badgeImage(b.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" width="64" height="64">` : '<span class="uat-badge-icon" aria-hidden="true">🏅</span>'}<div><strong>${esc(b.label)}</strong><p>${b.level == null ? 'Niveau non renseigné' : `Niveau ${fmt(b.level)} observé`}</p></div></article>`).join('') + (s.badges.length > 100 ? '<p class="uat-subtle">100 premiers badges affichés ; liste complète dans Excel.</p>' : '');
+    return s.badges.slice(0, 100).map(b => `<article class="uat-badge">${C.badgeImage(b.image) ? `<img src="${esc(C.badgeImage(b.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" width="64" height="64">` : '<span class="uat-badge-icon" aria-hidden="true">🏅</span>'}<div><strong>${esc(b.label)}</strong><p>${b.level == null ? 'Niveau non renseigné' : `Niveau ${fmt(b.level)}`}</p></div></article>`).join('') + (s.badges.length > 100 ? '<p class="uat-subtle">100 premiers badges affichés ; liste complète dans Excel.</p>' : '');
   }
   function poster(s, meta) {
     const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
