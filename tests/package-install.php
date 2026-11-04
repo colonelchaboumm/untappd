@@ -2,7 +2,7 @@
 // Run only against an isolated local WordPress; its plugins and cron are restored.
 $root = $argv[1] ?? '';
 $archive = realpath($argv[2] ?? '');
-$version = $argv[3] ?? '1.7.7';
+$version = $argv[3] ?? '1.7.8';
 if (!$root || !$archive) { fwrite(STDERR, "Usage: php tests/package-install.php /path/to/wordpress plugin.zip [version]\n"); exit(1); }
 $_SERVER['HTTP_HOST'] = '127.0.0.1:8787';
 define('WP_ADMIN', true);
