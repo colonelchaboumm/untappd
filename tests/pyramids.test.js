@@ -33,7 +33,7 @@ test('year grouping follows the display timezone and filters, including unrated 
   assert.equal(V.pyramidLayout(s)[0].year,'2024');
   assert.deepEqual(cans(V.pyramidCards(s,texts)),['old']);
 });
-test('page and PNG have one can per imported row, with safe tooltips and unique SVG references', () => {
+test('page and PNG have one can per imported row, with safe metadata and unique SVG references', () => {
   const s=C.analyze(C.demo());
   const page=V.pyramidCards(s,texts), poster=V.poster(s,{texts});
   assert.equal(cans(page).length,s.total); assert.equal(cans(poster).length,s.total);
@@ -41,7 +41,7 @@ test('page and PNG have one can per imported row, with safe tooltips and unique 
   assert.equal(new Set(ids).size,ids.length);
   for (const match of all.matchAll(/(?:href="#|url\(#)([^"\)]+)/g)) assert.ok(ids.includes(match[1]),match[1]);
   assert.ok(!all.includes('uat-disc'));
-  const malicious=C.analyze([C.normalize({checkin_id:'1',created_at:'2024-01-01',beer_name:'<script>alert(1)</script>',rating:4})]);
+  const malicious=C.analyze([C.normalize({checkin_id:'1',created_at:'2024-01-01',beer_name:'Test',beer_style:'<script>alert(1)</script>',rating:4})]);
   const graphic=V.pyramids(malicious,texts);
   assert.ok(graphic.includes('&lt;script&gt;')); assert.ok(!graphic.includes('<script>'));
 });

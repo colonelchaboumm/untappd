@@ -19,7 +19,7 @@
   const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
   const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
   const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
-  const svg = (width, height, content, title) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"><title>${esc(title)}</title>${content}</svg>`;
+  const svg = (width, height, content, title, interactive = true) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"${interactive ? '' : ' pointer-events="none"'}>${interactive ? `<title>${esc(title)}</title>` : ''}${content}</svg>`;
   function stylePalette(s) {
     const counts = new Map();
     for (const row of s.rows || []) counts.set(row.style, (counts.get(row.style) || 0) + 1);
@@ -147,8 +147,7 @@
       body += `<ellipse cx="${pile.localWidth / 2 + 8}" cy="2" rx="${pile.localWidth / 2 + 16}" ry="${Math.max(5, pile.localWidth * .025)}" fill="url(#${uid}-ground)"/>`;
       for (const can of pile.cans) {
         const row = can.row;
-        const title = `${row.beer} · ${row.style} · ${dayLabel(row.local.day)} ${String(row.local.hour).padStart(2, '0')}:${String(row.local.minute).padStart(2, '0')} · ${row.rating == null ? 'Non notée' : fmt(row.rating, 2) + ' / 5'}`;
-        body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}" data-level="${can.level}" transform="translate(${can.localX} ${can.localY})"><title>${esc(title)}</title>`;
+        body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}" data-level="${can.level}" transform="translate(${can.localX} ${can.localY})">`;
         if (!can.level) body += `<ellipse class="uat-can-floor-shadow" cx="20" cy="37" rx="16" ry="5" fill="url(#${uid}-ground)"/>`;
         // A tight contact shadow on the two supporting lids, never a floor halo in mid-air.
         body += `<ellipse class="uat-can-contact" cx="12" cy="34.7" rx="10.5" ry="2.1" fill="url(#${uid}-contact)"/><use href="#${shapeIds.get(row.style)}"/></g>`;
@@ -182,7 +181,7 @@
   }
   function renderPyramidScene(scene, texts, paints) {
     const W = 1100, uid = 'uat-can-' + (++canCounter);
-    if (!scene.layers.length) return svg(W, 240, `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="238" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/>` + text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-pyramid-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
+    if (!scene.layers.length) return svg(W, 240, `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="238" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/>` + text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-pyramid-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.', false);
     const b = scene.bounds, scale = Math.min(1.8, (W - 380) / (2 * Math.max(Math.abs(b.left), Math.abs(b.right))), 820 / scene.height);
     const x = W / 2, y = 52 - b.top * scale;
     const lastLabel = {left: 0, right: 0};
@@ -203,7 +202,7 @@
     const floorY = (first.floor + last.floor) / 2 + 16;
     body += `<ellipse cx="${(b.left + b.right) / 2}" cy="${floorY}" rx="${scene.width * .55}" ry="${Math.max(30, (last.floor - first.floor) / 2 + 48)}" fill="url(#${uid}-floor)"/>`;
     for (const layer of scene.layers) {
-      body += `<g class="uat-year-pyramid" data-year="${esc(layer.group.year)}" data-depth="${layer.depth}" transform="translate(${layer.x} ${layer.y}) scale(${layer.scale})"><title>${esc(layer.group.year)} : ${fmt(layer.group.rows.length)} check-ins</title>${pyramidArtwork(layer.group, paints)}</g>`;
+      body += `<g class="uat-year-pyramid" data-year="${esc(layer.group.year)}" data-depth="${layer.depth}" transform="translate(${layer.x} ${layer.y}) scale(${layer.scale})">${pyramidArtwork(layer.group, paints)}</g>`;
     }
     body += '</g>';
     for (const label of labels) {
@@ -222,12 +221,12 @@
       for (const [key, paint] of paints) {
         const count = counts.get(key) || 0; if (!count) continue;
         const width = count / group.rows.length * 116;
-        body += `<g>${paintShape('rect', `x="${bandX}" y="${labelY + 34}" width="${width}" height="4"`, paint)}<title>${esc(group.year)} · ${esc(key)} : ${fmt(count)} check-ins</title></g>`;
+        body += `<g>${paintShape('rect', `x="${bandX}" y="${labelY + 34}" width="${width}" height="4"`, paint)}</g>`;
         bandX += width;
       }
       body += '</g>';
     }
-    return svg(W, H, body, `${scene.layers.reduce((n, layer) => n + layer.group.rows.length, 0)} canettes, une pyramide par année. Année la plus récente au centre du premier plan ; années précédentes de plus en plus loin, à gauche puis à droite en alternance. Certaines canettes peuvent être masquées par la perspective.`);
+    return svg(W, H, body, `${scene.layers.reduce((n, layer) => n + layer.group.rows.length, 0)} canettes, une pyramide par année. Année la plus récente au centre du premier plan ; années précédentes de plus en plus loin, à gauche puis à droite en alternance. Certaines canettes peuvent être masquées par la perspective.`, false);
   }
   function pyramidYear(group, texts = {}, paints = stylePalette({rows: group.rows})) {
     return renderPyramidScene(pyramidScene({rows: group.rows}), texts, paints);

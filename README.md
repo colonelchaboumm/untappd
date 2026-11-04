@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.7.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.1.zip)**
+**[Télécharger Untappd Atlas 1.7.2 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.2.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.7.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.7.2.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -44,7 +44,7 @@ Les étiquettes adoptent la couleur du style de bière, tandis que les couvercle
 
 La scène remplace les panneaux annuels séparés. Sous chaque repère annuel, une barre indique la répartition des styles. Une pyramide complète est construite à partir des check-ins de l’année ; le reste prolonge son bord en conservant les appuis entre les rangées. Par exemple, 37 check-ins donnent **une seule pyramide de 37 canettes**. Les pyramides peuvent donc être incomplètes : aucune canette de remplissage n’est ajoutée.
 
-Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Au survol : bière, style, date, heure locale et note, ou « Non notée ». Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
+Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Depuis la version 1.7.2, les pyramides sont statiques : aucun clic nécessaire, aucune infobulle, aucun curseur d’aide « ? » et aucun éclaircissement au survol. Les détails restent consultables dans les tableaux et les exports. Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
 
 En colonne étroite, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
 
@@ -123,7 +123,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | --- | --- |
 | Vue d’ensemble | Check-ins, notés/non notés, bières uniques, brasseries identifiées, bières et brasseries avec une note |
 | Temps | Nombre par jour, semaine ISO, mois et année ; jours actifs ; moyenne par jour actif et calendaire ; premier et dernier check-in ; jour le plus actif |
-| Pyramides | Une canette colorée selon le style par check-in importé, regroupement par année ; détails au survol |
+| Pyramides | Une canette colorée selon le style par check-in importé, regroupement par année ; affichage statique sans survol ni clic |
 | Styles | Classement, moyennes, évolution par jour/semaine/mois/année et style favori de chaque année |
 | Notes | Histogramme, moyenne, médiane, minimum, maximum, évolution des moyennes par période |
 | Bières et brasseries | Classements par check-ins, bières uniques et moyennes par groupe dans Excel |
@@ -173,7 +173,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.1.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.2.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
