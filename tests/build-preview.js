@@ -5,7 +5,7 @@ const base = path.resolve(__dirname, '..');
 const read = name => fs.readFileSync(path.join(base, 'untappd-atlas', 'assets', name), 'utf8');
 const palette = JSON.parse(read('palette.json'));
 const fields = JSON.parse(read('content.json'));
-const texts = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field.default]));
+const texts = Object.fromEntries(Object.entries(fields).filter(([, field]) => !field.retired).map(([key, field]) => [key, field.default]));
 if (process.argv.includes('--custom-text')) Object.assign(texts, {brand: 'MON CARNET UNTAPPD', hero_title: 'Mon carnet de dégustation', hero_subtitle: 'Mes bières, mes découvertes et mes souvenirs, réunis dans un tableau de bord à mon image.', report_title: 'Les découvertes de {profile}', styles_title: 'Mes familles de bières', styles_subtitle: '{styles} familles à explorer', poster_demo_title: 'Mon carnet de dégustation. Démonstration.'});
 const defaults = '.uat-app{' + Object.entries(palette).map(([key, token]) => `--uat-${key}:${token.global ? `var(--e-global-color-${token.global},${token.default})` : token.default};`).join('') + '}';
 const custom = process.argv.includes('--blue') ? '.uat-app{--e-global-color-primary:#163d77;--e-global-color-secondary:#64748b;--e-global-color-text:#1e293b;--e-global-color-accent:#0284c7;--uat-bg:#eff6ff;--uat-surface:#ffffff;--uat-border:#cbd5e1;--uat-demo-bg:#dbeafe;--uat-demo-text:#1d4ed8;--uat-series-3:#7c3aed;--uat-button-hover:#1e40af;}' : '';

@@ -18,6 +18,11 @@
   window.UATTransport = {readResponse};
   const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
   const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
+  const caption = (texts, key, fallback, values = {}) => window.UATContent.value(texts, key, fallback, values);
+  function statVariables(s) {
+    const years = s.first ? Number(s.last.local.year) - Number(s.first.local.year) + 1 : 0;
+    return {years, years_label: fmt(years) + (years === 1 ? ' année' : ' années'), count: fmt(s.total), rated: fmt(s.rated), unrated: fmt(s.unrated), rated_beers: fmt(s.ratedUniqueBeers), rated_breweries: fmt(s.ratedUniqueBreweries), median: fmt(s.median, 2), styles: fmt(s.styles.length), breweries: fmt(s.uniqueBreweries), beers: fmt(s.uniqueBeers), venues: fmt(s.venues.length), badges: fmt(s.badges.length), badge_awards: fmt(s.badgeAwards), badges_unknown: fmt(s.badgesUnknown), photos: fmt(s.photos), photo_unknown: fmt(s.photoUnknown), comments_unknown: fmt(s.commentsUnknown), toasts_unknown: fmt(s.toastsUnknown), per_active_day: fmt(s.perActiveDay, 2), calendar_days: fmt(s.calendarDays), timezone: s.timezone, first_date: dayLabel(s.first?.local.day), last_date: dayLabel(s.last?.local.day), biggest_date: dayLabel(s.biggestDay?.key)};
+  }
   const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
   const svg = (width, height, content, title, interactive = true) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}" font-family="Arial, sans-serif"${interactive ? '' : ' pointer-events="none"'}>${interactive ? `<title>${esc(title)}</title>` : ''}${content}</svg>`;
   function stylePalette(s) {
@@ -181,7 +186,7 @@
   }
   function renderPyramidScene(scene, texts, paints) {
     const W = 1100, uid = 'uat-can-' + (++canCounter);
-    if (!scene.layers.length) return svg(W, 240, `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="238" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/>` + text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-pyramid-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.', false);
+    if (!scene.layers.length) return svg(W, 240, `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="238" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/>` + text(W / 2, 120, texts.pyramids_empty ?? 'Aucune évaluation pour cette période.', 22, 'var(--uat-pyramid-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.', false);
     const b = scene.bounds, scale = Math.min(1.8, (W - 380) / (2 * Math.max(Math.abs(b.left), Math.abs(b.right))), 820 / scene.height);
     const x = W / 2, y = 52 - b.top * scale;
     const lastLabel = {left: 0, right: 0};
@@ -207,7 +212,7 @@
     body += '</g>';
     for (const label of labels) {
       const {layer, labelX, labelY, anchorX, anchorY} = label, group = layer.group;
-      const unit = group.rows.length === 1 ? texts.pyramid_one_label || 'canette' : texts.pyramid_many_label || 'canettes';
+      const unit = group.rows.length === 1 ? texts.pyramid_one_label ?? 'canette' : texts.pyramid_many_label ?? 'canettes';
       const textAnchor = layer.side < 0 ? 'start' : layer.side > 0 ? 'end' : 'middle';
       const bandStart = layer.side < 0 ? labelX : layer.side > 0 ? labelX - 116 : labelX - 58;
       body += `<g class="uat-year-label" data-year="${esc(group.year)}">`;
@@ -232,7 +237,7 @@
     return renderPyramidScene(pyramidScene({rows: group.rows}), texts, paints);
   }
   function pyramidCards(s, texts = {}) {
-    if (!s.rows.length) return `<p class="uat-empty">${esc(texts.pyramids_empty || 'Aucune évaluation pour cette période.')}</p>`;
+    if (!s.rows.length) return `<p class="uat-empty">${esc(texts.pyramids_empty ?? 'Aucune évaluation pour cette période.')}</p>`;
     const minWidth = 760;
     return `<div class="uat-pyramid-viewport" tabindex="0" role="region" aria-label="Pyramides annuelles, défilement horizontal" style="--uat-pyramid-width:${minWidth}px">${pyramids(s, texts)}</div>`;
   }
@@ -240,7 +245,7 @@
     return renderPyramidScene(pyramidScene(s), texts, stylePalette(s));
   }
 
-  function heat(s) {
+  function heat(s, texts = {}) {
     const width = 430, height = 205, left = 36, top = 26, cellW = 15.6, cellH = 18, max = Math.max(1, ...s.heat.flat());
     let body = '';
     s.heat.forEach((row, day) => {
@@ -248,12 +253,12 @@
       row.forEach((n, h) => { body += `<rect x="${left + h * cellW}" y="${top + day * cellH}" width="12.8" height="14.5" rx="2.5" fill="${n ? 'var(--uat-accent)' : 'var(--uat-heat-empty)'}" opacity="${n ? .18 + .82 * n / max : 1}"><title>${n} check-ins, ${['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][day]}, ${h} h</title></rect>`; });
     });
     [0, 6, 12, 18, 23].forEach(h => { body += text(left + h * cellW, 175, `${h} h`, 10, 'var(--uat-subtle)'); });
-    body += text(36, 12, 'moins', 9, 'var(--uat-subtle)');
+    body += text(36, 12, caption(texts, 'heat_less', 'moins'), 9, 'var(--uat-subtle)');
     for (let i = 0; i < 6; i++) body += `<rect x="${75 + i * 13}" y="3" width="10" height="10" rx="2" fill="var(--uat-accent)" opacity="${.15 + i * .17}"/>`;
-    body += text(160, 12, 'plus', 9, 'var(--uat-subtle)');
-    return svg(width, height, body, 'Nombre de check-ins par jour de la semaine et heure.');
+    body += text(160, 12, caption(texts, 'heat_more', 'plus'), 9, 'var(--uat-subtle)');
+    return svg(width, height, body, caption(texts, 'heat_title', 'Nombre de check-ins par jour de la semaine et heure.'));
   }
-  function ratings(s) {
+  function ratings(s, texts = {}) {
     const W = 430, H = 205, max = Math.max(1, ...s.distribution.map(r => r.count)); let body = '';
     [0, .5, 1].forEach(p => { const y = 165 - 135 * p; body += `<path d="M28 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(Math.round(max * p)), 9); });
     s.distribution.forEach((r, i) => {
@@ -261,9 +266,9 @@
       body += `<rect x="${x}" y="${165 - h}" width="13" height="${h}" rx="3" fill="${r.rating >= 4 ? 'var(--uat-accent)' : 'var(--uat-chart-neutral)'}"><title>${r.rating} / 5 : ${r.count} check-ins</title></rect>`;
       if (i % 4 === 0) body += text(x + 6, 185, r.rating, 10, 'var(--uat-subtle)', 400, 'text-anchor="middle"');
     });
-    return svg(W, H, body, `Distribution des ${s.rated} notes. Moyenne : ${fmt(s.average, 2)} sur 5.`);
+    return svg(W, H, body, caption(texts, 'ratings_title', `Distribution des ${s.rated} notes. Moyenne : ${fmt(s.average, 2)} sur 5.`));
   }
-  function timeline(s, grain, average = false) {
+  function timeline(s, grain, average = false, texts = {}) {
     const raw = s.periods(grain), cap = 130, bucket = Math.ceil(raw.length / cap) || 1, rows = [];
     for (let i = 0; i < raw.length; i += bucket) {
       const slice = raw.slice(i, i + bucket), rated = slice.reduce((n, r) => n + r.rated, 0);
@@ -279,10 +284,10 @@
     });
     if (average) body += `<path d="${line}" stroke="var(--uat-accent)" stroke-width="2.4" fill="none"/>`;
     if (rows.length) [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i).forEach((i, index, all) => { body += text(left + (i + .5) * width, 187, rows[i].key, 9, 'var(--uat-subtle)', 400, `text-anchor="${index === 0 ? 'start' : index === all.length - 1 ? 'end' : 'middle'}"`); });
-    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / point. Détail dans Excel.`, 8, 'var(--uat-subtle)');
-    return svg(430, 210, body, average ? 'Évolution de la note moyenne, périodes sans note laissées vides.' : 'Évolution du nombre de check-ins, périodes vides incluses.');
+    if (bucket > 1) body += text(27, 202, caption(texts, 'timeline_bucket_note', 'Regroupement visuel : {bucket} périodes / point. Détail dans Excel.', {bucket}), 8, 'var(--uat-subtle)');
+    return svg(430, 210, body, caption(texts, average ? 'average_title' : 'activity_title', average ? 'Évolution de la note moyenne, périodes sans note laissées vides.' : 'Évolution du nombre de check-ins, périodes vides incluses.'));
   }
-  function styleTimeline(s, grain) {
+  function styleTimeline(s, grain, texts = {}) {
     const paints = stylePalette(s), periods = s.periods(grain), bucket = Math.ceil(periods.length / 100) || 1, top = s.styles.slice(0, 5), indices = new Map(top.map((r, i) => [r.key, i]));
     const map = new Map(s.stylePeriods(grain).map(r => [r.key, r.count])), rows = [];
     for (let i = 0; i < periods.length; i += bucket) {
@@ -292,13 +297,13 @@
     }
     const max = Math.max(1, ...rows.map(r => r.counts.reduce((a, b) => a + b, 0))), width = 390 / Math.max(1, rows.length); let body = '';
     [0, .5, 1].forEach(p => { const y = 165 - p * 135; body += `<path d="M27 ${y}H420" stroke="var(--uat-chart-grid)" stroke-dasharray="3 4"/>` + text(0, y + 4, fmt(max * p), 9); });
-    rows.forEach((r, i) => { let y = 165; r.counts.forEach((n, j) => { const h = n / max * 135; y -= h; body += `<g>${paintShape('rect', `x="${27 + i * width + 1}" y="${y}" width="${Math.max(.6, width - 2)}" height="${h}"`, j < 5 && top[j] ? paints.get(top[j].key) : {base: 'var(--uat-other)'})}<title>${esc(r.key)} · ${esc(top[j]?.label || 'Autres styles')} : ${n}</title></g>`; }); });
+    rows.forEach((r, i) => { let y = 165; r.counts.forEach((n, j) => { const h = n / max * 135; y -= h; body += `<g>${paintShape('rect', `x="${27 + i * width + 1}" y="${y}" width="${Math.max(.6, width - 2)}" height="${h}"`, j < 5 && top[j] ? paints.get(top[j].key) : {base: 'var(--uat-other)'})}<title>${esc(r.key)} · ${esc(top[j]?.label || caption(texts, 'other_styles_label', 'Autres styles'))} : ${n}</title></g>`; }); });
     if (rows.length) { body += text(27, 187, rows[0].key, 9) + text(420, 187, rows[rows.length - 1].key, 9, 'var(--uat-muted)', 400, 'text-anchor="end"'); }
-    if (bucket > 1) body += text(27, 202, `Regroupement visuel : ${bucket} périodes / colonne.`, 8);
-    return svg(430, 210, body, 'Styles par période, cinq principaux styles et autres.');
+    if (bucket > 1) body += text(27, 202, caption(texts, 'styles_bucket_note', 'Regroupement visuel : {bucket} périodes / colonne.', {bucket}), 8);
+    return svg(430, 210, body, caption(texts, 'styles_time_title', 'Styles par période, cinq principaux styles et autres.'));
   }
-  function ranking(rows, maxRows = 7, color = 'var(--uat-accent)') {
-    if (!rows.length) return '<p class="uat-empty">Aucune donnée disponible.</p>';
+  function ranking(rows, maxRows = 7, color = 'var(--uat-accent)', texts = {}) {
+    if (!rows.length) { const empty = caption(texts, 'ranking_empty', 'Aucune donnée disponible.'); return empty ? `<p class="uat-empty">${esc(empty)}</p>` : ''; }
     const max = Math.max(1, rows[0].count);
     return rows.slice(0, maxRows).map((r, i) => {
       const fill = typeof color === 'function' ? styleSwatch(color(r), 100, 4) : '';
@@ -306,12 +311,18 @@
       return `<div class="uat-rank"><span>${String(i + 1).padStart(2, '0')}</span><div><strong title="${esc(r.label)}">${esc(r.label)}</strong><div class="uat-track"><i style="width:${r.count / max * 100}%;${background}">${fill}</i></div></div><b>${fmt(r.count)}</b></div>`;
     }).join('');
   }
-  function badgeTiles(s) {
-    if (!s.badges.length) return '<p class="uat-empty">Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.</p>';
-    return s.badges.slice(0, 100).map(b => `<article class="uat-badge">${C.badgeImage(b.image) ? `<img src="${esc(C.badgeImage(b.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" width="64" height="64">` : '<span class="uat-badge-icon" aria-hidden="true">🏅</span>'}<div><strong>${esc(b.label)}</strong><p>${b.level == null ? 'Niveau non renseigné' : `Niveau ${fmt(b.level)}`}</p></div></article>`).join('') + (s.badges.length > 100 ? '<p class="uat-subtle">100 premiers badges affichés ; liste complète dans Excel.</p>' : '');
+  function badgeTiles(s, texts = {}) {
+    if (!s.badges.length) { const empty = caption(texts, 'badges_empty', 'Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.'); return empty ? `<p class="uat-empty">${esc(empty)}</p>` : ''; }
+    const note = caption(texts, 'badges_limit_note', '100 premiers badges affichés ; liste complète dans Excel.');
+    return s.badges.slice(0, 100).map(b => {
+      const title = caption(texts, 'badge_title', '{badge}', {badge: b.label});
+      const level = b.level == null ? caption(texts, 'badge_level_unknown', 'Niveau non renseigné') : caption(texts, 'badge_level', 'Niveau {level}', {level: fmt(b.level)});
+      return `<article class="uat-badge">${C.badgeImage(b.image) ? `<img src="${esc(C.badgeImage(b.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" width="64" height="64">` : '<span class="uat-badge-icon" aria-hidden="true">🏅</span>'}<div>${title ? `<strong>${esc(title)}</strong>` : ''}${level ? `<p>${esc(level)}</p>` : ''}</div></article>`;
+    }).join('') + (s.badges.length > 100 && note ? `<p class="uat-subtle">${esc(note)}</p>` : '');
   }
   function poster(s, meta) {
-    const t = key => window.UATContent.format(meta.texts[key] || '', meta.variables || {});
+    const variables = {...statVariables(s), ...meta.variables, style: meta.style || meta.texts.filter_all_styles || 'Tous les styles', status: meta.status || 'Analyse du fichier fourni.'};
+    const t = (key, extra = {}) => window.UATContent.value(meta.texts, key, '', {...variables, ...extra});
     const paints = stylePalette(s), legendExtra = Math.max(0, Math.ceil(s.styles.length / 3) - 2) * 34;
     const pyramidGraphic = pyramids(s, meta.texts);
     const pyramidBox = pyramidGraphic.match(/viewBox="0 0 (\d+) (\d+)"/);
@@ -320,33 +331,33 @@
     const W = 1800, H = Math.ceil(3660 + shift + legendExtra); let out = `<rect width="${W}" height="${H}" fill="var(--uat-bg)"/>`;
     const panel = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="25" fill="var(--uat-surface)"/>`;
     const embed = (chart, x, y, w) => chart.replace('<svg ', `<svg x="${x}" y="${y}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${w * Number(chart.match(/viewBox="0 0 \d+ (\d+)"/)[1]) / Number(chart.match(/viewBox="0 0 (\d+)/)[1])}"`);
-    out += text(80, 70, short(t('brand') + ' / ' + t('tagline'), 140), 15, 'var(--uat-ink)', 700);
+    out += text(80, 70, short([t('brand'), t('tagline')].filter(Boolean).join(' / '), 140), 15, 'var(--uat-ink)', 700);
     out += text(80, 150, short(t(meta.demo ? 'poster_demo_title' : 'poster_title'), 48), 60, 'var(--uat-heading)', 800);
-    out += text(80, 193, `${s.first ? dayLabel(s.first.local.day) : '—'} — ${s.last ? dayLabel(s.last.local.day) : '—'} · ${s.timezone} · ${meta.style || 'Tous les styles'}`, 18);
+    out += text(80, 193, t('poster_period_description'), 18);
     if (meta.demo) out += text(80, 225, 'DONNÉES FICTIVES — AUCUN RÉSULTAT PERSONNEL', 16, 'var(--uat-demo-text)', 700);
     [[s.total, t('kpi_checkins')], [s.uniqueBeers, t('kpi_beers')], [s.uniqueBreweries, t('kpi_breweries')], [fmt(s.average, 2), t('kpi_average')]].forEach(([n, label], i) => { out += text(80 + i * 420, 329, typeof n === 'number' ? fmt(n) : n, 76, 'var(--uat-ink)', 800) + text(80 + i * 420, 365, short(label, 34), 21); });
     out += text(80, 460, short(t('pyramids_title'), 70), 26, 'var(--uat-heading)', 800);
     out += embed(pyramidGraphic, 80, 480, 1640);
-    [[t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day)], [t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key)], [t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day)], ['Jours actifs', fmt(s.activeDays), 'Sur les données importées']].forEach(([label, value, sub], i) => {
+    [[t('first_label'), s.first?.beer || '—', t('first_description')], [t('biggest_label'), t('checkins_count', {count: fmt(s.biggestDay?.count || 0)}), t('biggest_description')], [t('last_label'), s.last?.beer || '—', t('last_description')], [t('poster_active_days_title'), fmt(s.activeDays), t('poster_active_days_description')]].forEach(([label, value, sub], i) => {
       const x = 80 + i * 420;
       out += text(x, summaryY, short(label, 30), 14, 'var(--uat-muted)', 600) + text(x, summaryY + 39, short(value, 23), 25, 'var(--uat-ink)', 800) + text(x, summaryY + 68, sub, 16);
     });
     out += `<g transform="translate(0 ${shift})">`;
     s.styles.forEach((st, i) => { const x = 110 + (i % 3) * 555, y = 1660 + Math.floor(i / 3) * 34; out += paintShape('circle', `cx="${x}" cy="${y - 5}" r="6"`, paints.get(st.key)) + text(x + 15, y, `${short(st.label, 45)} · ${fmt(st.count)}`, 15); });
     out += `</g><g transform="translate(0 ${shift + legendExtra})">`;
-    const chartPanels = [[t('heat_title'), t('heat_subtitle'), heat(s)], [t('styles_time_title'), t('styles_time_subtitle'), styleTimeline(s, meta.grain || 'month')], [t('ratings_title'), t('ratings_subtitle'), ratings(s)], [t('activity_title'), t('activity_subtitle'), timeline(s, meta.grain || 'month')], [t('average_title'), t('average_subtitle'), timeline(s, meta.grain || 'month', true)]];
+    const chartPanels = [[t('heat_title'), t('heat_subtitle'), heat(s, meta.texts)], [t('styles_time_title'), t('styles_time_subtitle'), styleTimeline(s, meta.grain || 'month', meta.texts)], [t('ratings_title'), t('ratings_subtitle'), ratings(s, meta.texts)], [t('activity_title'), t('activity_subtitle'), timeline(s, meta.grain || 'month', false, meta.texts)], [t('average_title'), t('average_subtitle'), timeline(s, meta.grain || 'month', true, meta.texts)]];
     chartPanels.forEach(([title, sub, chart], i) => { const x = 80 + i % 3 * 555, y = 1750 + Math.floor(i / 3) * 345; out += panel(x, y, 530, 320) + text(x + 25, y + 43, short(title, 36), 23, 'var(--uat-heading)', 800) + text(x + 25, y + 72, short(sub, 65), 14) + embed(chart, x + 25, y + 100, 480); });
     out += panel(1190, 2095, 530, 320) + text(1215, 2138, t('social_title'), 23, 'var(--uat-heading)', 800);
-    [[s.withPhotos, 'avec photo'], [s.withoutPhotos, 'sans photo (connu)'], [s.withShout, 'textes personnels'], [s.commentsUnknown === s.total ? '—' : s.comments, 'commentaires connus'], [s.distinctCommenters, 'auteurs observés'], [s.toastsUnknown === s.total ? '—' : s.toasts, 'toasts connus']].forEach(([n, label], i) => { const x = 1215 + i % 2 * 245, y = 2205 + Math.floor(i / 2) * 64; out += text(x, y, typeof n === 'number' ? fmt(n) : n, 27, 'var(--uat-ink)', 800) + text(x, y + 20, label, 12); });
+    [[s.withPhotos, t('photos_label')], [s.withoutPhotos, t('without_photos_label')], [s.withShout, t('shouts_label')], [s.commentsUnknown === s.total ? '—' : s.comments, t('comments_label')], [s.distinctCommenters, t('commenters_label')], [s.toastsUnknown === s.total ? '—' : s.toasts, t('toasts_label')]].forEach(([n, label], i) => { const x = 1215 + i % 2 * 245, y = 2205 + Math.floor(i / 2) * 64; out += text(x, y, typeof n === 'number' ? fmt(n) : n, 27, 'var(--uat-ink)', 800) + text(x, y + 20, label, 12); });
     [[t('styles_title'), s.styles], [t('breweries_title'), s.breweries], [t('beers_title'), s.beers]].forEach(([title, rows], i) => { const x = 80 + i * 555, y = 2440; out += panel(x, y, 530, 405) + text(x + 25, y + 44, short(title, 32), 25, 'var(--uat-heading)', 800); rows.slice(0, 7).forEach((r, j) => { const yy = y + 88 + j * 41; out += text(x + 25, yy, `${String(j + 1).padStart(2, '0')}  ${short(r.label, 34)}`, 16, 'var(--uat-ink)') + text(x + 502, yy, fmt(r.count), 16, 'var(--uat-ink)', 700, 'text-anchor="end"') + paintShape('rect', `x="${x + 52}" y="${yy + 9}" width="${Math.max(1, r.count / rows[0].count * 410)}" height="4" rx="2"`, i === 0 ? paints.get(r.key) : {base: colors[i]}); }); });
     out += text(80, 2910, t('yearly_title'), 30, 'var(--uat-heading)', 800);
     const winners = s.yearlyWinners.slice(-12), yearWidth = 1640 / Math.max(1, winners.length);
-    winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, 'var(--uat-ink)', 800) + paintShape('rect', `x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5"`, paints.get(r.style)) + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, `${fmt(r.count)} check-ins`, 12); });
-    out += text(80, 3110, 'COUVERTURE DES DONNÉES', 14, 'var(--uat-heading)', 700);
-    [meta.status || 'Analyse du fichier fourni.', `${s.photoUnknown} check-ins sans information photo ; ${s.commentsUnknown} sans total de commentaires ; ${s.toastsUnknown} sans total de toasts.`, s.commentersComplete ? 'Auteurs des commentaires : liste complète dans les données importées.' : 'Auteurs des commentaires : minimum observé. Les listes fournies peuvent être partielles.', 'Les champs absents ne sont pas assimilés à zéro. Statistiques limitées aux données importées et aux filtres.', 'Identités sans ID regroupées par nom. Notes à zéro considérées non notées. Dates sans fuseau interprétées en UTC.', 'Le fichier Excel contient les tableaux détaillés, les périodes, les classements et les check-ins.'].forEach((line, i) => { out += text(80, 3147 + i * 29, short(line, 150), 15); });
+    winners.forEach((r, i) => { const x = 80 + i * yearWidth; out += text(x, 2953, r.year, 22, 'var(--uat-ink)', 800) + paintShape('rect', `x="${x}" y="2973" width="${yearWidth - 18}" height="14" rx="5"`, paints.get(r.style)) + text(x, 3019, short(r.style, Math.max(10, Math.floor(yearWidth / 8))), 13) + text(x, 3044, t('yearly_description', {count: fmt(r.count)}), 12); });
+    out += text(80, 3110, t('poster_coverage_title'), 14, 'var(--uat-heading)', 700);
+    [t('poster_status_description'), t('poster_missing_description'), t(s.commentersComplete ? 'poster_commenters_complete' : 'poster_commenters_partial'), t('poster_absence_description'), t('poster_identity_description'), t('poster_excel_description')].filter(Boolean).forEach((line, i) => { out += text(80, 3147 + i * 29, short(line, 150), 15); });
     out += panel(80, 3320, 1640, 190) + text(105, 3355, short(t('badges_title'), 70), 24, 'var(--uat-heading)', 800);
-    out += text(105, 3380, s.badgesUnknown === s.total ? 'Badges non renseignés dans les données importées.' : `${fmt(s.badges.length)} badges distincts observés · ${fmt(s.badgeAwards)} obtentions connues · ${fmt(s.badgesUnknown)} check-ins non renseignés`, 15);
-    s.badges.slice(0, 6).forEach((b, i) => { out += text(105 + i % 3 * 535, 3425 + Math.floor(i / 3) * 35, short(b.label, 35) + (b.level == null ? '' : ` · niv. ${b.level}`), 16, 'var(--uat-ink)'); });
+    out += text(105, 3380, t(s.badgesUnknown === s.total ? 'poster_badges_empty' : 'poster_badges_description'), 15);
+    s.badges.slice(0, 6).forEach((b, i) => { out += text(105 + i % 3 * 535, 3425 + Math.floor(i / 3) * 35, short(b.label, 35) + (b.level == null ? '' : t('poster_badge_level', {level: fmt(b.level)})), 16, 'var(--uat-ink)'); });
     out += `<path d="M80 3580H1720" stroke="var(--uat-border)"/>` + text(80, 3613, short(t('footer_left'), 140), 13) + text(1720, 3613, short(t('brand'), 36), 13, 'var(--uat-ink)', 700, 'text-anchor="end"');
     out += '</g>';
     return svg(W, H, out, 'Rapport Untappd Atlas — pyramides de canettes');
@@ -367,25 +378,27 @@
     const config = JSON.parse(app.dataset.config || '{}');
     const texts = config.texts || {};
     let context = {};
-    const t = key => window.UATContent.format(texts[key] || '', context);
+    const t = (key, values = {}) => window.UATContent.value(texts, key, '', {...context, ...values});
     const safe = window.UATContent.html;
     const h = key => safe(t(key));
+    const tag = (key, name = 'p', cls = '') => t(key) ? `<${name}${cls ? ` class="${cls}"` : ''}>${h(key)}</${name}>` : '';
+    const help = [t(config.configured ? 'import_api_description' : 'import_public_description'), t('import_privacy_description')].filter(Boolean).join(' ');
     let items = [], rawMap = new Map(), source = '', profile = '', isDemo = false, state = null, running = false, generation = 0, pending = false, currentStats = null;
     let token = ''; const storageKey = 'untappd-atlas-session:' + config.api;
     try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
     let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     try { C.zoned(new Date().toISOString(), zone); } catch (_) { zone = 'UTC'; }
     const zones = [...new Set([zone, Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Paris', 'Europe/Brussels', 'Europe/London', 'America/Montreal', 'America/New_York', 'UTC'].filter(Boolean))];
-    app.innerHTML = `<section class="uat-intro"><h2>${h('hero_title')}</h2><p>${h('hero_subtitle')}</p></section>
-      <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field"><span>${h('profile_label')}</span><input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
-      <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> Approfondir les commentaires et les toasts <span title="Un appel API supplémentaire par check-in. Les identités peuvent rester partielles.">ⓘ</span></label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
-      <p class="uat-import-help">${config.configured ? 'L’import par lien utilise l’API Untappd configurée sur ce site. La connexion permet d’autoriser l’accès à votre compte.' : 'Sans clé : lecture des pages publiques uniquement. Untappd peut masquer l’historique ancien et les badges. Aucune connexion à votre compte n’est effectuée.'} Les fichiers sont analysés dans votre navigateur. Les imports par profil sont conservés 24 h et peuvent être effacés ici.</p></section>
-      <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">Pause</button><button data-action="resume" type="button">Reprendre</button><button class="uat-secondary" data-action="erase" type="button">Effacer</button></div></section>
+    app.innerHTML = `<section class="uat-intro">${tag('hero_title', 'h2')}${tag('hero_subtitle')}</section>
+      <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field">${tag('profile_label', 'span')}<input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
+      <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
+      ${help ? `<p class="uat-import-help">${safe(help)}</p>` : ''}</section>
+      <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
       <section class="uat-report" hidden><div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
-      <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons"><button type="button" class="uat-text-button" data-action="clear">Effacer mes données</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
-      <div class="uat-filters"><label class="uat-field"><span>Du</span><input type="date" name="from"></label><label class="uat-field"><span>Au</span><input type="date" name="to"></label><label class="uat-field uat-style-field"><span>Style de bière</span><select name="style"><option value="">Tous les styles</option></select></label><label class="uat-field"><span>Périodes</span><select name="grain"><option value="day">Jour</option><option value="week">Semaine</option><option value="month" selected>Mois</option><option value="year">Année</option></select></label><label class="uat-field"><span>Fuseau horaire</span><select name="timezone">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">Tout afficher</button></div>
-      <div class="uat-results"></div></section><div class="uat-onboard"><strong>${h('onboard_title')}</strong><p>${h('onboard_subtitle')}</p></div>
-      <footer class="uat-footer"><span>${h('footer_left')}</span><span>${h('footer_right')}</span></footer>`;
+      <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
+      <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
+      <div class="uat-results"></div></section><div class="uat-onboard">${tag('onboard_title', 'strong')}${tag('onboard_subtitle')}</div>
+      ${t('footer_left') || t('footer_right') ? `<footer class="uat-footer">${tag('footer_left', 'span')}${tag('footer_right', 'span')}</footer>` : ''}`;
     const $ = q => app.querySelector(q);
     const field = name => $(`[name="${name}"]`);
     const action = name => $(`[data-action="${name}"]`);
@@ -423,7 +436,7 @@
     function merge(rawItems) { rawItems.forEach(r => { const n = C.normalize(r, rawMap.size); if (n) rawMap.set(n.id, n); }); items = [...rawMap.values()]; }
     function refreshStyles() {
       const prior = field('style').value;
-      field('style').innerHTML = '<option value="">Tous les styles</option>' + [...new Set(items.map(r => r.style))].sort().map(st => `<option value="${esc(st)}">${esc(st)}</option>`).join('');
+      field('style').innerHTML = `<option value="">${h('filter_all_styles')}</option>` + [...new Set(items.map(r => r.style))].sort().map(st => `<option value="${esc(st)}">${esc(st)}</option>`).join('');
       field('style').value = prior;
     }
     function setData(data, nextSource, nextProfile, demo = false) {
@@ -438,27 +451,27 @@
       const opts = options();
       if (opts.from && opts.to && opts.from > opts.to) { notify('La date de début doit précéder la date de fin.', 'error'); return; }
       const s = currentStats = C.analyze(items, opts), grain = field('grain').value, paints = stylePalette(s);
-      const years = s.first ? Number(s.last.local.year) - Number(s.first.local.year) + 1 : 0;
-      context = {profile, years, years_label: fmt(years) + (years === 1 ? ' année' : ' années'), count: fmt(s.total), rated: fmt(s.rated), median: fmt(s.median, 2), styles: fmt(s.styles.length), breweries: fmt(s.uniqueBreweries), beers: fmt(s.uniqueBeers), venues: fmt(s.venues.length), badges: fmt(s.badges.length), badge_awards: fmt(s.badgeAwards), timezone: s.timezone};
-      $('[data-source]').textContent = isDemo ? 'EXEMPLE FICTIF / 2021 — 2025' : (source === 'file' ? 'HISTORIQUE IMPORTÉ / ' : (state?.source === 'public' ? 'PROFIL PUBLIC / ' : 'PROFIL UNTAPPD / ')) + profile;
+      context = {...statVariables(s), profile};
+      $('[data-source]').textContent = t(isDemo ? 'source_demo' : source === 'file' ? 'source_file' : state?.source === 'public' ? 'source_public' : 'source_api');
       $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
-      const metric = (n, label, small = '') => `<div class="uat-kpi"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
-      const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong><span>${safe(label)}</span>${small ? `<small>${small}</small>` : ''}</div>`;
-      const card = (title, sub, content, cls = '') => `<article class="uat-card ${cls}"><h3>${safe(title)}</h3><p>${safe(sub)}</p>${content}</article>`;
-      const callout = (number, label, value, sub) => `<div class="uat-callout"><h3><span class="uat-number">${number}</span>${safe(label)}</h3><strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
-      const yearlyCards = s.yearlyWinners.map(r => `<div class="uat-year"><strong>${r.year}</strong><i>${styleSwatch(paints.get(r.style), 100, 12)}</i><span>${esc(r.style)}</span><small>${fmt(r.count)} check-ins</small></div>`).join('');
+      const metric = (n, label, small = '') => `<div class="uat-kpi"><strong>${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
+      const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
+      const card = (title, sub, content, cls = '') => `<article class="uat-card ${cls}">${title ? `<h3>${safe(title)}</h3>` : ''}${sub ? `<p>${safe(sub)}</p>` : ''}${content}</article>`;
+      const callout = (number, label, value, sub) => `<div class="uat-callout">${label ? `<h3><span class="uat-number">${number}</span>${safe(label)}</h3>` : ''}<strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
+      const section = (title, sub = '') => t(title) || (sub && t(sub)) ? `<div class="uat-section-head">${tag(title, 'h3')}${sub ? tag(sub) : ''}</div>` : '';
+      const yearlyCards = s.yearlyWinners.map(r => `<div class="uat-year"><strong>${r.year}</strong><i>${styleSwatch(paints.get(r.style), 100, 12)}</i><span>${esc(r.style)}</span><small>${safe(t('yearly_description', {count: fmt(r.count)}))}</small></div>`).join('');
       const allUnknown = (total, unknown, value) => unknown === total && total > 0 ? '—' : fmt(value);
       const badgeKnown = s.badgesUnknown < s.total;
-      const badgeSection = `<div class="uat-section-head"><h3>${h('badges_title')}</h3><p>${h('badges_subtitle')}</p></div><div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), 'Minimum observé')}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), 'Niveaux successifs inclus si fournis')}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), 'Absence de champ : inconnu, jamais zéro')}${mini(state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), 'Total du profil, hors filtres ; catalogue parfois masqué')}</div><div class="uat-badge-grid">${badgeTiles(s)}</div>`;
-      $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), t('kpi_checkins'), `${fmt(s.rated)} notés · ${fmt(s.unrated)} non notés`)}${metric(fmt(s.uniqueBeers), t('kpi_beers'), fmt(s.ratedUniqueBeers) + ' avec une note')}${metric(fmt(s.uniqueBreweries), t('kpi_breweries'), fmt(s.ratedUniqueBreweries) + ' avec une note')}${metric(fmt(s.average, 2), t('kpi_average'), 'Sur les check-ins notés')}</div>
-        <div class="uat-section-head"><h3>${h('pyramids_title')}</h3></div><div class="uat-pyramids">${pyramidCards(s, texts)}</div>
-        <div class="uat-pyramid-callouts">${callout(1, t('first_label'), s.first?.beer || '—', dayLabel(s.first?.local.day))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', `${fmt(s.styles[0]?.count || 0)} check-ins`)}${callout(2, t('biggest_label'), `${fmt(s.biggestDay?.count || 0)} check-ins`, dayLabel(s.biggestDay?.key))}${callout(3, t('last_label'), s.last?.beer || '—', dayLabel(s.last?.local.day))}</div>
+      const badgeSection = `${section('badges_title', 'badges_subtitle')}<div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), t('badges_unique_description'))}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), t('badges_awards_description'))}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), t('badges_unknown_description'))}${mini(state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), t('badges_total_description'))}</div><div class="uat-badge-grid">${badgeTiles(s, texts)}</div>`;
+      $('.uat-results').innerHTML = `<div class="uat-kpis">${metric(fmt(s.total), t('kpi_checkins'), t('kpi_checkins_description'))}${metric(fmt(s.uniqueBeers), t('kpi_beers'), t('kpi_beers_description'))}${metric(fmt(s.uniqueBreweries), t('kpi_breweries'), t('kpi_breweries_description'))}${metric(fmt(s.average, 2), t('kpi_average'), t('kpi_average_description'))}</div>
+        ${section('pyramids_title')}<div class="uat-pyramids">${pyramidCards(s, texts)}</div>
+        <div class="uat-pyramid-callouts">${callout(1, t('first_label'), s.first?.beer || '—', t('first_description'))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', t('favorite_description', {count: fmt(s.styles[0]?.count || 0)}))}${callout(2, t('biggest_label'), t('checkins_count', {count: fmt(s.biggestDay?.count || 0)}), t('biggest_description'))}${callout(3, t('last_label'), s.last?.beer || '—', t('last_description'))}</div>
         <div class="uat-legend uat-style-legend">${styleLegend(s)}</div>
-        <div class="uat-section-head"><h3>${h('rhythm_title')}</h3><p>${h('rhythm_subtitle')}</p></div><div class="uat-card-grid">${card(t('heat_title'), t('heat_subtitle'), `<div class="uat-chart">${heat(s)}</div>`)}${card(t('styles_time_title'), t('styles_time_subtitle'), `<div class="uat-chart">${styleTimeline(s, grain)}</div>`)}${card(t('ratings_title'), t('ratings_subtitle'), `<div class="uat-chart">${ratings(s)}</div><p class="uat-chart-note">Notes regroupées au quart de point le plus proche.</p>`)}${card(t('activity_title'), t('activity_subtitle'), `<div class="uat-chart">${timeline(s, grain)}</div>`)}${card(t('average_title'), t('average_subtitle'), `<div class="uat-chart">${timeline(s, grain, true)}</div>`)}${card(t('venues_title'), t('venues_subtitle'), ranking(s.venues, 6, 'var(--uat-series-2)'))}</div>
-        <div class="uat-section-head"><h3>${h('favorites_title')}</h3><p>${h('favorites_subtitle')}</p></div><div class="uat-card-grid">${card(t('styles_title'), t('styles_subtitle'), ranking(s.styles, 8, row => paints.get(row.key)))}${card(t('breweries_title'), t('breweries_subtitle'), ranking(s.breweries, 8, 'var(--uat-series-2)'))}${card(t('beers_title'), t('beers_subtitle'), ranking(s.beers, 8, 'var(--uat-series-3)'))}</div>
-        ${badgeSection}<div class="uat-section-head"><h3>${h('social_title')}</h3><p>${h('social_subtitle')}</p></div><div class="uat-mini-grid">${mini(fmt(s.withPhotos), 'check-ins avec photo', `${fmt(s.photos)} photos connues`)}${mini(fmt(s.withoutPhotos), 'check-ins sans photo', `${fmt(s.photoUnknown)} non renseignés`)}${mini(fmt(s.withShout), 'textes personnels', 'Votre texte attaché au check-in')}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), 'commentaires connus', `${fmt(s.commentsUnknown)} check-ins non renseignés`)}${mini(fmt(s.distinctCommenters), 'auteurs distincts observés', s.commentersComplete ? 'Liste complète dans les données' : 'Minimum observé')}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), 'toasts connus', `${fmt(s.toastsUnknown)} check-ins non renseignés`)}${mini(fmt(s.activeDays), 'jours avec un check-in', `${fmt(s.perActiveDay, 2)} check-ins / jour actif`)}${mini(fmt(s.perCalendarDay, 2), 'check-ins / jour calendaire', `${fmt(s.calendarDays)} jours entre les bornes`)}${mini(fmt(s.averageABV, 2) + ' %', 'degré alcoolique moyen', 'Sur les valeurs connues')}${mini(fmt(s.averageIBU, 1), 'IBU moyen', 'Sur les valeurs connues, zéro inclus')}${mini(fmt(s.countries.length), 'pays des lieux visités', 'Selon les lieux renseignés')}${mini(fmt(s.breweryCountries.length), 'pays des brasseries', 'Selon les brasseries renseignées')}</div>
-        <div class="uat-section-head"><h3>${h('details_title')}</h3></div><div class="uat-card-grid">${card(t('commenters_title'), t('commenters_subtitle'), ranking(s.commenters, 7, 'var(--uat-accent)'))}${card(t('countries_title'), t('countries_subtitle'), ranking(s.countries, 7, 'var(--uat-series-5)'))}${card(t('servings_title'), t('servings_subtitle'), ranking(s.servings, 7, 'var(--uat-series-4)'))}</div>
-        <div class="uat-section-head"><h3>${h('yearly_title')}</h3></div><div class="uat-year-grid">${yearlyCards || '<p class="uat-empty">Aucune donnée.</p>'}</div>`;
+        ${section('rhythm_title', 'rhythm_subtitle')}<div class="uat-card-grid">${card(t('heat_title'), t('heat_subtitle'), `<div class="uat-chart">${heat(s, texts)}</div>`)}${card(t('styles_time_title'), t('styles_time_subtitle'), `<div class="uat-chart">${styleTimeline(s, grain, texts)}</div>`)}${card(t('ratings_title'), t('ratings_subtitle'), `<div class="uat-chart">${ratings(s, texts)}</div>${tag('ratings_note', 'p', 'uat-chart-note')}`)}${card(t('activity_title'), t('activity_subtitle'), `<div class="uat-chart">${timeline(s, grain, false, texts)}</div>`)}${card(t('average_title'), t('average_subtitle'), `<div class="uat-chart">${timeline(s, grain, true, texts)}</div>`)}${card(t('venues_title'), t('venues_subtitle'), ranking(s.venues, 6, 'var(--uat-series-2)', texts))}</div>
+        ${section('favorites_title', 'favorites_subtitle')}<div class="uat-card-grid">${card(t('styles_title'), t('styles_subtitle'), ranking(s.styles, 8, row => paints.get(row.key), texts))}${card(t('breweries_title'), t('breweries_subtitle'), ranking(s.breweries, 8, 'var(--uat-series-2)', texts))}${card(t('beers_title'), t('beers_subtitle'), ranking(s.beers, 8, 'var(--uat-series-3)', texts))}</div>
+        ${badgeSection}${section('social_title', 'social_subtitle')}<div class="uat-mini-grid">${mini(fmt(s.withPhotos), t('photos_label'), t('photos_description'))}${mini(fmt(s.withoutPhotos), t('without_photos_label'), t('without_photos_description'))}${mini(fmt(s.withShout), t('shouts_label'), t('shouts_description'))}${mini(allUnknown(s.total, s.commentsUnknown, s.comments), t('comments_label'), t('comments_description'))}${mini(fmt(s.distinctCommenters), t('commenters_label'), t(s.commentersComplete ? 'commenters_complete_description' : 'commenters_partial_description'))}${mini(allUnknown(s.total, s.toastsUnknown, s.toasts), t('toasts_label'), t('toasts_description'))}${mini(fmt(s.activeDays), t('active_days_label'), t('active_days_description'))}${mini(fmt(s.perCalendarDay, 2), t('calendar_days_label'), t('calendar_days_description'))}${mini(fmt(s.averageABV, 2) + ' %', t('abv_label'), t('abv_description'))}${mini(fmt(s.averageIBU, 1), t('ibu_label'), t('ibu_description'))}${mini(fmt(s.countries.length), t('countries_label'), t('countries_description'))}${mini(fmt(s.breweryCountries.length), t('brewery_countries_label'), t('brewery_countries_description'))}</div>
+        ${section('details_title')}<div class="uat-card-grid">${card(t('commenters_title'), t('commenters_subtitle'), ranking(s.commenters, 7, 'var(--uat-accent)', texts))}${card(t('countries_title'), t('countries_subtitle'), ranking(s.countries, 7, 'var(--uat-series-5)', texts))}${card(t('servings_title'), t('servings_subtitle'), ranking(s.servings, 7, 'var(--uat-series-4)', texts))}</div>
+        ${section('yearly_title')}<div class="uat-year-grid">${yearlyCards || tag('yearly_empty', 'p', 'uat-empty')}</div>`;
       progress();
     }
     async function loop() {

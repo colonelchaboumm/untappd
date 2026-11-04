@@ -21,3 +21,5 @@
 .uat-logo::before{content:"";position:absolute;top:0;left:1px;width:15px;height:5px;border:1px solid var(--uat-can-outline);border-radius:50%;background:var(--uat-can-lid)}
 
 .uat-style-legend svg{display:block;flex:0 0 12px;width:12px;height:12px}.uat-year i svg,.uat-track i svg{display:block;width:100%;height:100%}.uat-style-legend span{overflow-wrap:anywhere}
+
+.uat-app .uat-intro:empty,.uat-app .uat-onboard:empty,.uat-app [data-source]:empty,.uat-app [data-title]:empty{display:none}

@@ -5,6 +5,12 @@ if (!$root) { fwrite(STDERR, "Usage: php tests/elementor.php /path/to/wordpress\
 $_SERVER['HTTP_HOST'] = '127.0.0.1:8787';
 define('WP_ADMIN', true);
 require rtrim($root, '/\\') . '/wp-load.php';
+$previous_text_options = [];
+foreach (['uat_texts', 'uat_text_visibility', 'uat_palette'] as $key) { $previous_text_options[$key] = get_option($key, null); }
+register_shutdown_function(function() use ($previous_text_options) {
+    foreach ($previous_text_options as $key => $value) { if ($value === null) { delete_option($key); } else { update_option($key, $value); } }
+});
+delete_option('uat_text_visibility');
 function check_theme($condition, $message) { if (!$condition) { throw new RuntimeException($message); } echo "PASS $message\n"; }
 check_theme(class_exists('Elementor\\Plugin'), 'Elementor loaded');
 $tokens = UAT_Theme::tokens();
@@ -18,6 +24,10 @@ foreach ($tokens as $key => $token) {
 foreach (UAT_Content::fields() as $key => $field) {
     $control = $controls['uat_text_' . $key] ?? [];
     check_theme(in_array($control['type'] ?? '', ['text', 'textarea'], true), 'editable content: ' . $key);
+    if ($field['hideable'] ?? true) {
+        $visibility = $controls['uat_visibility_' . $key] ?? [];
+        check_theme(($visibility['type'] ?? '') === 'select' && array_keys($visibility['options'] ?? []) === ['', 'show', 'hide'], 'per-widget text visibility: ' . $key);
+    }
 }
 foreach (['body', 'headings', 'hero', 'subtitles', 'numbers', 'buttons'] as $group) {
     check_theme(isset($controls['uat_typography_' . $group . '_typography']), 'typography controls: ' . $group);
@@ -25,6 +35,20 @@ foreach (['body', 'headings', 'hero', 'subtitles', 'numbers', 'buttons'] as $gro
 update_option('uat_texts', ['hero_title' => 'Titre commun']);
 check_theme(UAT_Content::values(['hero_title' => 'Titre local'])['hero_title'] === 'Titre local', 'widget text overrides global text');
 check_theme(UAT_Content::values(['hero_title' => ''])['hero_title'] === 'Titre commun', 'empty widget text inherits global text');
+update_option('uat_text_visibility', ['hero_title' => 'hide']);
+check_theme(UAT_Content::values()['hero_title'] === '', 'global visibility can hide an inherited title');
+check_theme(UAT_Content::values([], ['hero_title' => 'show'])['hero_title'] === 'Titre commun', 'widget can show a globally hidden title');
+check_theme(UAT_Content::values(['hero_title' => 'Titre local'])['hero_title'] === '', 'text overrides retain the chosen inherited visibility');
+delete_option('uat_text_visibility');
+check_theme(UAT_Content::values([], ['hero_title' => 'hide'])['hero_title'] === '' && UAT_Content::values()['hero_title'] === 'Titre commun', 'hiding a widget title does not change another widget');
+check_theme(UAT_Content::sanitize_visibility(['hero_title' => 'hide', 'photos_description' => 'show', 'unknown' => 'hide', 'hero_subtitle' => 'invalid', 'import_button' => 'hide']) === ['hero_title' => 'hide', 'photos_description' => 'show'], 'visibility rejects unknown, invalid and non-hideable fields');
+check_theme(!isset(UAT_Content::fields()['ring_description'], UAT_Content::fields()['history_title'], UAT_Content::fields()['top_note']), 'removed blocks are not offered as active text controls');
+$placed_widget = new UAT_Elementor_Widget(['id' => 'uat-text-test', 'elType' => 'widget', 'widgetType' => 'untappd-atlas', 'settings' => ['uat_text_hero_title' => 'Titre du widget', 'uat_visibility_photos_description' => 'hide']], []);
+$render = new ReflectionMethod($placed_widget, 'render');
+ob_start(); $render->invoke($placed_widget); $widget_html = ob_get_clean();
+preg_match('/data-config="([^"]+)"/', $widget_html, $config_match);
+$widget_config = json_decode(html_entity_decode($config_match[1], ENT_QUOTES, 'UTF-8'), true);
+check_theme($widget_config['texts']['hero_title'] === 'Titre du widget' && $widget_config['texts']['photos_description'] === '', 'native Elementor render transmits custom text and hidden descriptions');
 delete_option('uat_texts');
 check_theme(UAT_Content::values()['hero_title'] === UAT_Content::fields()['hero_title']['default'], 'empty global settings restore defaults');
 $safe_text = UAT_Content::sanitize(['hero_title' => "Bonjour\n<script>alert(1)</script><b>bière</b>", 'unknown' => 'ignored']);

@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.7.8 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.8.zip)**
+**[Télécharger Untappd Atlas 1.8.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.8.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.7.8.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.8.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -54,9 +54,11 @@ Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le
 
 ## Textes et typographie
 
-Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les huit sections proposent **75 textes personnalisables** : nom affiché, introduction, titres du rapport, titres et sous-titres des sections et graphiques, libellés principaux, boutons, repères des pyramides, tableaux, pied de page et titres du PNG. Les retours à la ligne sont conservés sur la page.
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les onze sections proposent **160 textes personnalisables** : introduction, titres et descriptions du rapport, sections et graphiques, titres et descriptions de chaque compteur, badges et niveaux, filtres, boutons, repères des pyramides, pied de page et textes du PNG. Les retours à la ligne sont conservés sur la page.
 
 Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
+
+Pour retirer un titre ou une description, choisissez **Visibilité → Masquer** sous son champ. Dans Elementor, **Hériter des réglages du plugin** reprend la visibilité commune ; **Afficher** permet de réafficher ce texte sur un widget même s’il est masqué globalement. Les descriptions masquées ne laissent pas de paragraphe vide. Le PNG reprend les textes et leur visibilité. Les blocs retirés des versions précédentes restent supprimés et leurs anciens champs ne sont plus présentés comme des réglages actifs.
 
 Certains champs acceptent des variables, indiquées sous le champ :
 
@@ -173,7 +175,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.8.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.8.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
@@ -194,7 +196,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 53 couleurs, les 75 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 53 couleurs, les 160 champs de texte et leur visibilité, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il restaure les réglages de couleurs, de textes et de visibilité du plugin à la fin du test : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 
@@ -209,5 +211,7 @@ Ouvrir `preview.html` dans un navigateur. Ce fichier n’est pas le plugin WordP
 Le test `php tests/public.php /chemin/vers/wordpress` vérifie le parcours public sans clés avec des pages fictives, les restrictions d’accès et la distinction entre import partiel et historique complet.
 
 Le test `php tests/import-errors.php /chemin/vers/wordpress` vérifie sur une base isolée temporaire la réparation des tables manquantes, les refus d’écriture et de création, la reprise, les sessions corrompues et les références de diagnostic sans données sensibles. GitHub Actions exécute ces tests d’import dans WordPress avec MySQL 8. Ne pas lancer ces scripts sur un site de production.
+
+Test de navigateur facultatif : `node tests/browser-content.cjs` avec Node 22+ et Chrome installé (Node 20 : ajouter `--experimental-websocket`). La variable `CHROME_BIN` permet d’indiquer un autre chemin vers Chrome. Le test ouvre un profil isolé, contrôle deux widgets, l’import d’un fichier, les variables après filtrage, les textes masqués et la génération effective du PNG. Ses captures restent dans `test-artifacts/`.
 
 Licence : GPL-2.0-or-later. Projet indépendant, sans affiliation avec Untappd.

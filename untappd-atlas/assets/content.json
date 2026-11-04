@@ -1,18 +1,19 @@
 {
   "brand": {
-    "label": "Nom affiché",
+    "label": "Nom affiché dans le PNG",
     "default": "UNTAPPD ATLAS",
-    "group": "intro"
+    "group": "export"
   },
   "tagline": {
-    "label": "Signature",
+    "label": "Signature dans le PNG",
     "default": "Votre histoire, canette après canette.",
-    "group": "intro"
+    "group": "export"
   },
   "top_note": {
     "label": "Texte en haut à droite",
     "default": "À chaque bière, son histoire ↗",
-    "group": "intro"
+    "group": "intro",
+    "retired": true
   },
   "hero_title": {
     "label": "Titre principal",
@@ -39,22 +40,26 @@
   "import_button": {
     "label": "Bouton d’import",
     "default": "Créer mes statistiques ↗",
-    "group": "form"
+    "group": "form",
+    "hideable": false
   },
   "connect_button": {
     "label": "Bouton de connexion",
     "default": "Connecter Untappd",
-    "group": "form"
+    "group": "form",
+    "hideable": false
   },
   "file_button": {
     "label": "Bouton de fichier",
     "default": "Importer un CSV / JSON",
-    "group": "form"
+    "group": "form",
+    "hideable": false
   },
   "demo_button": {
     "label": "Bouton de démonstration",
     "default": "Voir la démonstration",
-    "group": "form"
+    "group": "form",
+    "hideable": false
   },
   "onboard_title": {
     "label": "Titre avant l’import",
@@ -101,18 +106,21 @@
   "export_png": {
     "label": "Bouton PNG",
     "default": "↓ Image PNG",
-    "group": "report"
+    "group": "report",
+    "hideable": false
   },
   "export_excel": {
     "label": "Bouton Excel",
     "default": "↓ Excel",
-    "group": "report"
+    "group": "report",
+    "hideable": false
   },
   "ring_description": {
     "label": "Explication des pyramides",
     "default": "Chaque canette représente un check-in importé, noté ou non. Sa couleur indique le style de bière. Une pyramide par année : la plus récente au centre devant, les précédentes de plus en plus loin, en alternant à gauche et à droite. Les pyramides peuvent être incomplètes ; la perspective peut masquer certaines canettes. Au survol : bière, style, date et note.",
     "group": "report",
-    "multiline": true
+    "multiline": true,
+    "retired": true
   },
   "first_label": {
     "label": "Repère : premier check-in",
@@ -303,19 +311,22 @@
   "periods_title": {
     "label": "Titre du tableau par période",
     "default": "Tableau par période : volume, moyenne, photos et commentaires",
-    "group": "footer"
+    "group": "footer",
+    "retired": true
   },
   "history_title": {
     "label": "Titre de l’historique",
     "default": "Historique des check-ins ({count})",
     "group": "footer",
-    "vars": "count"
+    "vars": "count",
+    "retired": true
   },
   "history_subtitle": {
     "label": "Texte de l’historique",
     "default": "Les 500 premiers résultats sont affichés ici. L’export Excel contient tous les résultats filtrés.",
     "group": "footer",
-    "multiline": true
+    "multiline": true,
+    "retired": true
   },
   "footer_left": {
     "label": "Pied de page, à gauche",
@@ -387,5 +398,503 @@
     "label": "Pyramides : aucune donnée",
     "default": "Aucune évaluation pour cette période.",
     "group": "sections"
+  },
+  "kpi_checkins_description": {
+    "label": "Check-ins : description",
+    "default": "{rated} notés · {unrated} non notés",
+    "group": "metrics",
+    "vars": "rated, unrated"
+  },
+  "kpi_beers_description": {
+    "label": "Bières uniques : description",
+    "default": "{rated_beers} avec une note",
+    "group": "metrics",
+    "vars": "rated_beers"
+  },
+  "kpi_breweries_description": {
+    "label": "Brasseries : description",
+    "default": "{rated_breweries} avec une note",
+    "group": "metrics",
+    "vars": "rated_breweries"
+  },
+  "kpi_average_description": {
+    "label": "Note moyenne : description",
+    "default": "Sur les check-ins notés",
+    "group": "metrics"
+  },
+  "photos_label": {
+    "label": "Photos : titre",
+    "default": "check-ins avec photo",
+    "group": "metrics"
+  },
+  "photos_description": {
+    "label": "Photos : description",
+    "default": "{photos} photos connues",
+    "group": "metrics",
+    "vars": "photos"
+  },
+  "without_photos_label": {
+    "label": "Sans photo : titre",
+    "default": "check-ins sans photo",
+    "group": "metrics"
+  },
+  "without_photos_description": {
+    "label": "Sans photo : description",
+    "default": "{photo_unknown} non renseignés",
+    "group": "metrics",
+    "vars": "photo_unknown"
+  },
+  "shouts_label": {
+    "label": "Textes personnels : titre",
+    "default": "textes personnels",
+    "group": "metrics"
+  },
+  "shouts_description": {
+    "label": "Textes personnels : description",
+    "default": "Votre texte attaché au check-in",
+    "group": "metrics"
+  },
+  "comments_label": {
+    "label": "Commentaires : titre",
+    "default": "commentaires connus",
+    "group": "metrics"
+  },
+  "comments_description": {
+    "label": "Commentaires : description",
+    "default": "{comments_unknown} check-ins non renseignés",
+    "group": "metrics",
+    "vars": "comments_unknown"
+  },
+  "commenters_label": {
+    "label": "Auteurs : titre",
+    "default": "auteurs distincts observés",
+    "group": "metrics"
+  },
+  "commenters_complete_description": {
+    "label": "Auteurs : description si liste complète",
+    "default": "Liste complète dans les données",
+    "group": "metrics"
+  },
+  "commenters_partial_description": {
+    "label": "Auteurs : description si liste partielle",
+    "default": "Minimum observé",
+    "group": "metrics"
+  },
+  "toasts_label": {
+    "label": "Toasts : titre",
+    "default": "toasts connus",
+    "group": "metrics"
+  },
+  "toasts_description": {
+    "label": "Toasts : description",
+    "default": "{toasts_unknown} check-ins non renseignés",
+    "group": "metrics",
+    "vars": "toasts_unknown"
+  },
+  "active_days_label": {
+    "label": "Jours actifs : titre",
+    "default": "jours avec un check-in",
+    "group": "metrics"
+  },
+  "active_days_description": {
+    "label": "Jours actifs : description",
+    "default": "{per_active_day} check-ins / jour actif",
+    "group": "metrics",
+    "vars": "per_active_day"
+  },
+  "calendar_days_label": {
+    "label": "Jours calendaires : titre",
+    "default": "check-ins / jour calendaire",
+    "group": "metrics"
+  },
+  "calendar_days_description": {
+    "label": "Jours calendaires : description",
+    "default": "{calendar_days} jours entre les bornes",
+    "group": "metrics",
+    "vars": "calendar_days"
+  },
+  "abv_label": {
+    "label": "Degré alcoolique : titre",
+    "default": "degré alcoolique moyen",
+    "group": "metrics"
+  },
+  "abv_description": {
+    "label": "Degré alcoolique : description",
+    "default": "Sur les valeurs connues",
+    "group": "metrics"
+  },
+  "ibu_label": {
+    "label": "IBU : titre",
+    "default": "IBU moyen",
+    "group": "metrics"
+  },
+  "ibu_description": {
+    "label": "IBU : description",
+    "default": "Sur les valeurs connues, zéro inclus",
+    "group": "metrics"
+  },
+  "countries_label": {
+    "label": "Pays visités : titre",
+    "default": "pays des lieux visités",
+    "group": "metrics"
+  },
+  "countries_description": {
+    "label": "Pays visités : description",
+    "default": "Selon les lieux renseignés",
+    "group": "metrics"
+  },
+  "brewery_countries_label": {
+    "label": "Pays des brasseries : titre",
+    "default": "pays des brasseries",
+    "group": "metrics"
+  },
+  "brewery_countries_description": {
+    "label": "Pays des brasseries : description",
+    "default": "Selon les brasseries renseignées",
+    "group": "metrics"
+  },
+  "badge_title": {
+    "label": "Nom du badge : présentation",
+    "default": "{badge}",
+    "group": "badge_texts",
+    "vars": "badge"
+  },
+  "badge_level": {
+    "label": "Niveau du badge : texte",
+    "default": "Niveau {level}",
+    "group": "badge_texts",
+    "vars": "level"
+  },
+  "badge_level_unknown": {
+    "label": "Niveau non renseigné : texte",
+    "default": "Niveau non renseigné",
+    "group": "badge_texts"
+  },
+  "badges_empty": {
+    "label": "Message sans badge",
+    "default": "Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.",
+    "group": "badge_texts",
+    "multiline": true
+  },
+  "badges_limit_note": {
+    "label": "Description après les 100 premiers badges",
+    "default": "100 premiers badges affichés ; liste complète dans Excel.",
+    "group": "badge_texts"
+  },
+  "badges_unique_description": {
+    "label": "Badges distincts : description",
+    "default": "Minimum observé",
+    "group": "badge_texts"
+  },
+  "badges_awards_description": {
+    "label": "Obtentions : description",
+    "default": "Niveaux successifs inclus si fournis",
+    "group": "badge_texts"
+  },
+  "badges_unknown_description": {
+    "label": "Badges non renseignés : description",
+    "default": "Absence de champ : inconnu, jamais zéro",
+    "group": "badge_texts"
+  },
+  "badges_total_description": {
+    "label": "Total annoncé : description",
+    "default": "Total du profil, hors filtres ; catalogue parfois masqué",
+    "group": "badge_texts"
+  },
+  "import_api_description": {
+    "label": "Import API : description",
+    "default": "L’import par lien utilise l’API Untappd configurée sur ce site. La connexion permet d’autoriser l’accès à votre compte.",
+    "group": "form",
+    "multiline": true
+  },
+  "import_public_description": {
+    "label": "Import public : description",
+    "default": "Sans clé : lecture des pages publiques uniquement. Untappd peut masquer l’historique ancien et les badges. Aucune connexion à votre compte n’est effectuée.",
+    "group": "form",
+    "multiline": true
+  },
+  "import_privacy_description": {
+    "label": "Fichiers et conservation : description",
+    "default": "Les fichiers sont analysés dans votre navigateur. Les imports par profil sont conservés 24 h et peuvent être effacés ici.",
+    "group": "form",
+    "multiline": true
+  },
+  "enrich_label": {
+    "label": "Approfondissement API : libellé",
+    "default": "Approfondir les commentaires et les toasts",
+    "group": "form"
+  },
+  "enrich_description": {
+    "label": "Approfondissement API : infobulle",
+    "default": "Un appel API supplémentaire par check-in. Les identités peuvent rester partielles.",
+    "group": "form",
+    "multiline": true
+  },
+  "filter_from": {
+    "label": "Date de début : libellé",
+    "default": "Du",
+    "group": "filters"
+  },
+  "filter_to": {
+    "label": "Date de fin : libellé",
+    "default": "Au",
+    "group": "filters"
+  },
+  "filter_style": {
+    "label": "Style : libellé",
+    "default": "Style de bière",
+    "group": "filters"
+  },
+  "filter_all_styles": {
+    "label": "Tous les styles : option",
+    "default": "Tous les styles",
+    "group": "filters",
+    "hideable": false
+  },
+  "filter_grain": {
+    "label": "Périodes : libellé",
+    "default": "Périodes",
+    "group": "filters"
+  },
+  "filter_timezone": {
+    "label": "Fuseau horaire : libellé",
+    "default": "Fuseau horaire",
+    "group": "filters"
+  },
+  "grain_day": {
+    "label": "Période : jour",
+    "default": "Jour",
+    "group": "filters",
+    "hideable": false
+  },
+  "grain_week": {
+    "label": "Période : semaine",
+    "default": "Semaine",
+    "group": "filters",
+    "hideable": false
+  },
+  "grain_month": {
+    "label": "Période : mois",
+    "default": "Mois",
+    "group": "filters",
+    "hideable": false
+  },
+  "grain_year": {
+    "label": "Période : année",
+    "default": "Année",
+    "group": "filters",
+    "hideable": false
+  },
+  "reset_button": {
+    "label": "Bouton : tout afficher",
+    "default": "Tout afficher",
+    "group": "filters",
+    "hideable": false
+  },
+  "pause_button": {
+    "label": "Bouton : pause",
+    "default": "Pause",
+    "group": "filters",
+    "hideable": false
+  },
+  "resume_button": {
+    "label": "Bouton : reprendre",
+    "default": "Reprendre",
+    "group": "filters",
+    "hideable": false
+  },
+  "erase_button": {
+    "label": "Bouton : effacer l’import",
+    "default": "Effacer",
+    "group": "filters",
+    "hideable": false
+  },
+  "clear_button": {
+    "label": "Bouton : effacer mes données",
+    "default": "Effacer mes données",
+    "group": "filters",
+    "hideable": false
+  },
+  "ratings_note": {
+    "label": "Notes : description sous le graphique",
+    "default": "Notes regroupées au quart de point le plus proche.",
+    "group": "charts"
+  },
+  "heat_less": {
+    "label": "Horaires : légende faible activité",
+    "default": "moins",
+    "group": "charts"
+  },
+  "heat_more": {
+    "label": "Horaires : légende forte activité",
+    "default": "plus",
+    "group": "charts"
+  },
+  "timeline_bucket_note": {
+    "label": "Activité et moyenne : regroupement visuel",
+    "default": "Regroupement visuel : {bucket} périodes / point. Détail dans Excel.",
+    "group": "charts",
+    "vars": "bucket"
+  },
+  "styles_bucket_note": {
+    "label": "Styles : regroupement visuel",
+    "default": "Regroupement visuel : {bucket} périodes / colonne.",
+    "group": "charts",
+    "vars": "bucket"
+  },
+  "other_styles_label": {
+    "label": "Autres styles : libellé",
+    "default": "Autres styles",
+    "group": "charts"
+  },
+  "ranking_empty": {
+    "label": "Classements : message sans donnée",
+    "default": "Aucune donnée disponible.",
+    "group": "charts"
+  },
+  "yearly_empty": {
+    "label": "Favoris annuels : message sans donnée",
+    "default": "Aucune donnée.",
+    "group": "charts"
+  },
+  "checkins_count": {
+    "label": "Nombre de check-ins : présentation",
+    "default": "{count} check-ins",
+    "group": "report",
+    "vars": "count"
+  },
+  "source_demo": {
+    "label": "Origine : démonstration",
+    "default": "EXEMPLE FICTIF / 2021 — 2025",
+    "group": "report"
+  },
+  "source_file": {
+    "label": "Origine : fichier",
+    "default": "HISTORIQUE IMPORTÉ / {profile}",
+    "group": "report",
+    "vars": "profile"
+  },
+  "source_public": {
+    "label": "Origine : profil public",
+    "default": "PROFIL PUBLIC / {profile}",
+    "group": "report",
+    "vars": "profile"
+  },
+  "source_api": {
+    "label": "Origine : API",
+    "default": "PROFIL UNTAPPD / {profile}",
+    "group": "report",
+    "vars": "profile"
+  },
+  "poster_period_description": {
+    "label": "PNG : dates, fuseau et style",
+    "default": "{first_date} — {last_date} · {timezone} · {style}",
+    "group": "export",
+    "vars": "first_date, last_date, timezone, style"
+  },
+  "poster_active_days_title": {
+    "label": "PNG : titre des jours actifs",
+    "default": "Jours actifs",
+    "group": "export"
+  },
+  "poster_active_days_description": {
+    "label": "PNG : description des jours actifs",
+    "default": "Sur les données importées",
+    "group": "export"
+  },
+  "poster_coverage_title": {
+    "label": "PNG : titre de couverture",
+    "default": "COUVERTURE DES DONNÉES",
+    "group": "export"
+  },
+  "poster_status_description": {
+    "label": "PNG : description de l’import",
+    "default": "{status}",
+    "group": "export",
+    "vars": "status"
+  },
+  "poster_missing_description": {
+    "label": "PNG : description des données absentes",
+    "default": "{photo_unknown} check-ins sans information photo ; {comments_unknown} sans total de commentaires ; {toasts_unknown} sans total de toasts.",
+    "group": "export",
+    "vars": "photo_unknown, comments_unknown, toasts_unknown",
+    "multiline": true
+  },
+  "poster_commenters_complete": {
+    "label": "PNG : auteurs, liste complète",
+    "default": "Auteurs des commentaires : liste complète dans les données importées.",
+    "group": "export"
+  },
+  "poster_commenters_partial": {
+    "label": "PNG : auteurs, liste partielle",
+    "default": "Auteurs des commentaires : minimum observé. Les listes fournies peuvent être partielles.",
+    "group": "export",
+    "multiline": true
+  },
+  "poster_absence_description": {
+    "label": "PNG : description des champs absents",
+    "default": "Les champs absents ne sont pas assimilés à zéro. Statistiques limitées aux données importées et aux filtres.",
+    "group": "export",
+    "multiline": true
+  },
+  "poster_identity_description": {
+    "label": "PNG : description des identités et dates",
+    "default": "Identités sans ID regroupées par nom. Notes à zéro considérées non notées. Dates sans fuseau interprétées en UTC.",
+    "group": "export",
+    "multiline": true
+  },
+  "poster_excel_description": {
+    "label": "PNG : description du fichier Excel",
+    "default": "Le fichier Excel contient les tableaux détaillés, les périodes, les classements et les check-ins.",
+    "group": "export",
+    "multiline": true
+  },
+  "poster_badges_empty": {
+    "label": "PNG : description sans information badges",
+    "default": "Badges non renseignés dans les données importées.",
+    "group": "export"
+  },
+  "poster_badges_description": {
+    "label": "PNG : description des badges",
+    "default": "{badges} badges distincts observés · {badge_awards} obtentions connues · {badges_unknown} check-ins non renseignés",
+    "group": "export",
+    "vars": "badges, badge_awards, badges_unknown",
+    "multiline": true
+  },
+  "poster_badge_level": {
+    "label": "PNG : niveau à côté du badge",
+    "default": " · niv. {level}",
+    "group": "export",
+    "vars": "level"
+  },
+  "first_description": {
+    "label": "Premier check-in : description",
+    "default": "{first_date}",
+    "group": "report",
+    "vars": "first_date"
+  },
+  "last_description": {
+    "label": "Dernier check-in : description",
+    "default": "{last_date}",
+    "group": "report",
+    "vars": "last_date"
+  },
+  "favorite_description": {
+    "label": "Style favori : description",
+    "default": "{count} check-ins",
+    "group": "report",
+    "vars": "count"
+  },
+  "biggest_description": {
+    "label": "Jour le plus actif : description",
+    "default": "{biggest_date}",
+    "group": "report",
+    "vars": "biggest_date"
+  },
+  "yearly_description": {
+    "label": "Favoris annuels : description",
+    "default": "{count} check-ins",
+    "group": "report",
+    "vars": "count"
   }
 }

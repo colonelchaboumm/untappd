@@ -2,7 +2,7 @@
 // Shared bootstrap. The single WordPress plugin header lives in the root entry point.
 defined('ABSPATH') || exit;
 if (defined('UAT_VERSION')) { return; }
-define('UAT_VERSION', '1.7.8');
+define('UAT_VERSION', '1.8.0');
 if (!defined('UAT_MAIN_FILE')) { define('UAT_MAIN_FILE', __FILE__); }
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
@@ -55,6 +55,7 @@ add_action('admin_menu', function () {
 add_action('admin_init', function () {
     register_setting('uat_appearance', 'uat_palette', ['sanitize_callback' => [UAT_Theme::class, 'sanitize'], 'default' => ['follow_elementor' => 1]]);
     register_setting('uat_content', 'uat_texts', ['sanitize_callback' => [UAT_Content::class, 'sanitize'], 'default' => []]);
+    register_setting('uat_content', 'uat_text_visibility', ['sanitize_callback' => [UAT_Content::class, 'sanitize_visibility'], 'default' => []]);
     register_setting('uat_settings', 'uat_credentials', [
         'sanitize_callback' => function ($input) {
             $old = get_option('uat_credentials', []);
@@ -82,12 +83,12 @@ function uat_settings() {
     <p><a href="https://untappd.com/api/docs/v4" target="_blank" rel="noopener noreferrer">Documentation API officielle</a></p></div>
     <?php
 }
-function uat_dashboard($preview = false, $texts = []) {
+function uat_dashboard($preview = false, $texts = [], $visibility = []) {
     uat_register_assets();
     wp_enqueue_style('uat-dashboard');
     wp_enqueue_script('uat-dashboard');
     $credentials = get_option('uat_credentials', []);
-    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'texts' => UAT_Content::values($texts)];
+    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'texts' => UAT_Content::values($texts, $visibility)];
     return '<div class="uat-app alignwide" data-config="' . esc_attr(wp_json_encode($config)) . '"><p>Chargement d’Untappd Atlas… JavaScript est nécessaire pour les graphiques et exports.</p></div>';
 }
 add_shortcode('untappd_atlas', function () { return uat_dashboard(); });

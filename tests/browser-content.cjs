@@ -1,0 +1,47 @@
+const fs = require('fs'), path = require('path'), {spawn} = require('child_process'), assert = require('assert/strict');
+if (typeof WebSocket === 'undefined') throw new Error('Utilisez Node 22+, ou Node 20 avec --experimental-websocket.');
+const root = path.resolve(__dirname, '..'), artifacts = path.join(root, 'test-artifacts'); fs.mkdirSync(artifacts, {recursive:true});
+const assets = path.join(root, 'untappd-atlas/assets');
+const fields = JSON.parse(fs.readFileSync(path.join(assets,'content.json'),'utf8'));
+const defaults = Object.fromEntries(Object.entries(fields).filter(([,f])=>!f.retired).map(([k,f])=>[k,f.default]));
+const custom = {...defaults, hero_title:'Mon carnet <personnel>', hero_subtitle:'', heat_title:'Mes créneaux', heat_subtitle:'', photos_label:'Mes images', photos_description:'Photos connues : {photos}', badge_level:'Palier {level}', first_description:'Premier jour : {first_date}', footer_left:'', footer_right:'', poster_coverage_title:'Mes précisions', poster_absence_description:''};
+const palette=JSON.parse(fs.readFileSync(path.join(assets,'palette.json'),'utf8'));
+const vars=Object.entries(palette).map(([k,t])=>'--uat-'+k+':'+t.default).join(';');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
+const app=(id,texts)=>`<div class="uat-app" id="${id}" data-config='${esc(JSON.stringify({api:'/wp-json/untappd-atlas/v1/',preview:true,timezone:'Europe/Paris',texts}))}'></div>`;
+const scripts=['core.js','theme.js','content.js','export.js','dashboard.js'].map(f=>'<script>'+fs.readFileSync(path.join(assets,f),'utf8')+'</script>').join('');
+const html='<!doctype html><html lang="fr"><meta charset="utf-8"><style>'+fs.readFileSync(path.join(assets,'dashboard.css'),'utf8')+`.uat-app{${vars};margin:0;width:100%}body{margin:12px;background:#ddd}.qa{display:grid;grid-template-columns:1fr 1fr;gap:14px}</style><div class="qa">`+app('default',defaults)+app('custom',custom)+'</div>'+scripts+'</html>';
+const htmlPath=path.join(artifacts,'content-browser-test.html'); fs.writeFileSync(htmlPath,html);
+const profile=path.join(artifacts,'chrome-content-'+Date.now());
+const chrome=spawn(process.env.CHROME_BIN || (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome'),['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,'--window-size=1500,1000','about:blank'],{stdio:'ignore',windowsHide:true});
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+let socket, command;
+(async()=>{
+  const portFile=path.join(profile,'DevToolsActivePort');
+  for(let n=0;!fs.existsSync(portFile)&&n<100;n++)await delay(200);
+  const port=fs.readFileSync(portFile,'utf8').split('\n')[0];
+  const targets=await(await fetch('http://127.0.0.1:'+port+'/json/list')).json();
+  socket=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl);
+  await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
+  let next=0;const pending=new Map();
+  socket.onmessage=e=>{const v=JSON.parse(e.data);if(v.id&&pending.has(v.id)){const p=pending.get(v.id);pending.delete(v.id);v.error?p.reject(Error(JSON.stringify(v.error))):p.resolve(v.result);}};
+  command=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  const evaluate=async expression=>{const r=await command('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,timeout:30000});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+  await command('Page.enable');await command('Network.enable');await command('Network.setBlockedURLs',{urls:['http://*','https://*']});
+  await command('Page.navigate',{url:require('url').pathToFileURL(htmlPath).href});
+  for(let i=0;i<100;i++){if(await evaluate("document.querySelector('#custom .uat-results')?.children.length > 0"))break;await delay(200);}
+  const initial=await evaluate(`({customTitle:document.querySelector('#custom .uat-intro h2').textContent,hiddenIntro:!document.querySelector('#custom .uat-intro p'),hiddenCardDescription:!document.querySelector('#custom .uat-card').querySelector('p'),defaultTitle:document.querySelector('#default .uat-intro h2').textContent,customChart:document.querySelector('#custom .uat-card h3').textContent,removedBlocks:document.querySelectorAll('.uat-topline,.uat-details,.uat-coverage,.uat-ring-description').length,hiddenFooter:!document.querySelector('#custom .uat-footer'),injectedElements:document.querySelectorAll('#custom .uat-intro personnel').length})`);
+  assert.equal(initial.customTitle,'Mon carnet <personnel>');assert.equal(initial.hiddenIntro,true);assert.equal(initial.hiddenCardDescription,true);assert.equal(initial.customChart,'Mes créneaux');assert.equal(initial.removedBlocks,0);assert.equal(initial.hiddenFooter,true);assert.equal(initial.injectedElements,0);assert.notEqual(initial.defaultTitle,initial.customTitle);
+  const records=[{checkin_id:'1',created_at:'2023-01-01T18:00:00Z',beer_name:'Fixture A',rating_score:4,media:{count:2},badges:['Explorer (Level 2)']},{checkin_id:'2',created_at:'2024-01-01T18:00:00Z',beer_name:'Fixture B',rating_score:3,media:{count:0},badges:['Explorer (Level 4)']}];
+  await evaluate(`(()=>{const data=${JSON.stringify(records)},dt=new DataTransfer();dt.items.add(new File([JSON.stringify(data)],'fixture.json',{type:'application/json'}));const input=document.querySelector('#custom input[type=file]');input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  for(let i=0;i<100;i++){if(await evaluate("document.querySelector('#custom .uat-badge p')?.textContent === 'Palier 4'"))break;await delay(100);}
+  const imported=await evaluate(`({level:document.querySelector('#custom .uat-badge p')?.textContent,photos:[...document.querySelectorAll('#custom .uat-mini')].find(n=>n.textContent.includes('Mes images'))?.textContent,defaultStillDemo:!document.querySelector('#default .uat-demo-notice').hidden})`);
+  assert.equal(imported.level,'Palier 4');assert.ok(imported.photos.includes('Photos connues : 2'));assert.equal(imported.defaultStillDemo,true);
+  await evaluate(`(()=>{const input=document.querySelector('#custom input[name=from]');input.value='2024-01-01';input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  const filtered=await evaluate(`({total:document.querySelector('#custom .uat-kpi strong').textContent,photos:[...document.querySelectorAll('#custom .uat-mini')].find(n=>n.textContent.includes('Mes images'))?.textContent})`);
+  assert.equal(filtered.total,'1');assert.ok(filtered.photos.includes('Photos connues : 0'));
+  const exported=await evaluate(`(async()=>{const texts=${JSON.stringify(custom)},s=UATCore.analyze(${JSON.stringify(records)}.map((row,i)=>UATCore.normalize(row,i))),svg=UATView.poster(s,{texts,variables:{profile:'Test'}});if(!svg.includes('Mes images')||!svg.includes('Mes précisions')||svg.includes('Les champs absents ne sont pas assimilés'))throw Error('Incorrect PNG captions');const blob=await UATExport.png(UATTheme.inlineSvg(svg,document.querySelector('#custom')));return await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(blob);});})()`);
+  const pngPath=path.join(artifacts,'rapport-textes-personnalises-TEST.png');fs.writeFileSync(pngPath,Buffer.from(exported.split(',')[1],'base64'));
+  const screenshot=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(path.join(artifacts,'textes-personnalisables-apercu.png'),Buffer.from(screenshot.data,'base64'));
+  console.log(JSON.stringify({twoWidgets:true,customTitles:true,hiddenDescriptions:true,fileImport:true,badgeLevel:true,liveFilterVariables:true,pngExport:true,pngBytes:fs.statSync(pngPath).size}));
+})().catch(e=>{console.error(e.stack);process.exitCode=1;}).finally(async()=>{try{if(command)await command('Browser.close');}catch(_){}if(socket)socket.close();if(chrome.exitCode===null)chrome.kill();});

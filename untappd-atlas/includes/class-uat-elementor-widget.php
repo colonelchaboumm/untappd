@@ -23,6 +23,13 @@ final class UAT_Elementor_Widget extends \Elementor\Widget_Base {
                     'rows' => 3, 'label_block' => true, 'placeholder' => $field['default'],
                     'description' => 'Vide : texte commun du plugin.' . (!empty($field['vars']) ? ' Variables entre accolades : ' . $field['vars'] . '.' : ''),
                 ]);
+                if ($field['hideable'] ?? true) {
+                    $this->add_control('uat_visibility_' . $key, [
+                        'label' => 'Visibilité : ' . $field['label'], 'type' => \Elementor\Controls_Manager::SELECT,
+                        'options' => ['' => 'Hériter des réglages du plugin', 'show' => 'Afficher', 'hide' => 'Masquer'], 'default' => '',
+                        'description' => 'Masquer retire ce texte sur ce widget, y compris dans son PNG.',
+                    ]);
+                }
             }
             $this->end_controls_section();
         }
@@ -56,7 +63,11 @@ final class UAT_Elementor_Widget extends \Elementor\Widget_Base {
         $editor = \Elementor\Plugin::$instance->editor->is_edit_mode();
         $settings = $this->get_settings_for_display();
         $texts = [];
-        foreach (UAT_Content::fields() as $key => $field) { if (isset($settings['uat_text_' . $key])) { $texts[$key] = $settings['uat_text_' . $key]; } }
-        echo uat_dashboard($editor, $texts); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by renderer.
+        $visibility = [];
+        foreach (UAT_Content::fields() as $key => $field) {
+            if (isset($settings['uat_text_' . $key])) { $texts[$key] = $settings['uat_text_' . $key]; }
+            if (isset($settings['uat_visibility_' . $key])) { $visibility[$key] = $settings['uat_visibility_' . $key]; }
+        }
+        echo uat_dashboard($editor, $texts, $visibility); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by renderer.
     }
 }

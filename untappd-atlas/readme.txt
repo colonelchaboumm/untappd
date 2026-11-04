@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.7.8
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,7 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 3. Ajoutez [untappd_atlas] dans une page avec un bloc Code court.
 4. Pour l’import par lien / OAuth, configurez les clés d’application dans Réglages > Untappd Atlas et recopiez l’URL de retour dans votre application Untappd.
 5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 53 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
-6. L’onglet Contenu du widget propose 75 textes personnalisables. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
+6. L’onglet Contenu du widget propose 160 textes personnalisables avec des options de visibilité. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
 
 == External services ==
 
@@ -49,6 +49,13 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.8.0 =
+* 160 textes personnalisables : titres, descriptions des compteurs, badges, filtres, boutons, graphiques et PNG.
+* Visibilité Afficher / Masquer pour chaque titre ou description, avec héritage des réglages communs dans Elementor.
+* Descriptions dynamiques avec variables mises à jour après filtrage et textes masqués conservés dans le PNG.
+* Anciens blocs supprimés maintenus absents ; leurs réglages inactifs sont retirés de l’éditeur.
+* Validation Elementor native, deux widgets indépendants, import de fichier et génération PNG dans Chrome.
 
 = 1.7.8 =
 * Suppression du paragraphe explicatif des pyramides sur la page et dans le PNG.
