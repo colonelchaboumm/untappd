@@ -63,8 +63,8 @@
   }
   function pyramidGeometry(group) {
     // Frontal tiers stay horizontal; lid and foot retain the same support plane.
-    // The foot centre (34.4) rests on the supporting lids (6.1), hence 28.3.
-    const pitch = 22, rise = 28.3, slope = 0, piles = [];
+    // The 44 cl silhouette keeps its lid geometry; the foot (48.4) rests on lids at 6.1.
+    const pitch = 22, rise = 42.3, slope = 0, piles = [];
     let index = 0;
     group.piles.forEach((height, depth) => {
       const scale = 1 + Math.min(depth, 3) * .07;
@@ -78,7 +78,7 @@
       for (let level = 0; level < height; level++) {
         const columns = height - level + (level < extra ? 1 : 0);
         for (let col = 0; col < columns; col++) {
-          const localX = (col + level / 2) * pitch, localY = -34.4 - level * rise;
+          const localX = (col + level / 2) * pitch, localY = -48.4 - level * rise;
           cans.push({row: group.rows[index++], level, col, localX, localY, ...project(localX, localY)});
         }
       }
@@ -89,7 +89,7 @@
     const include = p => { bounds.left = Math.min(bounds.left, p.x); bounds.top = Math.min(bounds.top, p.y); bounds.right = Math.max(bounds.right, p.x); bounds.bottom = Math.max(bounds.bottom, p.y); };
     for (const pile of piles) {
       for (const can of pile.cans) {
-        const bottom = can.level ? 37 : 43, right = can.level ? 24 : 36;
+        const bottom = can.level ? 51 : 57, right = can.level ? 24 : 36;
         for (const dx of [0, right]) for (const dy of [2, bottom]) include(pile.project(can.localX + dx, can.localY + dy));
       }
       const shadowHeight = Math.max(5, pile.localWidth * .025);
@@ -113,22 +113,22 @@
       <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".45"/><stop offset=".48" stop-color="var(--uat-can-ground)" stop-opacity=".18"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
       <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".66"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
       <radialGradient id="${uid}-stage"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset=".6" stop-color="var(--uat-can-ground)" stop-opacity=".06"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>`;
-    body += `<mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5" y="15" width="14" height="14" style="mask-type:alpha"><image href="${canLogo}" x="5" y="15" width="14" height="14" preserveAspectRatio="xMidYMid meet"/></mask>`;
-    const labelPath = 'd="M2.6 10.9Q12 14.1 21.4 10.9V29.7Q21.4 33.7 12 33.7Q2.6 33.7 2.6 29.7Z"';
+    body += `<mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5" y="22" width="14" height="14" style="mask-type:alpha"><image href="${canLogo}" x="5" y="22" width="14" height="14" preserveAspectRatio="xMidYMid meet"/></mask>`;
+    const labelPath = 'd="M2.6 10.9Q12 14.1 21.4 10.9V43.7Q21.4 47.7 12 47.7Q2.6 47.7 2.6 43.7Z"';
     for (const key of styles) {
       const paint = paints.get(key);
       body += `<g id="${shapeIds.get(key)}">
-        <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V29.8Q22 36 12 36Q2 36 2 29.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
+        <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V43.8Q22 50 12 50Q2 50 2 43.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
         ${paintShape('path', labelPath, paint)}
-        <path d="M3 12.1Q12 15.3 21 12.1M3 29.4Q12 33.6 21 29.4" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".3" opacity=".3"/>
-        <rect class="uat-can-logo" x="5" y="15" width="14" height="14" fill="var(--uat-can-logo)" mask="url(#${uid}-logo-mask)"/>
+        <path d="M3 12.1Q12 15.3 21 12.1M3 43.4Q12 47.6 21 43.4" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".3" opacity=".3"/>
+        <rect class="uat-can-logo" x="5" y="22" width="14" height="14" fill="var(--uat-can-logo)" mask="url(#${uid}-logo-mask)"/>
         <path ${labelPath} fill="url(#${uid}-shade)"/>
         <path ${labelPath} fill="url(#${uid}-gleam)"/>
         <path d="M4.3 7.5Q12 11 19.7 7.5L21.2 10.5Q12 14.6 2.8 10.5Z" fill="url(#${uid}-neck)"/>
-        <path d="M3.1 30.7Q12 34.8 20.9 30.7" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".65" opacity=".8"/>
-        <path d="M3.2 31.8Q12 35.4 20.8 31.8V32.8Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.8Z" fill="url(#${uid}-rim)"/>
-        <path d="M3.5 33.8Q12 37.1 20.5 33.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
-        <path d="M4 33.6Q12 36.4 20 33.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
+        <path d="M3.1 44.7Q12 48.8 20.9 44.7" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".65" opacity=".8"/>
+        <path d="M3.2 45.8Q12 49.4 20.8 45.8V46.8Q19.9 49.6 12 49.6Q4.1 49.6 3.2 46.8Z" fill="url(#${uid}-rim)"/>
+        <path d="M3.5 47.8Q12 51.1 20.5 47.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
+        <path d="M4 47.6Q12 50.4 20 47.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
         <g transform="translate(0 6.1) scale(1 .55) translate(0 -6.1)">
         <path d="M3.7 6.1a8.3 3.4 0 0 0 16.6 0v1.1a8.3 3.4 0 0 1-16.6 0Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".3"/>
         <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
@@ -154,9 +154,9 @@
       for (const can of pile.cans) {
         const row = can.row;
         body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}" data-level="${can.level}" transform="translate(${can.localX} ${can.localY})">`;
-        if (!can.level) body += `<ellipse class="uat-can-floor-shadow" cx="20" cy="37" rx="16" ry="5" fill="url(#${uid}-ground)"/>`;
+        if (!can.level) body += `<ellipse class="uat-can-floor-shadow" cx="20" cy="51" rx="16" ry="5" fill="url(#${uid}-ground)"/>`;
         // A tight contact shadow on the two supporting lids, never a floor halo in mid-air.
-        body += `<ellipse class="uat-can-contact" cx="12" cy="34.7" rx="10.5" ry="2.1" fill="url(#${uid}-contact)"/><use href="#${shapeIds.get(row.style)}"/></g>`;
+        body += `<ellipse class="uat-can-contact" cx="12" cy="48.7" rx="10.5" ry="2.1" fill="url(#${uid}-contact)"/><use href="#${shapeIds.get(row.style)}"/></g>`;
       }
       body += '</g>';
     }

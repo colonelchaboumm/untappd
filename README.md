@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.8.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.8.1.zip)**
+**[Télécharger Untappd Atlas 1.8.2 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.8.2.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.8.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.8.2.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -35,6 +35,8 @@ Cette correction ne change pas les droits d’accès Untappd. Sans application a
 ## Pyramides de canettes — version 1.7.0
 
 Le disque est remplacé sur la page et dans le PNG par des canettes métalliques colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
+
+Depuis la version 1.8.2, les canettes adoptent une silhouette plus haute, inspirée des proportions du [format 44 cl standard de CANPACK](https://www.canpack.com/capabilities/beverage-cans/44-cl-standard/). Le corps et l’étiquette sont allongés ; le couvercle et le logo gardent leurs proportions. Le logo est recentré et les appuis, l’écartement vertical des rangées et les limites du graphique sont recalculés pour ce nouveau format visuel, sur la page comme dans le PNG.
 
 Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. L’année la plus récente est centrée au premier plan. La précédente apparaît derrière à gauche, la suivante derrière à droite, puis les années continuent en alternance. Chaque plan recule et rétrécit progressivement vers un même point de fuite. Les plans arrière sont abaissés et rapprochés de l’axe central pour se superposer davantage derrière la pyramide du premier plan. Les pyramides sont présentées de face : les rangées restent horizontales et les couvercles sont aplatis pour réduire la vue du dessus. Les canettes du même plan conservent la même taille et leurs centres d’appui restent alignés. Les années et leurs totaux sont indiqués sur les côtés, avec un trait jusqu’à la base ; le total de l’année récente reste sous la pyramide centrale. Le relief et cette composition sont repris dans le PNG.
 
@@ -177,7 +179,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.8.1.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.8.2.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

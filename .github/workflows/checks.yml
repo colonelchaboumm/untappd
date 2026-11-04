@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/build-package.py
-      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.8.1.zip
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.8.2.zip
   wordpress:
     runs-on: ubuntu-latest
     services:

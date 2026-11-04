@@ -84,7 +84,7 @@ test('projected feet rest on the midpoint of two supporting lids at every level'
         const left=supports.get((can.level-1)+':'+can.col);
         const right=supports.get((can.level-1)+':'+(can.col+1));
         assert.ok(left && right,'an upper can has two lower supports');
-        const foot=pile.project(can.localX+12,can.localY+34.4);
+        const foot=pile.project(can.localX+12,can.localY+48.4);
         const leftLid=pile.project(left.localX+12,left.localY+6.1);
         const rightLid=pile.project(right.localX+12,right.localY+6.1);
         near(foot.x,(leftLid.x+rightLid.x)/2,'foot is centred between the supporting lids');
@@ -125,7 +125,7 @@ test('rendered matrices fit cans and shadows, paint nearer piles last and keep f
         near(origin.x,can.x,'rendered matrix projects the can to its scene x');
         near(origin.y,can.y,'rendered matrix projects the can to its scene y');
         // Independent envelope of the shared can artwork, including its rim.
-        for (const dx of [0,24]) for (const dy of [2,37]) inside(projected(matrix,local[0]+dx,local[1]+dy),scene.bounds,'can silhouette stays in fitted bounds');
+        for (const dx of [0,24]) for (const dy of [2,51]) inside(projected(matrix,local[0]+dx,local[1]+dy),scene.bounds,'can silhouette stays in fitted bounds');
         const floorShadows=[...match[2].matchAll(/<ellipse class="uat-can-floor-shadow" ([^>]+)\/>/g)];
         assert.equal(floorShadows.length,level===0?1:0,'only cans standing on the ground have a floor shadow');
         assert.ok(match[2].includes('class="uat-can-contact"'),'every can retains a contact shadow');
