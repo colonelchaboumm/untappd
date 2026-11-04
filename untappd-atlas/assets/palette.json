@@ -1,55 +1,281 @@
 {
-  "bg": {"label":"Fond de la page","default":"#eeede9","group":"general"},
-  "surface": {"label":"Fond des cartes et panneaux","default":"#faf9f7","group":"general"},
-  "surface-border": {"label":"Bordure des cartes","default":"#ffffff","group":"general"},
-  "ink": {"label":"Texte principal et chiffres","default":"#171717","group":"general","global":"text"},
-  "heading": {"label":"Titres","default":"#171717","group":"general","global":"primary"},
-  "muted": {"label":"Texte secondaire","default":"#72716f","group":"general","global":"secondary"},
-  "subtle": {"label":"Légendes et petits textes","default":"#8a8882","group":"general"},
-  "border": {"label":"Séparateurs et bordures","default":"#d9d7d1","group":"general"},
-  "accent": {"label":"Accent, activité et notes","default":"#f72b7b","group":"general","global":"accent"},
-  "shadow": {"label":"Ombre des cartes (avec transparence)","default":"#24201b04","group":"general"},
-  "coverage-bg": {"label":"Fond de la couverture des données","default":"#e6e3dc","group":"general"},
-  "coverage-text": {"label":"Texte de la couverture des données","default":"#686660","group":"general"},
-  "table-head": {"label":"Fond des en-têtes de tableaux","default":"#e5e2dc","group":"general"},
-  "input-bg": {"label":"Fond des champs","default":"#ffffff","group":"controls"},
-  "input-text": {"label":"Texte des champs","default":"#171717","group":"controls","global":"text"},
-  "input-border": {"label":"Bordure des champs","default":"#d8d6d1","group":"controls"},
-  "button-bg": {"label":"Fond des boutons principaux","default":"#171717","group":"controls","global":"primary"},
-  "button-text": {"label":"Texte des boutons principaux","default":"#ffffff","group":"controls"},
-  "button-hover": {"label":"Fond des boutons au survol","default":"#363636","group":"controls"},
-  "secondary-hover": {"label":"Fond des boutons secondaires au survol","default":"#eae8e3","group":"controls"},
-  "warning-bg": {"label":"Fond des messages d’information","default":"#fff3d6","group":"messages"},
-  "warning-text": {"label":"Texte des messages d’information","default":"#655019","group":"messages"},
-  "error-bg": {"label":"Fond des erreurs","default":"#fde4e7","group":"messages"},
-  "error-text": {"label":"Texte des erreurs","default":"#86263b","group":"messages"},
-  "success-bg": {"label":"Fond des messages de réussite","default":"#e1f1e8","group":"messages"},
-  "success-text": {"label":"Texte des messages de réussite","default":"#265f43","group":"messages"},
-  "demo-bg": {"label":"Fond du bandeau de démonstration","default":"#fbdde8","group":"messages"},
-  "demo-text": {"label":"Texte du bandeau de démonstration","default":"#bd1752","group":"messages"},
-  "chart-grid": {"label":"Grille des graphiques","default":"#e4e0da","group":"charts"},
-  "chart-neutral": {"label":"Barres des notes inférieures à 4","default":"#b5b0a9","group":"charts"},
-  "heat-empty": {"label":"Cases sans activité","default":"#e9e6df","group":"charts"},
-  "track": {"label":"Fond des barres de classement","default":"#e9e6e0","group":"charts"},
-  "other": {"label":"Autres styles","default":"#8c8b90","group":"charts"},
-  "series-1": {"label":"Style / série 1","default":"#f72b7b","group":"series","global":"accent"},
-  "series-2": {"label":"Style / série 2","default":"#08a7b5","group":"series","global":"primary"},
-  "series-3": {"label":"Style / série 3","default":"#a14cf2","group":"series","global":"secondary"},
-  "series-4": {"label":"Style / série 4","default":"#e59b05","group":"series"},
-  "series-5": {"label":"Style / série 5","default":"#12a37e","group":"series"},
-  "series-6": {"label":"Style / série 6","default":"#3777ed","group":"series"},
-  "series-7": {"label":"Style / série 7","default":"#b41690","group":"series"},
-  "series-8": {"label":"Style / série 8","default":"#758e19","group":"series"},
-  "series-9": {"label":"Style / série 9","default":"#d86427","group":"series"},
-  "series-10": {"label":"Style / série 10","default":"#7962b1","group":"series"},
-  "pyramid-bg": {"label":"Fond du graphique","default":"#000000","group":"cans"},
-  "pyramid-border": {"label":"Contour du graphique","default":"#3a3a3a","group":"cans"},
-  "pyramid-text": {"label":"Années du graphique","default":"#ffffff","group":"cans"},
-  "pyramid-muted": {"label":"Totaux et repères du graphique","default":"#bdbdbd","group":"cans"},
-  "can-body": {"label":"Canettes : métal et style inconnu","default":"#bdbdbd","group":"cans"},
-  "can-highlight": {"label":"Canettes : reflet clair","default":"#ffffff","group":"cans"},
-  "can-shadow": {"label":"Canettes : ombre métallique","default":"#343434","group":"cans"},
-  "can-outline": {"label":"Canettes : contours","default":"#777777","group":"cans"},
-  "can-lid": {"label":"Canettes : couvercle","default":"#dfdfdf","group":"cans"},
-  "can-ground": {"label":"Pyramides : ombres au sol","default":"#757575","group":"cans"}
+  "bg": {
+    "label": "Fond de la page",
+    "default": "#eeede9",
+    "group": "general"
+  },
+  "surface": {
+    "label": "Fond des cartes et panneaux",
+    "default": "#faf9f7",
+    "group": "general"
+  },
+  "surface-border": {
+    "label": "Bordure des cartes",
+    "default": "#ffffff",
+    "group": "general"
+  },
+  "ink": {
+    "label": "Texte principal et chiffres",
+    "default": "#171717",
+    "group": "general",
+    "global": "text"
+  },
+  "heading": {
+    "label": "Titres",
+    "default": "#171717",
+    "group": "general",
+    "global": "primary"
+  },
+  "muted": {
+    "label": "Texte secondaire",
+    "default": "#72716f",
+    "group": "general",
+    "global": "secondary"
+  },
+  "subtle": {
+    "label": "Légendes et petits textes",
+    "default": "#8a8882",
+    "group": "general"
+  },
+  "border": {
+    "label": "Séparateurs et bordures",
+    "default": "#d9d7d1",
+    "group": "general"
+  },
+  "accent": {
+    "label": "Accent, activité et notes",
+    "default": "#f72b7b",
+    "group": "general",
+    "global": "accent"
+  },
+  "shadow": {
+    "label": "Ombre des cartes (avec transparence)",
+    "default": "#24201b04",
+    "group": "general"
+  },
+  "coverage-bg": {
+    "label": "Fond de la couverture des données",
+    "default": "#e6e3dc",
+    "group": "general"
+  },
+  "coverage-text": {
+    "label": "Texte de la couverture des données",
+    "default": "#686660",
+    "group": "general"
+  },
+  "table-head": {
+    "label": "Fond des en-têtes de tableaux",
+    "default": "#e5e2dc",
+    "group": "general"
+  },
+  "input-bg": {
+    "label": "Fond des champs",
+    "default": "#ffffff",
+    "group": "controls"
+  },
+  "input-text": {
+    "label": "Texte des champs",
+    "default": "#171717",
+    "group": "controls",
+    "global": "text"
+  },
+  "input-border": {
+    "label": "Bordure des champs",
+    "default": "#d8d6d1",
+    "group": "controls"
+  },
+  "button-bg": {
+    "label": "Fond des boutons principaux",
+    "default": "#171717",
+    "group": "controls",
+    "global": "primary"
+  },
+  "button-text": {
+    "label": "Texte des boutons principaux",
+    "default": "#ffffff",
+    "group": "controls"
+  },
+  "button-hover": {
+    "label": "Fond des boutons au survol",
+    "default": "#363636",
+    "group": "controls"
+  },
+  "secondary-hover": {
+    "label": "Fond des boutons secondaires au survol",
+    "default": "#eae8e3",
+    "group": "controls"
+  },
+  "warning-bg": {
+    "label": "Fond des messages d’information",
+    "default": "#fff3d6",
+    "group": "messages"
+  },
+  "warning-text": {
+    "label": "Texte des messages d’information",
+    "default": "#655019",
+    "group": "messages"
+  },
+  "error-bg": {
+    "label": "Fond des erreurs",
+    "default": "#fde4e7",
+    "group": "messages"
+  },
+  "error-text": {
+    "label": "Texte des erreurs",
+    "default": "#86263b",
+    "group": "messages"
+  },
+  "success-bg": {
+    "label": "Fond des messages de réussite",
+    "default": "#e1f1e8",
+    "group": "messages"
+  },
+  "success-text": {
+    "label": "Texte des messages de réussite",
+    "default": "#265f43",
+    "group": "messages"
+  },
+  "demo-bg": {
+    "label": "Fond du bandeau de démonstration",
+    "default": "#fbdde8",
+    "group": "messages"
+  },
+  "demo-text": {
+    "label": "Texte du bandeau de démonstration",
+    "default": "#bd1752",
+    "group": "messages"
+  },
+  "chart-grid": {
+    "label": "Grille des graphiques",
+    "default": "#e4e0da",
+    "group": "charts"
+  },
+  "chart-neutral": {
+    "label": "Barres des notes inférieures à 4",
+    "default": "#b5b0a9",
+    "group": "charts"
+  },
+  "heat-empty": {
+    "label": "Cases sans activité",
+    "default": "#e9e6df",
+    "group": "charts"
+  },
+  "track": {
+    "label": "Fond des barres de classement",
+    "default": "#e9e6e0",
+    "group": "charts"
+  },
+  "other": {
+    "label": "Autres styles",
+    "default": "#8c8b90",
+    "group": "charts"
+  },
+  "series-1": {
+    "label": "Style / série 1",
+    "default": "#f72b7b",
+    "group": "series",
+    "global": "accent"
+  },
+  "series-2": {
+    "label": "Style / série 2",
+    "default": "#08a7b5",
+    "group": "series",
+    "global": "primary"
+  },
+  "series-3": {
+    "label": "Style / série 3",
+    "default": "#a14cf2",
+    "group": "series",
+    "global": "secondary"
+  },
+  "series-4": {
+    "label": "Style / série 4",
+    "default": "#e59b05",
+    "group": "series"
+  },
+  "series-5": {
+    "label": "Style / série 5",
+    "default": "#12a37e",
+    "group": "series"
+  },
+  "series-6": {
+    "label": "Style / série 6",
+    "default": "#3777ed",
+    "group": "series"
+  },
+  "series-7": {
+    "label": "Style / série 7",
+    "default": "#b41690",
+    "group": "series"
+  },
+  "series-8": {
+    "label": "Style / série 8",
+    "default": "#758e19",
+    "group": "series"
+  },
+  "series-9": {
+    "label": "Style / série 9",
+    "default": "#d86427",
+    "group": "series"
+  },
+  "series-10": {
+    "label": "Style / série 10",
+    "default": "#7962b1",
+    "group": "series"
+  },
+  "pyramid-bg": {
+    "label": "Fond du graphique",
+    "default": "#000000",
+    "group": "cans"
+  },
+  "pyramid-border": {
+    "label": "Contour du graphique",
+    "default": "#3a3a3a",
+    "group": "cans"
+  },
+  "pyramid-text": {
+    "label": "Années du graphique",
+    "default": "#ffffff",
+    "group": "cans"
+  },
+  "pyramid-muted": {
+    "label": "Totaux et repères du graphique",
+    "default": "#bdbdbd",
+    "group": "cans"
+  },
+  "can-body": {
+    "label": "Canettes : métal et style inconnu",
+    "default": "#bdbdbd",
+    "group": "cans"
+  },
+  "can-highlight": {
+    "label": "Canettes : reflet clair",
+    "default": "#ffffff",
+    "group": "cans"
+  },
+  "can-shadow": {
+    "label": "Canettes : ombre métallique",
+    "default": "#343434",
+    "group": "cans"
+  },
+  "can-outline": {
+    "label": "Canettes : contours",
+    "default": "#777777",
+    "group": "cans"
+  },
+  "can-lid": {
+    "label": "Canettes : couvercle",
+    "default": "#dfdfdf",
+    "group": "cans"
+  },
+  "can-ground": {
+    "label": "Pyramides : ombres au sol",
+    "default": "#757575",
+    "group": "cans"
+  },
+  "can-logo": {
+    "label": "Canettes : logo",
+    "default": "#000000",
+    "group": "cans"
+  }
 }

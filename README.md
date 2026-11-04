@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.8.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.8.0.zip)**
+**[Télécharger Untappd Atlas 1.8.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.8.1.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.8.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.8.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -39,6 +39,8 @@ Le disque est remplacé sur la page et dans le PNG par des canettes métalliques
 Les canettes ont un rendu 3D vectoriel : corps cylindrique, couvercle elliptique, languette, reflets métalliques et ombres au sol. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. L’année la plus récente est centrée au premier plan. La précédente apparaît derrière à gauche, la suivante derrière à droite, puis les années continuent en alternance. Chaque plan recule et rétrécit progressivement vers un même point de fuite. Les plans arrière sont abaissés et rapprochés de l’axe central pour se superposer davantage derrière la pyramide du premier plan. Les pyramides sont présentées de face : les rangées restent horizontales et les couvercles sont aplatis pour réduire la vue du dessus. Les canettes du même plan conservent la même taille et leurs centres d’appui restent alignés. Les années et leurs totaux sont indiqués sur les côtés, avec un trait jusqu’à la base ; le total de l’année récente reste sous la pyramide centrale. Le relief et cette composition sont repris dans le PNG.
 
 Le volume de chaque canette est accentué par une ombre sur le côté droit et un reflet vertical à gauche. Le couvercle possède une cuvette, un rebord épais et une ombre sous la languette ; le col et le pied comportent des biseaux métalliques. La couleur par défaut de **Canettes : ombre métallique** est plus sombre (`#343434`) ; les couleurs personnalisées dans Elementor ou dans les réglages du plugin restent prioritaires. Tous ces effets utilisent les couleurs existantes et sont repris dans le PNG.
+
+Depuis la version 1.8.1, le logo fourni des **deux bouteilles croisées** remplace l’épi au centre des canettes. Sa transparence est conservée et les reflets métalliques passent sur le motif. Il est noir par défaut ; sa couleur se règle dans **Elementor → Style → Pyramides de canettes → Canettes : logo**, avec les couleurs globales disponibles. Le PNG contient lui aussi le logo : l’image est embarquée dans le SVG, sans requête d’image externe. Le fichier source est conservé dans `untappd-atlas/assets/can-logo.png`.
 
 Les étiquettes adoptent la couleur du style de bière, tandis que les couvercles et rebords restent métalliques. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout le fichier importé, hors filtres ; les styles suivants reçoivent des mélanges de ces couleurs. La correspondance reste stable entre années et lors des changements de filtres. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu conserve la couleur neutre du métal. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
 
@@ -74,7 +76,7 @@ Les titres et légendes personnalisés utilisés dans l’affiche sont repris da
 
 ## Couleurs et Elementor — depuis la version 1.1.0
 
-Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **53 couleurs** : fonds et textes, champs et boutons, messages, pyramides, graphiques et palette des dix styles de bière.
+Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **54 couleurs** : fonds et textes, champs et boutons, messages, pyramides, graphiques et palette des dix styles de bière.
 
 - Cliquez sur le **globe** d’un réglage pour le relier à une couleur globale Elementor, y compris une couleur personnalisée de votre kit. Une modification de cette couleur globale s’applique aux éléments qui lui sont liés.
 - Choisissez une couleur locale pour personnaliser uniquement ce widget. Plusieurs widgets peuvent avoir des palettes différentes sur la même page.
@@ -175,7 +177,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.8.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.8.1.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
@@ -196,7 +198,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 53 couleurs, les 160 champs de texte et leur visibilité, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il restaure les réglages de couleurs, de textes et de visibilité du plugin à la fin du test : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 54 couleurs, les 160 champs de texte et leur visibilité, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il restaure les réglages de couleurs, de textes et de visibilité du plugin à la fin du test : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 

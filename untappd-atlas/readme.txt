@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 2. Activez Untappd Atlas.
 3. Ajoutez [untappd_atlas] dans une page avec un bloc Code court.
 4. Pour l’import par lien / OAuth, configurez les clés d’application dans Réglages > Untappd Atlas et recopiez l’URL de retour dans votre application Untappd.
-5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 53 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
+5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 54 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
 6. L’onglet Contenu du widget propose 160 textes personnalisables avec des options de visibilité. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
 
 == External services ==
@@ -49,6 +49,11 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.8.1 =
+* Logo des deux bouteilles croisées au centre des canettes, avec transparence et reflets conservés.
+* Couleur du logo personnalisable dans Elementor et dans la palette WordPress.
+* Logo embarqué dans le SVG pour un rendu identique sur la page et dans le PNG.
 
 = 1.8.0 =
 * 160 textes personnalisables : titres, descriptions des compteurs, badges, filtres, boutons, graphiques et PNG.
