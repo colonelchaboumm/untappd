@@ -148,8 +148,8 @@
   function pyramidScene(s) {
     const groups = pyramidLayout(s), layers = [];
     const geometries = groups.map(pyramidGeometry);
-    const spread = Math.max(170, ...geometries.map(geometry => geometry.width * .65));
-    const distanceToHorizon = Math.max(210, ...geometries.map(geometry => geometry.height * 1.5));
+    const spread = Math.max(170, ...geometries.map(geometry => geometry.width * .5));
+    const distanceToHorizon = Math.max(210, ...geometries.map(geometry => geometry.height * 1.15));
     groups.forEach((group, depth) => {
       const geometry = geometries[depth], distance = groups.length - depth - 1;
       // Project toward one central vanishing point, alternating on either side.
