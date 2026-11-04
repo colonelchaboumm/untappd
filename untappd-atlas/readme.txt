@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.7.5
+Stable tag: 1.7.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,10 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.7.6 =
+* Images des badges affichées dans un cercle de 64 px, sans les coins blancs de l’image carrée.
+* Suppression du nombre d’obtentions et de la mention « obtention(s) observée(s) » sous chaque badge.
 
 = 1.7.5 =
 * Suppression du bloc « Ce que racontent ces données » et de son texte explicatif sur la page.
