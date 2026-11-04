@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.8.2
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.9.0 =
+* Nouveau style dessiné : contours nets, corps colorés en aplat, languette relevée et socle inférieur.
+* Fond noir sans halo clair et suppression des reflets métalliques sur les canettes.
+* Format 44 cl, logo central, couleurs par style et appuis des pyramides repris dans le PNG.
+* Libellés des réglages de couleur adaptés aux éléments du nouveau dessin.
 
 = 1.8.2 =
 * Silhouette plus haute inspirée du format 44 cl standard, sur la page et dans le PNG.

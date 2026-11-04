@@ -244,33 +244,33 @@
     "group": "cans"
   },
   "can-body": {
-    "label": "Canettes : métal et style inconnu",
+    "label": "Canettes : couleur si style inconnu",
     "default": "#bdbdbd",
     "group": "cans"
   },
   "can-highlight": {
-    "label": "Canettes : reflet clair",
+    "label": "Canettes : languette",
     "default": "#ffffff",
     "group": "cans"
   },
   "can-shadow": {
-    "label": "Canettes : ombre métallique",
+    "label": "Canettes : ouverture",
     "default": "#343434",
     "group": "cans"
   },
   "can-outline": {
     "label": "Canettes : contours",
-    "default": "#777777",
+    "default": "#151515",
     "group": "cans"
   },
   "can-lid": {
-    "label": "Canettes : couvercle",
+    "label": "Canettes : couvercle et socle",
     "default": "#dfdfdf",
     "group": "cans"
   },
   "can-ground": {
     "label": "Pyramides : ombres au sol",
-    "default": "#757575",
+    "default": "#000000",
     "group": "cans"
   },
   "can-logo": {

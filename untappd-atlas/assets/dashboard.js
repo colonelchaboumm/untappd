@@ -101,48 +101,25 @@
   function pyramidArtwork(group, paints) {
     const uid = 'uat-can-' + (++canCounter);
     const styles = [...new Set(group.rows.map(row => row.style))], shapeIds = new Map(styles.map((key, i) => [key, `${uid}-shape-${i}`]));
-    // Shared vector symbols retain the same style paint in the page and PNG.
+    // Flat illustrated symbols share the same silhouette, logo and ink in the page and PNG.
     let body = `<defs>
-      <linearGradient id="${uid}-metal"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".23" stop-color="var(--uat-can-highlight)"/><stop offset=".48" stop-color="var(--uat-can-lid)"/><stop offset=".82" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <linearGradient id="${uid}-shade"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".8"/><stop offset=".12" stop-color="var(--uat-can-shadow)" stop-opacity=".25"/><stop offset=".32" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset=".5" stop-color="var(--uat-can-shadow)" stop-opacity=".03"/><stop offset=".68" stop-color="var(--uat-can-shadow)" stop-opacity=".26"/><stop offset=".85" stop-color="var(--uat-can-shadow)" stop-opacity=".72"/><stop offset=".97" stop-color="var(--uat-can-shadow)" stop-opacity=".96"/><stop offset="1" stop-color="var(--uat-can-shadow)" stop-opacity=".82"/></linearGradient>
-      <linearGradient id="${uid}-gleam"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".13" stop-color="var(--uat-can-highlight)" stop-opacity=".06"/><stop offset=".21" stop-color="var(--uat-can-highlight)" stop-opacity=".38"/><stop offset=".26" stop-color="var(--uat-can-highlight)" stop-opacity=".85"/><stop offset=".31" stop-color="var(--uat-can-highlight)" stop-opacity=".32"/><stop offset=".43" stop-color="var(--uat-can-highlight)" stop-opacity=".12"/><stop offset=".62" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset=".94" stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity=".16"/></linearGradient>
-      <linearGradient id="${uid}-lid" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="var(--uat-can-highlight)"/><stop offset=".38" stop-color="var(--uat-can-lid)"/><stop offset=".72" stop-color="var(--uat-can-body)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <linearGradient id="${uid}-rim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".5" stop-color="var(--uat-can-highlight)"/><stop offset="1" stop-color="var(--uat-can-shadow)"/></linearGradient>
-      <linearGradient id="${uid}-well" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="var(--uat-can-shadow)"/><stop offset=".35" stop-color="var(--uat-can-body)"/><stop offset=".8" stop-color="var(--uat-can-lid)"/><stop offset="1" stop-color="var(--uat-can-highlight)"/></linearGradient>
-      <linearGradient id="${uid}-neck" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--uat-can-shadow)" stop-opacity=".72"/><stop offset=".52" stop-color="var(--uat-can-shadow)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity=".3"/></linearGradient>
-      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".45"/><stop offset=".48" stop-color="var(--uat-can-ground)" stop-opacity=".18"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
-      <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".66"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
-      <radialGradient id="${uid}-stage"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset=".6" stop-color="var(--uat-can-ground)" stop-opacity=".06"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>`;
-    body += `<mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5" y="22" width="14" height="14" style="mask-type:alpha"><image href="${canLogo}" x="5" y="22" width="14" height="14" preserveAspectRatio="xMidYMid meet"/></mask>`;
-    const labelPath = 'd="M2.6 10.9Q12 14.1 21.4 10.9V43.7Q21.4 47.7 12 47.7Q2.6 47.7 2.6 43.7Z"';
+      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".22"/><stop offset=".5" stop-color="var(--uat-can-ground)" stop-opacity=".08"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".45"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
+      <mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5" y="22" width="14" height="14" style="mask-type:alpha"><image href="${canLogo}" x="5" y="22" width="14" height="14" preserveAspectRatio="xMidYMid meet"/></mask>`;
+    const shellPath = 'd="M4.1 7.1L2.6 10.2Q2 11.2 2 12.6V44.4Q2 47 4 48Q12 50.4 20 48Q22 47 22 44.4V12.6Q22 11.2 21.4 10.2L19.9 7.1Z"';
     for (const key of styles) {
       const paint = paints.get(key);
-      body += `<g id="${shapeIds.get(key)}">
-        <path d="M4.3 6.8Q4.3 5 12 5Q19.7 5 19.7 6.8L20.3 9Q22 10.5 22 13V43.8Q22 50 12 50Q2 50 2 43.8V13Q2 10.5 3.7 9Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
-        ${paintShape('path', labelPath, paint)}
-        <path d="M3 12.1Q12 15.3 21 12.1M3 43.4Q12 47.6 21 43.4" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".3" opacity=".3"/>
+      body += `<g id="${shapeIds.get(key)}" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 47.6Q12 50.6 19.5 47.6L18.6 49Q12 51.4 5.4 49Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
+        ${paintShape('path', shellPath, paint)}
+        <path class="uat-can-illustrated-shell" ${shellPath} fill="none" stroke="var(--uat-can-outline)" stroke-width=".65"/>
         <rect class="uat-can-logo" x="5" y="22" width="14" height="14" fill="var(--uat-can-logo)" mask="url(#${uid}-logo-mask)"/>
-        <path ${labelPath} fill="url(#${uid}-shade)"/>
-        <path ${labelPath} fill="url(#${uid}-gleam)"/>
-        <path d="M4.3 7.5Q12 11 19.7 7.5L21.2 10.5Q12 14.6 2.8 10.5Z" fill="url(#${uid}-neck)"/>
-        <path d="M3.1 44.7Q12 48.8 20.9 44.7" fill="none" stroke="var(--uat-can-shadow)" stroke-width=".65" opacity=".8"/>
-        <path d="M3.2 45.8Q12 49.4 20.8 45.8V46.8Q19.9 49.6 12 49.6Q4.1 49.6 3.2 46.8Z" fill="url(#${uid}-rim)"/>
-        <path d="M3.5 47.8Q12 51.1 20.5 47.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
-        <path d="M4 47.6Q12 50.4 20 47.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
-        <g transform="translate(0 6.1) scale(1 .55) translate(0 -6.1)">
-        <path d="M3.7 6.1a8.3 3.4 0 0 0 16.6 0v1.1a8.3 3.4 0 0 1-16.6 0Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".3"/>
-        <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
-        <ellipse cx="12" cy="6.1" rx="7.7" ry="2.95" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
-        <ellipse cx="12" cy="6.2" rx="6.7" ry="2.25" fill="url(#${uid}-well)" stroke="var(--uat-can-shadow)" stroke-width=".28"/>
-        <path d="M5.7 6.6Q12 10.5 18.3 6.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".38" opacity=".85"/>
-        <ellipse cx="15" cy="6.65" rx="2.1" ry=".95" fill="var(--uat-can-shadow)"/>
-        <path d="M13.1 7Q15 8.2 17 6.9" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".25" opacity=".7"/>
-        <path d="M8.7 4.9Q10.6 4 12.4 4.8L13 6.4Q11.5 7.8 9.4 6.9Z" fill="var(--uat-can-shadow)" opacity=".6"/>
-        <path d="M8.6 4.5Q10.5 3.6 12.2 4.4L12.7 6Q11.2 7.3 9.2 6.5Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".35"/>
-        <path d="M9 4.6Q10.6 4 12 4.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4"/>
-        <ellipse cx="10.7" cy="5.2" rx="1.1" ry=".55" fill="var(--uat-can-shadow)"/>
-        <path d="M4.4 7.6Q12 11.2 19.6 7.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4" opacity=".85"/>
-        </g>
+        <path d="M3.7 6.1a8.3 1.8 0 0 0 16.6 0v.8a8.3 1.8 0 0 1-16.6 0Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
+        <ellipse cx="12" cy="6.1" rx="8.3" ry="1.8" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".6"/>
+        <path d="M4.8 6Q12 3.9 19.2 6" fill="none" stroke="var(--uat-can-outline)" stroke-width=".4"/>
+        <path d="M8.7 6.8Q12 4.9 15.9 6.9Q15.5 7.6 12 7.6Q9.1 7.6 8.7 6.8Z" fill="var(--uat-can-shadow)"/>
+        <path class="uat-can-pull-tab" d="M12.2 2.7C13 2.25 15.5 2.55 15.6 3.45C15.6 4.2 14.2 7 13.5 7.65C12.9 8.2 10.4 7.85 10 7.25C9.55 6.5 11.35 3.15 12.2 2.7Z" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
+        <path d="M12.7 3.25C13.5 2.95 14.7 3.15 14.6 3.8C14.55 4.45 13.9 4.35 13.1 4.15C12.5 4.05 12.1 3.75 12.7 3.25ZM11.85 4.9L13.95 5.3Q13.65 6.1 12.8 7L10.85 6.55Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".4"/>
       </g>`;
     }
     body += '</defs>';
@@ -201,7 +178,7 @@
       return {layer, anchorX, anchorY, labelY, labelX: layer.side < 0 ? 44 : layer.side > 0 ? W - 44 : x + layer.centerX * scale};
     });
     const H = Math.max(520, Math.ceil(scene.height * scale + 180), ...labels.map(label => Math.ceil(label.labelY + 72)));
-    let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".1"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
+    let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
     body += `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
     body += `<g transform="translate(${x} ${y}) scale(${scale})">`;
     const first = scene.layers[0], last = scene.layers[scene.layers.length - 1];
