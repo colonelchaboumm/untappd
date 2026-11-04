@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.6.3
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 2. Activez Untappd Atlas.
 3. Ajoutez [untappd_atlas] dans une page avec un bloc Code court.
 4. Pour l’import par lien / OAuth, configurez les clés d’application dans Réglages > Untappd Atlas et recopiez l’URL de retour dans votre application Untappd.
-5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 49 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
+5. Dans Elementor, utilisez le widget Untappd Atlas et son onglet Style : 53 couleurs personnalisables, chacune reliables aux couleurs globales avec le globe. La palette générale reste disponible dans Réglages > Untappd Atlas.
 6. L’onglet Contenu du widget propose 75 textes personnalisables. L’onglet Style > Typographie des textes règle les polices, tailles, graisses et espacements. Les textes communs peuvent être définis dans Réglages > Untappd Atlas.
 
 == External services ==
@@ -49,6 +49,12 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.7.0 =
+* Fond du graphique des canettes noir par défaut, avec un réglage dédié dans le widget Elementor.
+* Contour du graphique personnalisable indépendamment des autres cartes et du contour des canettes.
+* Années, totaux et repères avec leurs propres couleurs pour rester lisibles sur le fond choisi.
+* Couleurs conservées dans le PNG et héritage des couleurs globales Elementor pris en charge.
 
 = 1.6.3 =
 * Pyramides arrière abaissées et rapprochées de l’axe central.

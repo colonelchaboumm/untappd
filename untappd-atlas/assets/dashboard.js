@@ -170,7 +170,7 @@
   }
   function renderPyramidScene(scene, texts, paints) {
     const W = 1100, uid = 'uat-can-' + (++canCounter);
-    if (!scene.layers.length) return svg(W, 240, text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
+    if (!scene.layers.length) return svg(W, 240, `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="238" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/>` + text(W / 2, 120, texts.pyramids_empty || 'Aucune évaluation pour cette période.', 22, 'var(--uat-pyramid-muted)', 400, 'text-anchor="middle"'), 'Aucune évaluation importée.');
     const b = scene.bounds, scale = Math.min(1.8, (W - 380) / (2 * Math.max(Math.abs(b.left), Math.abs(b.right))), 820 / scene.height);
     const x = W / 2, y = 52 - b.top * scale;
     const lastLabel = {left: 0, right: 0};
@@ -184,8 +184,8 @@
       return {layer, anchorX, anchorY, labelY, labelX: layer.side < 0 ? 44 : layer.side > 0 ? W - 44 : x + layer.centerX * scale};
     });
     const H = Math.max(520, Math.ceil(scene.height * scale + 180), ...labels.map(label => Math.ceil(label.labelY + 72)));
-    let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".65"/><stop offset="1" stop-color="var(--uat-bg)" stop-opacity=".16"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
-    body += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-surface)" stroke="var(--uat-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
+    let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity=".1"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
+    body += `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
     body += `<g transform="translate(${x} ${y}) scale(${scale})">`;
     const first = scene.layers[0], last = scene.layers[scene.layers.length - 1];
     const floorY = (first.floor + last.floor) / 2 + 16;
@@ -202,9 +202,9 @@
       body += `<g class="uat-year-label" data-year="${esc(group.year)}">`;
       if (layer.side) {
         const elbowX = layer.side < 0 ? 180 : W - 180, endX = layer.side < 0 ? labelX + 108 : labelX - 108;
-        body += `<path d="M${anchorX} ${anchorY}L${elbowX} ${labelY - 8}H${endX}" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".5" stroke-width="1"/><circle cx="${anchorX}" cy="${anchorY}" r="2.2" fill="var(--uat-can-outline)"/>`;
+        body += `<path d="M${anchorX} ${anchorY}L${elbowX} ${labelY - 8}H${endX}" fill="none" stroke="var(--uat-pyramid-muted)" stroke-opacity=".5" stroke-width="1"/><circle cx="${anchorX}" cy="${anchorY}" r="2.2" fill="var(--uat-pyramid-muted)"/>`;
       }
-      body += text(labelX, labelY, group.year, layer.side ? 24 : 30, 'var(--uat-heading)', 800, `text-anchor="${textAnchor}"`) + text(labelX, labelY + 23, short(`${fmt(group.rows.length)} ${unit}`, 28), 14, 'var(--uat-muted)', 500, `text-anchor="${textAnchor}"`);
+      body += text(labelX, labelY, group.year, layer.side ? 24 : 30, 'var(--uat-pyramid-text)', 800, `text-anchor="${textAnchor}"`) + text(labelX, labelY + 23, short(`${fmt(group.rows.length)} ${unit}`, 28), 14, 'var(--uat-pyramid-muted)', 500, `text-anchor="${textAnchor}"`);
       const counts = new Map(); group.rows.forEach(row => counts.set(row.style, (counts.get(row.style) || 0) + 1));
       let bandX = bandStart;
       for (const [key, paint] of paints) {

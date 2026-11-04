@@ -27,3 +27,21 @@ test('PNG SVG freezes the computed palette of the exporting widget, including al
 test('export rejects an unresolved token instead of producing a wrong-colored report', () => {
   assert.throws(() => T.inlineSvg('<svg fill="var(--uat-bg)"/>', {}, () => ({getPropertyValue: () => ''})), /non résolue/);
 });
+
+test('pyramid panel colours remain scoped per widget and are preserved by PNG export', () => {
+  const C=require('../untappd-atlas/assets/core.js'),vm=require('node:vm');
+  const window={UATCore:C,UATExport:require('../untappd-atlas/assets/export.js')};
+  vm.runInNewContext(fs.readFileSync(path.join(base,'dashboard.js'),'utf8'),{window,document:{querySelectorAll:()=>[]}});
+  const graphic=window.UATView.pyramids(C.analyze(C.demo()));
+  const defaults=Object.fromEntries(Object.entries(palette).map(([key,token])=>['--uat-'+key,token.default]));
+  const custom={...defaults,'--uat-pyramid-bg':'#fff4dc','--uat-pyramid-border':'#2255aa','--uat-pyramid-text':'#151515','--uat-pyramid-muted':'#555555'};
+  const read=node=>({getPropertyValue:key=>node[key]||''});
+  const dark=T.inlineSvg(graphic,defaults,read),light=T.inlineSvg(graphic,custom,read);
+  assert.equal(palette['pyramid-bg'].default,'#000000');
+  assert.match(dark,/<rect class="uat-pyramid-panel"[^>]+fill="#000000" stroke="#3a3a3a"/);
+  assert.match(light,/<rect class="uat-pyramid-panel"[^>]+fill="#fff4dc" stroke="#2255aa"/);
+  assert.ok(light.includes('fill="#151515"'));
+  assert.ok(light.includes('fill="#555555"'));
+  assert.ok(!/var\(/.test(dark+light));
+  assert.match(T.inlineSvg(graphic,defaults,read),/fill="#000000" stroke="#3a3a3a"/,'exporting another widget does not alter the default panel');
+});

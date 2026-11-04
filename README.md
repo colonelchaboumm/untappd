@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.6.3 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.6.3.zip)**
+**[Télécharger Untappd Atlas 1.7.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.6.3.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.7.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -22,7 +22,7 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
 
-## Pyramides de canettes — version 1.6.3
+## Pyramides de canettes — version 1.7.0
 
 Le disque est remplacé sur la page et dans le PNG par des canettes métalliques colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
 
@@ -37,6 +37,8 @@ La scène remplace les panneaux annuels séparés. Sous chaque repère annuel, u
 Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Au survol : bière, style, date, heure locale et note, ou « Non notée ». Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
 
 En colonne étroite, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
+
+Le **fond du graphique derrière les pyramides est noir par défaut**. Dans **Elementor → Style → Pyramides de canettes**, utilisez **Fond du graphique** et **Contour du graphique** pour choisir leurs couleurs séparément. Les réglages **Années du graphique** et **Totaux et repères du graphique** adaptent les légendes au fond choisi ; leurs valeurs initiales sont blanc et gris clair. Chaque réglage accepte les couleurs globales avec le globe, les couleurs locales et la transparence. Ces quatre couleurs sont propres au graphique et n’affectent pas le fond des autres cartes. Le PNG reprend le fond, le contour et les textes du widget exporté.
 
 Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le métal, les reflets, l’ombre, les contours, le couvercle et les ombres au sol. Ces matériaux sont gris par défaut et peuvent être reliés aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
 
@@ -60,7 +62,7 @@ Les titres et légendes personnalisés utilisés dans l’affiche sont repris da
 
 ## Couleurs et Elementor — depuis la version 1.1.0
 
-Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **49 couleurs** : fonds et textes, champs et boutons, messages, pyramides, graphiques et palette des dix styles de bière.
+Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable avec Elementor gratuit. Ajoutez ce widget à votre page, puis ouvrez **Style**. Six sections donnent accès à **53 couleurs** : fonds et textes, champs et boutons, messages, pyramides, graphiques et palette des dix styles de bière.
 
 - Cliquez sur le **globe** d’un réglage pour le relier à une couleur globale Elementor, y compris une couleur personnalisée de votre kit. Une modification de cette couleur globale s’applique aux éléments qui lui sont liés.
 - Choisissez une couleur locale pour personnaliser uniquement ce widget. Plusieurs widgets peuvent avoir des palettes différentes sur la même page.
@@ -71,7 +73,7 @@ Le plugin fournit un **widget Elementor natif « Untappd Atlas »**, utilisable 
 
 L’éditeur Elementor affiche une démonstration clairement identifiée ; la page publiée affiche le formulaire d’import. Aucun jeu de données personnel n’est enregistré dans la page Elementor. Les sélecteurs de couleurs utilisent des variables CSS : leurs changements s’appliquent aussi aux graphiques déjà affichés.
 
-Le shortcode existant continue de fonctionner. Pour disposer des 49 réglages directement dans l’onglet Style d’Elementor, utilisez le widget **Untappd Atlas**, plutôt que le widget générique **Code court**. Sans Elementor, les réglages WordPress et le shortcode restent utilisables.
+Le shortcode existant continue de fonctionner. Pour disposer des 53 réglages directement dans l’onglet Style d’Elementor, utilisez le widget **Untappd Atlas**, plutôt que le widget générique **Code court**. Sans Elementor, les réglages WordPress et le shortcode restent utilisables.
 
 Intégration testée avec **Elementor 4.3.5** sur WordPress 7.1.4 : contrôles natifs, couleurs globales, deux palettes indépendantes sur une même page et export PNG. [Documentation Elementor sur les couleurs globales](https://developers.elementor.com/docs/editor-controls/global-style/).
 
@@ -161,7 +163,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.6.3.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
@@ -182,7 +184,7 @@ php tests/integration.php /chemin/vers/wordpress
 
 Il remplace les réponses HTTP d’Untappd par des fixtures et vérifie les profils, le chiffrement et son intégrité, les origines, les sessions, la pagination, les détails, le quota et l’effacement. Il modifie temporairement les réglages du plugin : ne pas l’exécuter en production.
 
-Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 49 couleurs, les 75 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
+Le test `php tests/elementor.php /chemin/vers/wordpress` vérifie également les 53 couleurs, les 75 champs de texte, les six groupes typographiques, les liens globaux et la priorité des textes sur une installation locale isolée avec Elementor activé. Il réinitialise les réglages de couleurs et de textes du plugin : ne pas l’exécuter en production.
 
 Générer un aperçu autonome avec données fictives :
 
