@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.7.3 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.3.zip)**
+**[Télécharger Untappd Atlas 1.7.4 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.4.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.7.3.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.7.4.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -44,7 +44,7 @@ Les étiquettes adoptent la couleur du style de bière, tandis que les couvercle
 
 La scène remplace les panneaux annuels séparés. Sous chaque repère annuel, une barre indique la répartition des styles. Une pyramide complète est construite à partir des check-ins de l’année ; le reste prolonge son bord en conservant les appuis entre les rangées. Par exemple, 37 check-ins donnent **une seule pyramide de 37 canettes**. Les pyramides peuvent donc être incomplètes : aucune canette de remplissage n’est ajoutée.
 
-Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Depuis la version 1.7.2, les pyramides sont statiques : aucun clic nécessaire, aucune infobulle, aucun curseur d’aide « ? » et aucun éclaircissement au survol. Les détails restent consultables dans les tableaux et les exports. Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
+Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Depuis la version 1.7.2, les pyramides sont statiques : aucun clic nécessaire, aucune infobulle, aucun curseur d’aide « ? » et aucun éclaircissement au survol. Les détails sont disponibles dans l’export Excel. Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
 
 En colonne étroite, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
 
@@ -133,7 +133,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | Autres | Lieux, villes dans l’historique, pays des lieux et des brasseries, types de service, degré alcoolique moyen et IBU moyen |
 | Excel seulement | Série de jours actifs, plus grand intervalle entre jours actifs, listes exhaustives, commentaires identifiés et données ligne par ligne |
 
-Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines suivent ISO 8601 (lundi–dimanche). Les graphiques regroupent visuellement les séries trop longues ; l’Excel conserve chaque période. L’historique à l’écran est limité à 500 lignes ; l’Excel contient tous les check-ins filtrés.
+Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines suivent ISO 8601 (lundi–dimanche). Les graphiques regroupent visuellement les séries trop longues ; l’Excel conserve chaque période. L’historique détaillé et les tableaux par période sont disponibles dans l’Excel, qui contient tous les check-ins filtrés.
 
 ### Sens des chiffres
 
@@ -173,7 +173,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.3.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.4.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
