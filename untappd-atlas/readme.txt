@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ Volume par jour/semaine ISO/mois/année, styles par période, moyennes, notes, b
 
 Public mode fetches only unauthenticated HTML on https://untappd.com. It does not collect passwords, login cookies, or bypass sign-in restrictions. Public HTML is cached for one hour. Badge images may load from assets.untappd.com, images.untp.beer or untappd.s3.amazonaws.com.
 
-Untappd is used only when a visitor explicitly starts a profile import or account connection. Requests to https://api.untappd.com/v4/ transmit the requested username/check-in IDs and server-side application credentials or an OAuth token. OAuth uses https://untappd.com/oauth/authenticate/ and https://untappd.com/oauth/authorize/. API access must be granted by Untappd. No scraping is performed.
+Untappd is used only when a visitor explicitly starts a profile import or account connection. Requests to https://api.untappd.com/v4/ transmit the requested username/check-in IDs and server-side application credentials or an OAuth token. OAuth uses https://untappd.com/oauth/authenticate/ and https://untappd.com/oauth/authorize/. API access must be granted by Untappd. The public HTML mode cannot access authenticated account data.
 
 Terms: https://untappd.com/terms
 Privacy: https://untappd.com/privacy
@@ -49,6 +49,13 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.7.1 =
+* Vérification et création des tables manquantes au lancement de l’import, même après une mise à jour sans réactivation.
+* Échecs de stockage et exceptions des routes d’import renvoyés en JSON avec une référence de diagnostic, sans page d’erreur critique.
+* Sessions endommagées rejetées proprement et curseur conservé si l’enrichissement échoue.
+* Message explicite si WordPress renvoie une erreur critique HTML hors du contrôle du plugin.
+* Tests de reprise et de refus de stockage sur WordPress, avec vérification MySQL dans GitHub Actions.
 
 = 1.7.0 =
 * Fond du graphique des canettes noir par défaut, avec un réglage dédié dans le widget Elementor.

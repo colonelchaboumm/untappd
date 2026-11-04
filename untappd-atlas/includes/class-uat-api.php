@@ -1,6 +1,8 @@
 <?php
 defined('ABSPATH') || exit;
 
+final class UAT_Storage_Exception extends RuntimeException {}
+
 final class UAT_API {
     private const TTL = DAY_IN_SECONDS;
     public static function install() {
@@ -61,35 +63,74 @@ final class UAT_API {
         return true;
     }
     public static function routes() {
-        register_rest_route('untappd-atlas/v1', '/session', ['methods' => 'POST', 'callback' => [self::class, 'create'], 'permission_callback' => [self::class, 'origin']]);
-        foreach (['status' => 'GET', 'start' => 'POST', 'step' => 'POST', 'oauth' => 'POST', 'erase' => 'POST'] as $name => $method) {
-            register_rest_route('untappd-atlas/v1', '/' . $name, ['methods' => $method, 'callback' => [self::class, $name], 'permission_callback' => [self::class, 'permission']]);
+        foreach (['session' => 'POST', 'status' => 'GET', 'start' => 'POST', 'step' => 'POST', 'oauth' => 'POST', 'erase' => 'POST'] as $name => $method) {
+            $callback = $name === 'session' ? 'create' : $name;
+            $permission = $name === 'session' ? 'origin' : 'permission';
+            register_rest_route('untappd-atlas/v1', '/' . $name, ['methods' => $method,
+                'callback' => fn($r) => self::endpoint($callback, $r),
+                'permission_callback' => fn($r) => self::endpoint($permission, $r)]);
         }
+    }
+    // Keep failures inside this plugin's REST endpoints; never install a global error handler.
+    private static function endpoint($callback, $request) {
+        global $wpdb;
+        $quiet = $wpdb->suppress_errors(true);
+        try { return self::$callback($request); }
+        catch (Throwable $error) {
+            $reference = substr(str_replace('-', '', wp_generate_uuid4()), 0, 12);
+            // No SQL, request bodies, session tokens or exception messages in the log.
+            error_log(sprintf('[Untappd Atlas %s] %s: %s at %s:%d', $reference, $callback, get_class($error), $error->getFile(), $error->getLine()));
+            if ($error instanceof UAT_Storage_Exception) {
+                return new WP_Error('storage', 'WordPress ne peut pas enregistrer l’import. Vérifiez les droits de création et d’écriture des tables du plugin auprès de votre hébergeur. Référence : ' . $reference . '.', ['status' => 503]);
+            }
+            return new WP_Error('import_server', 'WordPress a interrompu l’import. Consultez le journal PHP de l’hébergement avec cette référence : ' . $reference . '.', ['status' => 500]);
+        } finally { $wpdb->suppress_errors($quiet); }
+    }
+    private static function storage_available() {
+        global $wpdb;
+        foreach (['uat_sessions' => 'id,expires,data', 'uat_checkins' => 'session_id,checkin_id,data'] as $table => $columns) {
+            if ($wpdb->query("SELECT $columns FROM {$wpdb->prefix}$table LIMIT 0") === false) { return false; }
+        }
+        return true;
+    }
+    private static function storage() {
+        // Updates and copied plugins do not necessarily execute the activation hook.
+        if (self::storage_available()) { return; }
+        self::install();
+        if (!self::storage_available()) { throw new UAT_Storage_Exception('schema'); }
     }
     private static function id($request) { return hash('sha256', $request->get_header('x-uat-session')); }
     private static function read($id) {
         global $wpdb;
         $raw = $wpdb->get_var($wpdb->prepare("SELECT data FROM {$wpdb->prefix}uat_sessions WHERE id=%s AND expires>%d", $id, time()));
-        return $raw ? json_decode($raw, true) : null;
+        if ($wpdb->last_error) { throw new UAT_Storage_Exception('read'); }
+        $data = $raw ? json_decode($raw, true) : null;
+        // An expired or damaged session must be rejected, not passed into array operations.
+        if (!is_array($data) || !isset($data['phase'], $data['count']) || !in_array($data['phase'], ['idle', 'feed', 'details', 'public_beers', 'done'], true)) { return null; }
+        return $data;
     }
     private static function save($id, $data) {
         global $wpdb;
         $ok = $wpdb->replace($wpdb->prefix . 'uat_sessions', ['id' => $id, 'expires' => time() + self::TTL, 'data' => wp_json_encode($data)], ['%s', '%d', '%s']);
-        if ($ok === false) { throw new RuntimeException('Enregistrement impossible. Vérifiez les tables du plugin.'); }
+        if ($ok === false) { throw new UAT_Storage_Exception('session_write'); }
     }
     public static function permission($request) {
         $origin = self::origin();
         if (is_wp_error($origin)) { return $origin; }
         $token = (string) $request->get_header('x-uat-session');
-        if (!preg_match('/^[a-f0-9]{64}$/D', $token) || !self::read(self::id($request))) { return new WP_Error('session', 'Session expirée. Relancez l’import.', ['status' => 401]); }
+        if (!preg_match('/^[a-f0-9]{64}$/D', $token)) { return self::session_error(); }
+        self::storage();
+        if (!self::read(self::id($request))) { return self::session_error(); }
         return true;
     }
+    private static function session_error() { return new WP_Error('session', 'Session expirée ou endommagée. Relancez l’import.', ['status' => 401]); }
     public static function create() {
         $ip = hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? 'unknown', wp_salt('nonce'));
         $key = 'uat_new_' . substr($ip, 0, 32);
         $n = (int) get_transient($key);
         if ($n >= 12) { return new WP_Error('rate', 'Trop de nouvelles sessions. Réessayez dans une heure.', ['status' => 429]); }
         set_transient($key, $n + 1, HOUR_IN_SECONDS);
+        self::storage();
         $token = bin2hex(random_bytes(32));
         self::save(hash('sha256', $token), ['phase' => 'idle', 'count' => 0, 'cursor' => null, 'profile' => null, 'token' => '', 'retry_at' => 0, 'enrich' => false, 'detail_cursor' => '', 'details_done' => 0]);
         return self::response(['session' => $token]);
@@ -104,10 +145,19 @@ final class UAT_API {
         return array_intersect_key($s, array_flip(['phase', 'count', 'cursor', 'profile', 'retry_at', 'enrich', 'details_done', 'connected_username', 'source', 'public_complete']));
     }
     public static function status($r) {
-        global $wpdb;
         $id = self::id($r); $s = self::read($id);
-        $items = $wpdb->get_col($wpdb->prepare("SELECT data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", $id));
-        return self::response(['state' => self::public_state($s), 'items' => array_map(fn($x) => json_decode($x, true), $items)]);
+        if (!$s) { return self::session_error(); }
+        return self::response(['state' => self::public_state($s), 'items' => self::items($id)]);
+    }
+    private static function items($id) {
+        global $wpdb;
+        $stored = $wpdb->get_col($wpdb->prepare("SELECT data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", $id));
+        if ($wpdb->last_error) { throw new UAT_Storage_Exception('checkins_read'); }
+        return array_map(function($json) {
+            $item = json_decode($json, true);
+            if (!is_array($item)) { throw new UAT_Storage_Exception('checkin_data'); }
+            return $item;
+        }, $stored);
     }
     private static function lock($id) {
         $key = 'uat_lock_' . $id;
@@ -121,12 +171,13 @@ final class UAT_API {
         if (!self::lock($id)) { return new WP_Error('busy', 'Import déjà en cours.', ['status' => 409]); }
         try {
             $s = self::read($id);
+            if (!$s) { return self::session_error(); }
             $username = self::username($r->get_param('profile'));
             if (is_wp_error($username)) { return $username; }
             if ($r->get_param('source') === 'public' || is_wp_error(self::credentials($s))) {
                 $data = UAT_Public::profile($username);
                 if (is_wp_error($data)) { return $data; }
-                $wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]);
+                if ($wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]) === false) { throw new UAT_Storage_Exception('checkins_reset'); }
                 foreach ($data['items'] as $item) { self::put($id, $item); }
                 $s = array_merge($s, ['source' => 'public', 'phase' => $data['beer_paths'] ? 'public_beers' : 'done', 'username' => $username, 'profile' => $data['profile'], 'count' => count($data['items']), 'public_complete' => $data['complete'], 'beer_paths' => $data['beer_paths'], 'beer_index' => 0, 'details_done' => 0, 'retry_at' => 0, 'token' => '']);
                 self::save($id, $s);
@@ -136,7 +187,7 @@ final class UAT_API {
             if (is_wp_error($data)) { return $data; }
             $u = $data['response']['user'] ?? null;
             if (!$u || empty($u['user_name'])) { return new WP_Error('profile', 'Profil introuvable ou inaccessible.', ['status' => 404]); }
-            $wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]);
+            if ($wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]) === false) { throw new UAT_Storage_Exception('checkins_reset'); }
             $s = array_merge($s, ['source' => 'api', 'phase' => 'feed', 'username' => $u['user_name'], 'count' => 0, 'cursor' => null, 'retry_at' => 0, 'enrich' => (bool) $r->get_param('enrich'), 'detail_cursor' => '', 'details_done' => 0, 'profile' => ['username' => sanitize_text_field($u['user_name']), 'name' => sanitize_text_field(trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''))) ?: $u['user_name'], 'expected' => (int) ($u['stats']['total_checkins'] ?? 0)]]);
             self::save($id, $s);
             return self::response(['state' => self::public_state($s)]);
@@ -179,14 +230,14 @@ final class UAT_API {
         if (!self::lock($id)) { return new WP_Error('busy', 'Import déjà en cours.', ['status' => 409]); }
         try {
             $s = self::read($id);
+            if (!$s) { return self::session_error(); }
             if ($s['phase'] === 'public_beers') {
                 $path = $s['beer_paths'][$s['beer_index']] ?? null;
                 if (!$path) { $s['phase'] = 'done'; self::save($id, $s); return self::response(['state' => self::public_state($s), 'items' => []]); }
                 $beer = UAT_Public::beer($path);
                 if (is_wp_error($beer)) { return self::step_error($id, $s, $beer); }
                 $changed = [];
-                foreach ($wpdb->get_col($wpdb->prepare("SELECT data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", $id)) as $json) {
-                    $item = json_decode($json, true);
+                foreach (self::items($id) as $item) {
                     if ((string) ($item['beer']['bid'] ?? '') === (string) $beer['bid']) { $item['beer'] = array_replace($item['beer'], $beer); self::put($id, $item); $changed[] = $item; }
                 }
                 $s['beer_index']++; $s['details_done']++; $s['retry_at'] = 0;
@@ -197,12 +248,14 @@ final class UAT_API {
             if (!in_array($s['phase'], ['feed', 'details'], true)) { return self::response(['state' => self::public_state($s), 'items' => []]); }
             if ($s['phase'] === 'details') {
                 $row = $wpdb->get_row($wpdb->prepare("SELECT checkin_id,data FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s AND checkin_id>%s ORDER BY checkin_id LIMIT 1", $id, $s['detail_cursor']), ARRAY_A);
+                if ($wpdb->last_error) { throw new UAT_Storage_Exception('detail_read'); }
                 if (!$row) { $s['phase'] = 'done'; self::save($id, $s); return self::response(['state' => self::public_state($s), 'items' => []]); }
                 $data = self::call('checkin/view/' . rawurlencode($row['checkin_id']), $s);
                 if (is_wp_error($data)) { return self::step_error($id, $s, $data); }
                 $item = $data['response']['checkin'] ?? null;
                 if (!$item || (string) ($item['checkin_id'] ?? '') !== $row['checkin_id']) { return new WP_Error('format', 'Détail de check-in absent ou incohérent.', ['status' => 502]); }
                 $previous = json_decode($row['data'], true);
+                if (!is_array($previous)) { throw new UAT_Storage_Exception('checkin_data'); }
                 $detail = $item;
                 $item = array_replace_recursive($previous, $detail);
                 foreach (['comments', 'toasts', 'media', 'badges'] as $key) { if (isset($detail[$key])) { $item[$key] = $detail[$key]; } }
@@ -223,6 +276,7 @@ final class UAT_API {
                 $added += self::put($id, $item);
             }
             $s['count'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", $id));
+            if ($wpdb->last_error) { throw new UAT_Storage_Exception('count_read'); }
             $next = $data['response']['pagination']['max_id'] ?? null;
             if ($items && !$next) { $ids = array_map(fn($x) => (int) $x['checkin_id'], $items); $next = (string) min($ids); }
             if (!$items) { $s['phase'] = $s['enrich'] ? 'details' : 'done'; }
@@ -240,7 +294,7 @@ final class UAT_API {
     private static function put($id, $item) {
         global $wpdb;
         $result = $wpdb->replace($wpdb->prefix . 'uat_checkins', ['session_id' => $id, 'checkin_id' => (string) $item['checkin_id'], 'data' => wp_json_encode($item)], ['%s', '%s', '%s']);
-        if ($result === false) { throw new RuntimeException('Impossible d’enregistrer un check-in.'); }
+        if ($result === false) { throw new UAT_Storage_Exception('checkin_write'); }
         return $result === 1 ? 1 : 0;
     }
     public static function erase($r) {
@@ -248,8 +302,7 @@ final class UAT_API {
         $id = self::id($r);
         if (!self::lock($id)) { return new WP_Error('busy', 'Attendez la fin de la requête en cours puis réessayez.', ['status' => 409]); }
         try {
-            $wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]);
-            $wpdb->delete($wpdb->prefix . 'uat_sessions', ['id' => $id]);
+            if ($wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]) === false || $wpdb->delete($wpdb->prefix . 'uat_sessions', ['id' => $id]) === false) { throw new UAT_Storage_Exception('erase'); }
             return self::response(['erased' => true]);
         } finally { delete_option('uat_lock_' . $id); }
     }

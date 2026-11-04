@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js tests/pyramids.test.js
+      - run: node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js tests/pyramids.test.js tests/transport.test.js
       - run: node --check untappd-atlas/assets/dashboard.js
       - run: node --check untappd-atlas/assets/export.js
       - run: node --check untappd-atlas/assets/theme.js
@@ -33,4 +33,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/build-package.py
-      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.7.0.zip
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.7.1.zip
+  wordpress:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: wordpress_test
+          MYSQL_DATABASE: untappd_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pwordpress_test"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mysqli, dom, openssl, mbstring
+          tools: wp-cli
+          coverage: none
+      - name: Install isolated WordPress and plugin
+        run: |
+          wp core download --path=/tmp/uat-wordpress --quiet
+          wp config create --path=/tmp/uat-wordpress --dbname=untappd_test --dbuser=root --dbpass=wordpress_test --dbhost=127.0.0.1:3306 --quiet
+          wp config set DISABLE_WP_CRON true --raw --path=/tmp/uat-wordpress
+          wp core install --path=/tmp/uat-wordpress --url=http://127.0.0.1:8787 --title=Tests --admin_user=uat_test --admin_password=local_test_only --admin_email=test@example.com --skip-email --quiet
+          cp -R untappd-atlas /tmp/uat-wordpress/wp-content/plugins/untappd-atlas
+          cp untappd-atlas.php /tmp/uat-wordpress/wp-content/plugins/untappd-atlas/untappd-atlas.php
+          wp plugin activate untappd-atlas --path=/tmp/uat-wordpress --quiet
+      - name: Verify imports and recovery on MySQL
+        run: |
+          php tests/import-errors.php /tmp/uat-wordpress
+          php tests/public.php /tmp/uat-wordpress
+          php tests/integration.php /tmp/uat-wordpress

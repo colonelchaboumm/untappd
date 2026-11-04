@@ -4,6 +4,18 @@
   const colors = Array.from({length: 10}, (_, i) => `var(--uat-series-${i + 1})`);
   let canCounter = 0;
   const fmt = (n, digits = 0) => n == null ? '—' : Number(n).toLocaleString('fr-FR', {maximumFractionDigits: digits, minimumFractionDigits: digits});
+  async function readResponse(res) {
+    const failed = message => Object.assign(new Error(message), {status: res.status});
+    const fallback = res.status >= 500
+      ? `Le serveur WordPress a interrompu l’import (HTTP ${res.status}). Consultez le journal PHP de l’hébergement pour trouver l’erreur critique.`
+      : `Réponse WordPress illisible (HTTP ${res.status}). Vérifiez l’accès à l’API REST, les permaliens et le pare-feu du site.`;
+    let payload;
+    try { payload = await res.json(); } catch (_) { throw failed(fallback); }
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw failed(fallback);
+    if (!res.ok) throw Object.assign(failed(typeof payload.message === 'string' ? payload.message : fallback), {code: payload.code, retryAt: payload.data?.retry_at});
+    return payload;
+  }
+  window.UATTransport = {readResponse};
   const short = (s, n = 28) => String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s);
   const dayLabel = day => day ? new Date(day + 'T12:00:00Z').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'}) : '—';
   const text = (x, y, value, size = 12, fill = 'var(--uat-muted)', weight = 400, extra = '') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" ${extra}>${esc(value)}</text>`;
@@ -400,9 +412,11 @@
     }
     async function api(path, data, method = 'POST') {
       const res = await fetch(config.api + path, {method, credentials: 'same-origin', headers: {'Content-Type': 'application/json', ...(token ? {'X-UAT-Session': token} : {})}, ...(method === 'GET' ? {} : {body: JSON.stringify(data || {})})});
-      let payload; try { payload = await res.json(); } catch (_) { throw new Error('Le serveur n’a pas renvoyé de JSON. Vérifiez les permaliens WordPress et le pare-feu du site.'); }
-      if (!res.ok) { if (res.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } const error = new Error(payload.message || 'La requête a échoué.'); error.code = payload.code; error.retryAt = payload.data?.retry_at; error.status = res.status; throw error; }
-      return payload;
+      try { return await readResponse(res); }
+      catch (error) {
+        if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} }
+        throw error;
+      }
     }
     async function session() {
       if (token) return;

@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.7.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.0.zip)**
+**[Télécharger Untappd Atlas 1.7.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.7.1.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.7.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.7.1.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -21,6 +21,16 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 4. Sans accès API, importer un fichier CSV/JSON Untappd : l’analyse et les exports fonctionnent entièrement dans le navigateur.
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
+
+## Correction de l’import — version 1.7.1
+
+Au démarrage de l’import, le plugin vérifie ses tables et tente de recréer celles qui manquent. Cela couvre notamment une mise à jour ou une copie de fichiers dont le hook d’activation n’a pas été exécuté. Un refus de création ou d’écriture produit une erreur JSON explicite. Les exceptions des routes REST du plugin sont interceptées et fournissent une référence à rechercher dans le journal PHP de l’hébergement. La ligne de diagnostic contient la référence, l’opération, le type d’exception et l’emplacement du code ; elle n’inclut ni requête SQL, ni message interne d’exception, ni jeton de session.
+
+Une session endommagée est refusée avec un message de relance. Lors d’un échec d’enregistrement pendant l’enrichissement, le curseur sauvegardé n’avance pas et l’étape peut être reprise. Si WordPress ou l’hébergement interrompt la requête avant la réponse du plugin, le tableau de bord indique une erreur serveur et demande de consulter le journal PHP. Les erreurs fatales de mémoire, de délai d’exécution ou d’autres extensions peuvent encore nécessiter un diagnostic sur le site concerné.
+
+Une erreur de stockage avec tables absentes a été reproduite et corrigée localement. Le message générique « erreur critique » ne permet pas à lui seul d’identifier la cause d’un autre site : en cas de persistance, transmettre la ligne `PHP Fatal error` du journal de l’hébergeur ou la nouvelle référence affichée.
+
+Cette correction ne change pas les droits d’accès Untappd. Sans application autorisée, le bouton importe les pages publiques accessibles ; se connecter à Untappd dans un autre onglet ne transmet pas la session au serveur WordPress. La connexion officielle OAuth exige toujours les identifiants d’application. La couverture des données et des badges reste indiquée sur le rapport.
 
 ## Pyramides de canettes — version 1.7.0
 
@@ -163,13 +173,13 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.7.1.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
 
 ```sh
-node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js tests/pyramids.test.js
+node --test tests/core.test.js tests/theme.test.js tests/content.test.js tests/badges.test.js tests/pyramids.test.js tests/transport.test.js
 php -l untappd-atlas.php
 php -l untappd-atlas/bootstrap.php
 php -l untappd-atlas/includes/class-uat-api.php
@@ -197,5 +207,7 @@ Ouvrir `preview.html` dans un navigateur. Ce fichier n’est pas le plugin WordP
 **Limite de validation :** le flux REST a été testé dans WordPress avec des réponses API simulées. La connexion OAuth et les réponses du profil réel nécessitent vos identifiants d’application autorisés ; ils n’ont pas été testés avec un compte Untappd réel.
 
 Le test `php tests/public.php /chemin/vers/wordpress` vérifie le parcours public sans clés avec des pages fictives, les restrictions d’accès et la distinction entre import partiel et historique complet.
+
+Le test `php tests/import-errors.php /chemin/vers/wordpress` vérifie sur une base isolée temporaire la réparation des tables manquantes, les refus d’écriture et de création, la reprise, les sessions corrompues et les références de diagnostic sans données sensibles. GitHub Actions exécute ces tests d’import dans WordPress avec MySQL 8. Ne pas lancer ces scripts sur un site de production.
 
 Licence : GPL-2.0-or-later. Projet indépendant, sans affiliation avec Untappd.
