@@ -43,9 +43,9 @@
     });
   }
   function pyramidGeometry(group) {
-    // One ground plane for the whole stack: lid and foot share this projection.
+    // Frontal tiers stay horizontal; lid and foot retain the same support plane.
     // The foot centre (34.4) rests on the supporting lids (6.1), hence 28.3.
-    const pitch = 22, rise = 28.3, slope = .12, piles = [];
+    const pitch = 22, rise = 28.3, slope = 0, piles = [];
     let index = 0;
     group.piles.forEach((height, depth) => {
       const scale = 1 + Math.min(depth, 3) * .07;
@@ -111,6 +111,7 @@
         <path d="M3.2 31.8Q12 35.4 20.8 31.8V32.8Q19.9 35.6 12 35.6Q4.1 35.6 3.2 32.8Z" fill="url(#${uid}-rim)"/>
         <path d="M3.5 33.8Q12 37.1 20.5 33.8" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55" opacity=".75"/>
         <path d="M4 33.6Q12 36.4 20 33.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5" opacity=".9"/>
+        <g transform="translate(0 6.1) scale(1 .55) translate(0 -6.1)">
         <path d="M3.7 6.1a8.3 3.4 0 0 0 16.6 0v1.1a8.3 3.4 0 0 1-16.6 0Z" fill="url(#${uid}-metal)" stroke="var(--uat-can-outline)" stroke-width=".3"/>
         <ellipse cx="12" cy="6.1" rx="8.3" ry="3.4" fill="url(#${uid}-lid)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
         <ellipse cx="12" cy="6.1" rx="7.7" ry="2.95" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".5"/>
@@ -123,6 +124,7 @@
         <path d="M9 4.6Q10.6 4 12 4.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4"/>
         <ellipse cx="10.7" cy="5.2" rx="1.1" ry=".55" fill="var(--uat-can-shadow)"/>
         <path d="M4.4 7.6Q12 11.2 19.6 7.6" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".4" opacity=".85"/>
+        </g>
       </g>`;
     }
     body += '</defs>';

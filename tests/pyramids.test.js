@@ -70,6 +70,11 @@ test('projected feet rest on the midpoint of two supporting lids at every level'
     for (const pile of scene.piles) {
       assert.ok(Number.isFinite(pile.scale) && pile.scale>0);
       assert.ok(Number.isFinite(pile.slope));
+      const tiers=new Map();
+      for (const can of pile.cans) {
+        if (!tiers.has(can.level)) tiers.set(can.level,can.y);
+        near(can.y,tiers.get(can.level),'frontal rows stay level from left to right');
+      }
       const supports=new Map(pile.cans.map(can=>[can.level+':'+can.col,can]));
       for (const can of pile.cans) {
         const origin=pile.project(can.localX,can.localY);
