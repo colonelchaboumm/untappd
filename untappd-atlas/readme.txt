@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.7.4
+Stable tag: 1.7.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,9 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.7.5 =
+* Suppression du bloc « Ce que racontent ces données » et de son texte explicatif sur la page.
 
 = 1.7.4 =
 * Retrait des sections déroulantes « Tableau par période » et « Historique des check-ins » de la page.
