@@ -8,7 +8,7 @@ final class UAT_Content {
         return array_filter($fields, fn($field) => empty($field['retired']));
     }
     public static function groups(): array {
-        return ['intro'=>'Introduction','form'=>'Formulaire et accueil','filters'=>'Filtres et boutons','report'=>'Rapport et repères','metrics'=>'Compteurs et leurs descriptions','sections'=>'Titres des sections','charts'=>'Graphiques et leurs descriptions','rankings'=>'Classements et leurs descriptions','badge_texts'=>'Badges et leurs descriptions','footer'=>'Pied de page','export'=>'Export PNG'];
+        return ['intro'=>'Introduction','form'=>'Formulaire et accueil','filters'=>'Filtres et boutons','report'=>'Rapport et repères','metrics'=>'Compteurs et leurs descriptions','sections'=>'Titres des sections','charts'=>'Graphiques et leurs descriptions','rankings'=>'Classements et leurs descriptions','badge_texts'=>'Badges et leurs descriptions','footer'=>'Pied de page','export'=>'Export PNG','story'=>'Récapitulatif annuel'];
     }
     public static function sanitize($input): array {
         $input = is_array($input) ? $input : [];

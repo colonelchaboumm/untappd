@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.9.0-v4 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.9.0-v4.zip)**
+**[Télécharger Untappd Atlas 1.10.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.10.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.9.0-v4.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. WordPress affiche la version interne 1.9.0. Si elle est déjà installée, choisir **Remplacer l’extension actuelle par celle téléversée**.
+1. Téléverser `untappd-atlas-1.9.0-v4.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Si elle est déjà installée, choisir **Remplacer l’extension actuelle par celle téléversée**.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -21,6 +21,14 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 4. Sans accès API, importer un fichier CSV/JSON Untappd : l’analyse et les exports fonctionnent entièrement dans le navigateur.
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
+
+## Récapitulatif annuel animé
+
+Après un import, le bouton **Mon année en canettes** ouvre un récit en plein écran. Il présente le rythme des check-ins, les styles et brasseries les plus explorés, la meilleure note et un bilan. Le sélecteur propose les années présentes dans l’import et ouvre l’année précédente si elle est disponible.
+
+Le récapitulatif analyse toute l’année choisie dans l’historique importé, avec le fuseau horaire du tableau de bord. Les filtres de date et de style restent propres au tableau de bord. On avance avec les boutons ou les flèches du clavier. Échap ferme le récit et les préférences de réduction des animations sont respectées.
+
+Les titres et descriptions se règlent dans **Elementor → Contenu → Récapitulatif annuel** ou dans **Réglages → Untappd Atlas**. Les accents colorés reprennent les couleurs de la palette des styles.
 
 ## Correction de l’import — version 1.7.1
 
@@ -58,7 +66,7 @@ Dans **Elementor → Style → Pyramides de canettes**, les couleurs des canette
 
 ## Textes et typographie
 
-Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les onze sections proposent **160 textes personnalisables** : introduction, titres et descriptions du rapport, sections et graphiques, titres et descriptions de chaque compteur, badges et niveaux, filtres, boutons, repères des pyramides, pied de page et textes du PNG. Les retours à la ligne sont conservés sur la page.
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les sections proposent des **textes personnalisables** : introduction, titres et descriptions du rapport, sections et graphiques, titres et descriptions de chaque compteur, badges et niveaux, filtres, boutons, repères des pyramides, pied de page et textes du PNG. Les retours à la ligne sont conservés sur la page.
 
 Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
 
@@ -179,7 +187,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.9.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.10.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

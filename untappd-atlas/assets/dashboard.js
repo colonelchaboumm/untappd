@@ -396,13 +396,15 @@
       ${help ? `<p class="uat-import-help">${safe(help)}</p>` : ''}</section>
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
       <section class="uat-report" hidden><div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
-      <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
+      <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
       <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from" aria-label="${esc(t('filter_from') || 'Date de début')}"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to" aria-label="${esc(t('filter_to') || 'Date de fin')}"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style" aria-label="${esc(t('filter_style') || 'Style de bière')}"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain" aria-label="${esc(t('filter_grain') || 'Périodes')}"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone" aria-label="${esc(t('filter_timezone') || 'Fuseau horaire')}">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
       <div class="uat-results"></div></section><div class="uat-onboard">${tag('onboard_title', 'strong')}${tag('onboard_subtitle')}</div>
       ${t('footer_left') || t('footer_right') ? `<footer class="uat-footer">${tag('footer_left', 'span')}${tag('footer_right', 'span')}</footer>` : ''}`;
     const $ = q => app.querySelector(q);
     const field = name => $(`[name="${name}"]`);
     const action = name => $(`[data-action="${name}"]`);
+    const storyButton = action('story');
+    const story = storyButton ? window.UATStory.mount(storyButton, () => ({items, timezone: field('timezone').value, demo: isDemo}), texts) : null;
     const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('demo').disabled = value; $('.uat-file input').disabled = value; };
     const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
     function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
@@ -441,6 +443,7 @@
       field('style').value = prior;
     }
     function setData(data, nextSource, nextProfile, demo = false) {
+      if (story?.open) story.close();
       items = data; source = nextSource; profile = nextProfile; isDemo = demo;
       field('from').value = ''; field('to').value = ''; field('style').value = '';
       refreshStyles(); render(); progress();

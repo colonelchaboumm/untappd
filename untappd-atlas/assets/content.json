@@ -896,5 +896,116 @@
     "default": "{count} check-ins",
     "group": "report",
     "vars": "count"
+  },
+  "story_open": {
+    "label": "Bouton du récapitulatif",
+    "default": "Mon année en canettes",
+    "group": "story"
+  },
+  "story_cover_title": {
+    "label": "Couverture · titre",
+    "default": "Votre année en canettes",
+    "group": "story"
+  },
+  "story_cover_description": {
+    "label": "Couverture · description",
+    "default": "Le meilleur de vos découvertes, mois après mois.",
+    "group": "story"
+  },
+  "story_tempo_title": {
+    "label": "Activité · titre",
+    "default": "Vos check-ins : {count}",
+    "group": "story",
+    "vars": "count"
+  },
+  "story_tempo_description": {
+    "label": "Activité · description",
+    "default": "Votre journée la plus active : le {day}, avec {peak} au compteur.",
+    "group": "story",
+    "vars": "day, peak"
+  },
+  "story_styles_title": {
+    "label": "Styles · titre",
+    "default": "Vos styles les plus explorés",
+    "group": "story"
+  },
+  "story_styles_description": {
+    "label": "Styles · description",
+    "default": "{style} arrive en tête de vos check-ins.",
+    "group": "story",
+    "vars": "style"
+  },
+  "story_breweries_title": {
+    "label": "Brasseries · titre",
+    "default": "Les brasseries qui reviennent",
+    "group": "story"
+  },
+  "story_breweries_description": {
+    "label": "Brasseries · description",
+    "default": "{brewery} arrive en tête de vos check-ins.",
+    "group": "story",
+    "vars": "brewery"
+  },
+  "story_rating_title": {
+    "label": "Notes · titre",
+    "default": "Votre meilleure note",
+    "group": "story"
+  },
+  "story_rating_description": {
+    "label": "Notes · description",
+    "default": "{beer} a atteint le sommet. Votre moyenne est de {average} / 5 sur {rated} notes.",
+    "group": "story",
+    "vars": "beer, average, rated"
+  },
+  "story_final_title": {
+    "label": "Bilan · titre",
+    "default": "{year} en quelques chiffres",
+    "group": "story",
+    "vars": "year"
+  },
+  "story_final_description": {
+    "label": "Bilan · description",
+    "default": "Un dernier regard sur les découvertes de votre année.",
+    "group": "story"
+  },
+  "story_beers": {
+    "label": "Bilan · libellé des bières",
+    "default": "Bières différentes",
+    "group": "story",
+    "hideable": false
+  },
+  "story_breweries": {
+    "label": "Bilan · libellé des brasseries",
+    "default": "Brasseries différentes",
+    "group": "story",
+    "hideable": false
+  },
+  "story_days": {
+    "label": "Bilan · libellé des jours",
+    "default": "Jours actifs",
+    "group": "story",
+    "hideable": false
+  },
+  "story_photos": {
+    "label": "Bilan · libellé des photos",
+    "default": "Check-ins avec photo",
+    "group": "story",
+    "hideable": false
+  },
+  "story_badges": {
+    "label": "Bilan · libellé des badges",
+    "default": "Badges distincts",
+    "group": "story",
+    "hideable": false
+  },
+  "story_coverage": {
+    "label": "Bilan · source des chiffres",
+    "default": "Calculé à partir des check-ins importés pour cette année.",
+    "group": "story"
+  },
+  "story_demo": {
+    "label": "Bilan · mention de démonstration",
+    "default": "Démonstration · données fictives.",
+    "group": "story"
   }
 }
