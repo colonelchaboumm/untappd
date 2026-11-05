@@ -63,7 +63,7 @@ const inside = (point,bounds,message) => {
   assert.ok(point.y>=bounds.top-epsilon && point.y<=bounds.bottom+epsilon,message+' (y)');
 };
 
-test('projected feet rest on the midpoint of two supporting lids at every level', () => {
+test('tiers curve upward at the sides and retain two supporting cans at every upper level', () => {
   for (const n of [1,2,3,5,6,10,37,295,1510,5000]) {
     const scene=V.pyramidGeometry(V.pyramidLayout(C.analyze(rows(n)))[0]);
     assert.equal(scene.piles.flatMap(p=>p.cans).length,n);
@@ -72,8 +72,16 @@ test('projected feet rest on the midpoint of two supporting lids at every level'
       assert.ok(Number.isFinite(pile.slope));
       const tiers=new Map();
       for (const can of pile.cans) {
-        if (!tiers.has(can.level)) tiers.set(can.level,can.y);
-        near(can.y,tiers.get(can.level),'frontal rows stay level from left to right');
+        if (!tiers.has(can.level)) tiers.set(can.level,[]);
+        tiers.get(can.level).push(can);
+      }
+      for (const tier of tiers.values()) {
+        tier.sort((a,b)=>a.dist-b.dist);
+        const center=tier[0], edge=tier[tier.length-1];
+        if (edge.dist>center.dist) assert.ok(edge.y<center.y,'outer cans rise behind the center');
+        for (let i=1;i<tier.length;i++) {
+          assert.ok(tier[i].y<=tier[i-1].y,'tiers curve upward from the center to the sides');
+        }
       }
       const supports=new Map(pile.cans.map(can=>[can.level+':'+can.col,can]));
       for (const can of pile.cans) {
@@ -84,17 +92,13 @@ test('projected feet rest on the midpoint of two supporting lids at every level'
         const left=supports.get((can.level-1)+':'+can.col);
         const right=supports.get((can.level-1)+':'+(can.col+1));
         assert.ok(left && right,'an upper can has two lower supports');
-        const foot=pile.project(can.localX+12,can.localY+48.4);
-        const leftLid=pile.project(left.localX+12,left.localY+6.1);
-        const rightLid=pile.project(right.localX+12,right.localY+6.1);
-        near(foot.x,(leftLid.x+rightLid.x)/2,'foot is centred between the supporting lids');
-        near(foot.y,(leftLid.y+rightLid.y)/2,'foot rests at the supporting lid height');
+        assert.ok(left.x<can.x && can.x<right.x,'each upper can is between its lower neighbors');
       }
     }
   }
 });
 
-test('rendered matrices fit cans and shadows, paint nearer piles last and keep floor shadows on level zero', () => {
+test('rendered matrices fit cans and shadows, painting distant cans first', () => {
   for (const n of [1,2,3,6,37,295]) {
     const s=C.analyze(rows(n)),group=V.pyramidLayout(s)[0],scene=V.pyramidGeometry(group);
     const graphic=V.pyramidYear(group,texts,V.stylePalette(s));
@@ -110,33 +114,32 @@ test('rendered matrices fit cans and shadows, paint nearer piles last and keep f
       const painted=[...fragment.matchAll(/<g class="uat-can" ([^>]+)>([\s\S]*?)<\/g>/g)];
       assert.equal(painted.length,pile.cans.length);
       const byId=new Map(pile.cans.map(can=>[can.row.id,can]));
-      let previousLevel=-1;
+      let previousDepthZ=Infinity;
       for (const match of painted) {
         const id=match[1].match(/data-checkin-id="([^"]+)"/)[1];
         const level=Number(match[1].match(/data-level="([^"]+)"/)[1]);
         const local=match[1].match(/transform="translate\(([^"]+)\)"/)[1].split(/[,\s]+/).map(Number);
         const can=byId.get(id);assert.ok(can,'rendered can belongs to the source pile');
         assert.equal(level,can.level);
-        assert.ok(level>=previousLevel,'supporting cans are painted before the cans resting on them');
-        previousLevel=level;
+        assert.ok(can.depthZ<=previousDepthZ,'nearer cans are painted after distant cans');
+        previousDepthZ=can.depthZ;
         near(local[0],can.localX,'rendered local x follows the layout');
         near(local[1],can.localY,'rendered local y follows the layout');
         const origin=projected(matrix,...local);
         near(origin.x,can.x,'rendered matrix projects the can to its scene x');
         near(origin.y,can.y,'rendered matrix projects the can to its scene y');
         // Independent envelope of the shared can artwork, including its rim.
-        for (const dx of [0,24]) for (const dy of [2,51]) inside(projected(matrix,local[0]+dx,local[1]+dy),scene.bounds,'can silhouette stays in fitted bounds');
-        const floorShadows=[...match[2].matchAll(/<ellipse class="uat-can-floor-shadow" ([^>]+)\/>/g)];
-        assert.equal(floorShadows.length,level===0?1:0,'only cans standing on the ground have a floor shadow');
-        assert.ok(match[2].includes('class="uat-can-contact"'),'every can retains a contact shadow');
-        assert.ok(match[2].indexOf('class="uat-can-contact"')<match[2].indexOf('<use '),'contact shadow is behind the can body');
-        for (const shadow of floorShadows) {
+        for (const dx of [0,24]) for (const dy of [1,51]) inside(projected(matrix,local[0]+dx,local[1]+dy),scene.bounds,'can silhouette stays in fitted bounds');
+        const shadows=[...match[2].matchAll(/<ellipse class="uat-can-contact" ([^>]+)\/>/g)];
+        assert.equal(shadows.length,level>0?1:0,'stacked cans have a contact shadow');
+        for (const shadow of shadows) {
+          assert.ok(shadow.index<match[2].indexOf('<use '),'contact shadow is behind the can body');
           const attribute=name=>Number(shadow[1].match(new RegExp(name+'="([^"]+)"'))[1]);
           const cx=local[0]+attribute('cx'),cy=local[1]+attribute('cy'),rx=attribute('rx'),ry=attribute('ry');
           const centre=projected(matrix,cx,cy);
           const extentX=Math.hypot(matrix[0]*rx,matrix[2]*ry),extentY=Math.hypot(matrix[1]*rx,matrix[3]*ry);
-          inside({x:centre.x-extentX,y:centre.y-extentY},scene.bounds,'projected floor shadow minimum stays in bounds');
-          inside({x:centre.x+extentX,y:centre.y+extentY},scene.bounds,'projected floor shadow maximum stays in bounds');
+          inside({x:centre.x-extentX,y:centre.y-extentY},scene.bounds,'projected contact shadow minimum stays in bounds');
+          inside({x:centre.x+extentX,y:centre.y+extentY},scene.bounds,'projected contact shadow maximum stays in bounds');
         }
         total++;
       }

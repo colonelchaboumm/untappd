@@ -62,9 +62,8 @@
     });
   }
   function pyramidGeometry(group) {
-    // Frontal tiers stay horizontal; lid and foot retain the same support plane.
-    // The 44 cl silhouette keeps its lid geometry; the foot (48.4) rests on lids at 6.1.
-    const pitch = 22, rise = 42.3, slope = 0, piles = [];
+    // 3D stepped conical pyramid: each tier forms a forward-curving arc where outer cans step up and back.
+    const pitch = 19.2, rise = 41.6, slope = 0, piles = [];
     let index = 0;
     group.piles.forEach((height, depth) => {
       const scale = 1 + Math.min(depth, 3) * .07;
@@ -77,23 +76,28 @@
       const cans = [];
       for (let level = 0; level < height; level++) {
         const columns = height - level + (level < extra ? 1 : 0);
+        const mid = (columns - 1) / 2;
         for (let col = 0; col < columns; col++) {
-          const localX = (col + level / 2) * pitch, localY = -48.4 - level * rise;
-          cans.push({row: group.rows[index++], level, col, localX, localY, ...project(localX, localY)});
+          const dist = Math.abs(col - mid), sign = col < mid ? -1 : col > mid ? 1 : 0;
+          const arcDy = -Math.pow(Math.max(0, dist - .35), 1.35) * 4.8;
+          const arcDx = -sign * Math.pow(Math.max(0, dist - 1), 1.25) * 1.2;
+          const localX = (col + level / 2) * pitch + arcDx, localY = -48.4 - level * rise + arcDy;
+          const depthZ = level === height - 1 && height > 1 ? (height - 2) - .15 : level + Math.pow(Math.max(0, dist - .3), 1.35) * .72;
+          cans.push({row: group.rows[index++], level, col, dist, depthZ, localX, localY, ...project(localX, localY)});
         }
       }
+      cans.sort((a, b) => b.depthZ - a.depthZ || a.level - b.level || b.dist - a.dist);
       piles.push({height, depth, x, baseline, width, localWidth, scale, slope, rise, pitch, floor: baseline + localWidth * slope * scale / 2, cans, project});
     });
-    // Include the shared floor shadow, sheared silhouettes and contact shadows.
+    // Include the sketchy ground puddle shadow, conical tiers and contact shadows.
     const bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity};
     const include = p => { bounds.left = Math.min(bounds.left, p.x); bounds.top = Math.min(bounds.top, p.y); bounds.right = Math.max(bounds.right, p.x); bounds.bottom = Math.max(bounds.bottom, p.y); };
     for (const pile of piles) {
       for (const can of pile.cans) {
-        const bottom = can.level ? 51 : 57, right = can.level ? 24 : 36;
-        for (const dx of [0, right]) for (const dy of [2, bottom]) include(pile.project(can.localX + dx, can.localY + dy));
+        const bottom = can.level ? 52 : 58, right = can.level ? 24 : 34;
+        for (const dx of [0, right]) for (const dy of [1, bottom]) include(pile.project(can.localX + dx, can.localY + dy));
       }
-      const shadowHeight = Math.max(5, pile.localWidth * .025);
-      for (const px of [-8, pile.localWidth + 24]) for (const py of [2 - shadowHeight, 2 + shadowHeight]) include(pile.project(px, py));
+      for (const px of [-4, pile.localWidth + 4]) for (const py of [0, 4]) include(pile.project(px, py));
     }
     if (!piles.length) Object.assign(bounds, {left: 0, top: 0, right: 1, bottom: 1});
     return {piles, bounds, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top};
@@ -101,25 +105,48 @@
   function pyramidArtwork(group, paints) {
     const uid = 'uat-can-' + (++canCounter);
     const styles = [...new Set(group.rows.map(row => row.style))], shapeIds = new Map(styles.map((key, i) => [key, `${uid}-shape-${i}`]));
-    // Flat illustrated symbols share the same silhouette, logo and ink in the page and PNG.
+    // Hand-drawn comic-style 44 cl cans with inked contours, jagged gloss highlight, cross-hatching and silver collar.
     let body = `<defs>
-      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".22"/><stop offset=".5" stop-color="var(--uat-can-ground)" stop-opacity=".08"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
-      <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".45"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
-      <mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5" y="22" width="14" height="14" style="mask-type:alpha"><image href="${canLogo}" x="5" y="22" width="14" height="14" preserveAspectRatio="xMidYMid meet"/></mask>`;
-    const shellPath = 'd="M4.1 7.1L2.6 10.2Q2 11.2 2 12.6V44.4Q2 47 4 48Q12 50.4 20 48Q22 47 22 44.4V12.6Q22 11.2 21.4 10.2L19.9 7.1Z"';
+      <radialGradient id="${uid}-ground"><stop stop-color="var(--uat-can-ground)" stop-opacity=".35"/><stop offset=".55" stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${uid}-contact"><stop stop-color="var(--uat-can-outline)" stop-opacity=".65"/><stop offset=".7" stop-color="var(--uat-can-outline)" stop-opacity=".22"/><stop offset="1" stop-color="var(--uat-can-outline)" stop-opacity="0"/></radialGradient>
+      <mask id="${uid}-logo-mask" maskUnits="userSpaceOnUse" x="5.8" y="19.5" width="12.4" height="12.4" style="mask-type:alpha"><image href="${canLogo}" x="5.8" y="19.5" width="12.4" height="12.4" preserveAspectRatio="xMidYMid meet"/></mask>`;
+    const shellPath = 'd="M3.5 6.8L2.1 9.8Q1.9 10.5 1.9 11.4V44.6Q1.9 46.8 4.1 48.0Q12 51.7 19.9 48.0Q22.1 46.8 22.1 44.6V11.4Q22.1 10.5 21.9 9.8L20.5 6.8Z"';
+    const labelPath = 'd="M1.9 10.4Q12 13.5 22.1 10.4V44.6Q22.1 46.6 19.9 47.7Q12 51.3 4.1 47.7Q1.9 46.6 1.9 44.6Z"';
     for (const key of styles) {
       const paint = paints.get(key);
       body += `<g id="${shapeIds.get(key)}" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4.5 47.6Q12 50.6 19.5 47.6L18.6 49Q12 51.4 5.4 49Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
-        ${paintShape('path', shellPath, paint)}
-        <path class="uat-can-illustrated-shell" ${shellPath} fill="none" stroke="var(--uat-can-outline)" stroke-width=".65"/>
-        <rect class="uat-can-logo" x="5" y="22" width="14" height="14" fill="var(--uat-can-logo)" mask="url(#${uid}-logo-mask)"/>
-        <path d="M3.7 6.1a8.3 1.8 0 0 0 16.6 0v.8a8.3 1.8 0 0 1-16.6 0Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
-        <ellipse cx="12" cy="6.1" rx="8.3" ry="1.8" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".6"/>
-        <path d="M4.8 6Q12 3.9 19.2 6" fill="none" stroke="var(--uat-can-outline)" stroke-width=".4"/>
-        <path d="M8.7 6.8Q12 4.9 15.9 6.9Q15.5 7.6 12 7.6Q9.1 7.6 8.7 6.8Z" fill="var(--uat-can-shadow)"/>
-        <path class="uat-can-pull-tab" d="M12.2 2.7C13 2.25 15.5 2.55 15.6 3.45C15.6 4.2 14.2 7 13.5 7.65C12.9 8.2 10.4 7.85 10 7.25C9.55 6.5 11.35 3.15 12.2 2.7Z" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".55"/>
-        <path d="M12.7 3.25C13.5 2.95 14.7 3.15 14.6 3.8C14.55 4.45 13.9 4.35 13.1 4.15C12.5 4.05 12.1 3.75 12.7 3.25ZM11.85 4.9L13.95 5.3Q13.65 6.1 12.8 7L10.85 6.55Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".4"/>
+        <path d="M3.5 46.7Q12 50.7 20.5 46.7L19.4 48.8Q12 52.3 4.6 48.8Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".85"/>
+        <path d="M4.2 47.5Q12 51.1 19.8 47.5" fill="none" stroke="var(--uat-can-outline)" stroke-width=".55"/>
+        <path ${shellPath} fill="var(--uat-can-lid)"/>
+        ${paintShape('path', labelPath, paint)}
+        <path d="M15.2 11.5Q19.0 11.3 22.1 10.4V44.6Q22.1 46.6 19.9 47.7Q17.0 49.1 13.8 49.4Q15.8 44.2 16.0 28.0Q16.1 16.5 15.2 11.5Z" fill="var(--uat-can-outline)" fill-opacity=".22"/>
+        <path d="M18.5 11.1L22.1 10.4V44.6Q22.1 46.6 19.9 47.7L18.0 48.4Z" fill="var(--uat-can-outline)" fill-opacity=".2"/>
+        <path d="M1.9 42.6Q12 47.2 22.1 42.6V44.6Q22.1 46.6 19.9 47.7Q12 51.3 4.1 47.7Q1.9 46.6 1.9 44.6Z" fill="var(--uat-can-outline)" fill-opacity=".2"/>
+        <path d="M4.6 11.2Q8.2 12.2 12.2 12.3L11.4 23.2L13.6 21.8L10.4 32.4L12.4 31.6L10.2 47.0Q6.6 46.3 4.6 44.8Z" fill="var(--uat-can-highlight)" fill-opacity=".72"/>
+        <path d="M5.3 11.5Q7.8 12.2 10.4 12.3L9.8 21.6L11.5 20.6L9.0 30.2L10.4 29.7L8.7 46.0Q6.3 45.3 5.3 44.2Z" fill="var(--uat-can-highlight)" fill-opacity=".55"/>
+        <path d="M2.8 11.2L3.7 11.5V43.8L2.8 43.2Z" fill="var(--uat-can-highlight)" fill-opacity=".55"/>
+        <polygon points="7.4,37.5 8.5,37.8 8.3,41.2 7.2,40.8" fill="var(--uat-can-highlight)" fill-opacity=".65"/>
+        <polygon points="15.0,36.8 16.0,36.4 15.8,39.5 14.8,39.8" fill="var(--uat-can-highlight)" fill-opacity=".45"/>
+        <path d="M3.5 6.8L2.1 9.8Q1.9 10.2 1.9 10.5Q12 13.5 22.1 10.5Q22.1 10.2 21.9 9.8L20.5 6.8Z" fill="var(--uat-can-lid)"/>
+        <path d="M3.8 7.2L2.6 9.7Q7.2 11.4 12.4 11.6L13.0 7.8Z" fill="var(--uat-can-highlight)" fill-opacity=".8"/>
+        <path d="M1.9 10.4Q12 13.5 22.1 10.4" fill="none" stroke="var(--uat-can-outline)" stroke-width=".85"/>
+        <path d="M2.2 11.3Q12 14.3 21.8 11.3" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".58" stroke-width=".45" stroke-dasharray=".7 1.1"/>
+        <path d="M2.8 9.5Q12 12.4 21.2 9.5" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".38" stroke-width=".4" stroke-dasharray=".5 1.1"/>
+        <ellipse cx="12" cy="25.7" rx="6.2" ry="6.0" fill="var(--uat-can-highlight)" fill-opacity=".32"/>
+        <rect class="uat-can-logo" x="5.8" y="19.5" width="12.4" height="12.4" fill="var(--uat-can-logo)" mask="url(#${uid}-logo-mask)"/>
+        <text x="12" y="42.8" text-anchor="middle" font-size="2.8" font-weight="900" letter-spacing=".28" fill="var(--uat-can-outline)" fill-opacity=".82">44CL</text>
+        <path d="M4.6 25.0V42.0M4.6 14.0V21.0M6.6 33.0V45.0M14.6 25.5V45.2M18.2 13.5V43.8M20.2 17.5V42.2" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".45" stroke-width=".48"/>
+        <path d="M12.2 25.2L16.8 22.5M9.4 34.8L13.8 32.0M5.0 35.5L8.4 36.2" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".38" stroke-width=".45"/>
+        <path d="M14.2 48.4L18.4 45.2M15.8 48.2L20.0 44.8M17.5 47.6L21.2 44.4M12.6 48.6L15.8 46.4M3.0 45.0L6.8 47.7M4.6 46.8L8.4 48.5" fill="none" stroke="var(--uat-can-outline)" stroke-opacity=".68" stroke-width=".52"/>
+        <path class="uat-can-illustrated-shell" ${shellPath} fill="none" stroke="var(--uat-can-outline)" stroke-width=".98"/>
+        <path d="M3.5 6.0a8.5 2.7 0 0 0 17 0v1.0a8.5 2.7 0 0 1-17 0Z" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".82"/>
+        <ellipse cx="12" cy="5.9" rx="8.5" ry="2.7" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".88"/>
+        <ellipse cx="12" cy="6.0" rx="7.2" ry="2.05" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".68"/>
+        <path d="M5.4 5.7A6.8 1.8 0 0 1 18.6 5.7A6.8 1.5 0 0 0 5.4 5.7Z" fill="var(--uat-can-outline)" fill-opacity=".38"/>
+        <path d="M6.2 6.8Q12 8.2 17.8 6.8" fill="none" stroke="var(--uat-can-highlight)" stroke-width=".68"/>
+        <ellipse cx="12.2" cy="6.1" rx="3.1" ry="1.05" fill="var(--uat-can-lid)" stroke="var(--uat-can-outline)" stroke-width=".62"/>
+        <ellipse cx="11.2" cy="6.1" rx="1.2" ry=".48" fill="var(--uat-can-shadow)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
+        <circle cx="13.3" cy="6.1" r=".45" fill="var(--uat-can-highlight)" stroke="var(--uat-can-outline)" stroke-width=".45"/>
       </g>`;
     }
     body += '</defs>';
@@ -127,13 +154,11 @@
     for (const pile of geometry.piles) {
       const matrix = `matrix(${pile.scale} ${pile.slope * pile.scale} 0 ${pile.scale} ${pile.x} ${pile.baseline})`;
       body += `<g class="uat-can-pile" data-depth="${pile.depth}" transform="${matrix}">`;
-      body += `<ellipse cx="${pile.localWidth / 2 + 8}" cy="2" rx="${pile.localWidth / 2 + 16}" ry="${Math.max(5, pile.localWidth * .025)}" fill="url(#${uid}-ground)"/>`;
       for (const can of pile.cans) {
         const row = can.row;
         body += `<g class="uat-can" data-checkin-id="${esc(row.id)}" data-style="${esc(row.style)}" data-level="${can.level}" transform="translate(${can.localX} ${can.localY})">`;
-        if (!can.level) body += `<ellipse class="uat-can-floor-shadow" cx="20" cy="51" rx="16" ry="5" fill="url(#${uid}-ground)"/>`;
-        // A tight contact shadow on the two supporting lids, never a floor halo in mid-air.
-        body += `<ellipse class="uat-can-contact" cx="12" cy="48.7" rx="10.5" ry="2.1" fill="url(#${uid}-contact)"/><use href="#${shapeIds.get(row.style)}"/></g>`;
+        if (can.level) body += `<ellipse class="uat-can-contact" cx="12" cy="49.2" rx="10.2" ry="2.5" fill="url(#${uid}-contact)"/>`;
+        body += `<use href="#${shapeIds.get(row.style)}"/></g>`;
       }
       body += '</g>';
     }
@@ -181,9 +206,7 @@
     let body = `<defs><radialGradient id="${uid}-backdrop" cx=".3" cy=".2" r=".9"><stop stop-color="var(--uat-can-highlight)" stop-opacity="0"/><stop offset="1" stop-color="var(--uat-can-highlight)" stop-opacity="0"/></radialGradient><radialGradient id="${uid}-floor"><stop stop-color="var(--uat-can-ground)" stop-opacity=".14"/><stop offset="1" stop-color="var(--uat-can-ground)" stop-opacity="0"/></radialGradient></defs>`;
     body += `<rect class="uat-pyramid-panel" x="1" y="1" width="${W - 2}" height="${H - 2}" rx="24" fill="var(--uat-pyramid-bg)" stroke="var(--uat-pyramid-border)"/><rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="23" fill="url(#${uid}-backdrop)"/>`;
     body += `<g transform="translate(${x} ${y}) scale(${scale})">`;
-    const first = scene.layers[0], last = scene.layers[scene.layers.length - 1];
-    const floorY = (first.floor + last.floor) / 2 + 16;
-    body += `<ellipse cx="${(b.left + b.right) / 2}" cy="${floorY}" rx="${scene.width * .55}" ry="${Math.max(30, (last.floor - first.floor) / 2 + 48)}" fill="url(#${uid}-floor)"/>`;
+
     for (const layer of scene.layers) {
       body += `<g class="uat-year-pyramid" data-year="${esc(layer.group.year)}" data-depth="${layer.depth}" transform="translate(${layer.x} ${layer.y}) scale(${layer.scale})">${pyramidArtwork(layer.group, paints)}</g>`;
     }

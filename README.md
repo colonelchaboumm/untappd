@@ -4,13 +4,13 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.9.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.9.0.zip)**
+**[Télécharger Untappd Atlas 1.9.0-v4 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.9.0-v4.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
 ## Installation
 
-1. Téléverser `untappd-atlas-1.9.0.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. Pour une mise à jour, WordPress propose de remplacer la version précédente.
+1. Téléverser `untappd-atlas-1.9.0-v4.zip` dans **Extensions → Ajouter une extension → Téléverser**, puis activer le plugin. WordPress affiche la version interne 1.9.0. Si elle est déjà installée, choisir **Remplacer l’extension actuelle par celle téléversée**.
 2. Créer une page et ajouter un bloc **Code court** contenant :
 
    ```text
@@ -32,15 +32,15 @@ Une erreur de stockage avec tables absentes a été reproduite et corrigée loca
 
 Cette correction ne change pas les droits d’accès Untappd. Sans application autorisée, le bouton importe les pages publiques accessibles ; se connecter à Untappd dans un autre onglet ne transmet pas la session au serveur WordPress. La connexion officielle OAuth exige toujours les identifiants d’application. La couverture des données et des badges reste indiquée sur le rapport.
 
-## Pyramides de canettes — version 1.9.0
+## Pyramides de canettes — édition 1.9.0-v4
 
 La page et le PNG affichent des canettes dessinées au trait et colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
 
 Depuis la version 1.8.2, les canettes adoptent une silhouette plus haute, inspirée des proportions du [format 44 cl standard de CANPACK](https://www.canpack.com/capabilities/beverage-cans/44-cl-standard/). Le corps est allongé ; le couvercle et le logo gardent leurs proportions. Le logo est recentré et les appuis, l’écartement vertical des rangées et les limites du graphique sont recalculés pour ce nouveau format visuel, sur la page comme dans le PNG.
 
-Depuis la version 1.9.0, le rendu est une illustration vectorielle épurée : corps en aplat, contours arrondis bien marqués, couvercle elliptique, languette relevée à deux ouvertures et petit socle inférieur. Le fond du graphique reste noir par défaut. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. L’année la plus récente est centrée au premier plan. La précédente apparaît derrière à gauche, la suivante derrière à droite, puis les années continuent en alternance. Chaque plan recule et rétrécit progressivement vers un même point de fuite. Les plans arrière sont abaissés et rapprochés de l’axe central pour se superposer davantage derrière la pyramide du premier plan. Les pyramides sont présentées de face : les rangées restent horizontales et les couvercles sont aplatis pour réduire la vue du dessus. Les canettes du même plan conservent la même taille et leurs centres d’appui restent alignés. Les années et leurs totaux sont indiqués sur les côtés, avec un trait jusqu’à la base ; le total de l’année récente reste sous la pyramide centrale. Cette composition est reprise dans le PNG.
+L’édition 1.9.0-v4 dessine les canettes dans un style bande dessinée, avec des hachures, des reflets contrastés, un couvercle elliptique et la mention 44CL. Le fond du graphique reste noir par défaut. Toutes les années partagent **un seul graphique**, avec **une pyramide par année**. L’année la plus récente est centrée au premier plan. La précédente apparaît derrière à gauche, la suivante derrière à droite, puis les années continuent en alternance. Chaque plan recule et rétrécit progressivement vers un même point de fuite. Les plans arrière sont abaissés et rapprochés de l’axe central pour se superposer davantage derrière la pyramide du premier plan. Les rangées sont courbées en arc. Les canettes des bords remontent et passent derrière celles du centre, ce qui donne du relief à chaque pyramide. Les années et leurs totaux sont indiqués sur les côtés, avec un trait jusqu’à la base ; le total de l’année récente reste sous la pyramide centrale. Cette composition est reprise dans le PNG.
 
-Les contours sont sombres par défaut (`#151515`), avec un couvercle et un socle gris clair, une languette claire et une ouverture foncée. Les corps sont colorés sans reflets brillants. Le noir du fond ne reçoit plus de halo clair ; les ombres au sol sont noires par défaut. Les couleurs personnalisées dans Elementor ou dans les réglages du plugin restent prioritaires.
+Les contours et les ombres de contact sont sombres par défaut (`#151515`). Les couvercles, les socles et les reflets sont clairs. Les couleurs personnalisées dans Elementor ou dans les réglages du plugin restent prioritaires.
 
 Depuis la version 1.8.1, le logo fourni des **deux bouteilles croisées** remplace l’épi au centre des canettes. Sa transparence est conservée ; le motif est affiché en aplat dans le nouveau dessin. Il est noir par défaut ; sa couleur se règle dans **Elementor → Style → Pyramides de canettes → Canettes : logo**, avec les couleurs globales disponibles. Le PNG contient lui aussi le logo : l’image est embarquée dans le SVG, sans requête d’image externe. Le fichier source est conservé dans `untappd-atlas/assets/can-logo.png`.
 
@@ -54,7 +54,7 @@ En colonne étroite, **le graphique se fait défiler horizontalement** pour pré
 
 Le **fond du graphique derrière les pyramides est noir par défaut**. Dans **Elementor → Style → Pyramides de canettes**, utilisez **Fond du graphique** et **Contour du graphique** pour choisir leurs couleurs séparément. Les réglages **Années du graphique** et **Totaux et repères du graphique** adaptent les légendes au fond choisi ; leurs valeurs initiales sont blanc et gris clair. Chaque réglage accepte les couleurs globales avec le globe, les couleurs locales et la transparence. Ces quatre couleurs sont propres au graphique et n’affectent pas le fond des autres cartes. Le PNG reprend le fond, le contour et les textes du widget exporté.
 
-Dans **Elementor → Style → Pyramides de canettes**, six couleurs règlent le corps si le style est inconnu, la languette, l’ouverture, les contours, le couvercle et le socle, ainsi que les ombres au sol. Le logo possède un réglage séparé. Ces couleurs peuvent être reliées aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
+Dans **Elementor → Style → Pyramides de canettes**, les couleurs des canettes règlent notamment le corps si le style est inconnu, les reflets, l’ouverture, les contours, le couvercle et le socle. Le logo possède un réglage séparé. Ces couleurs peuvent être reliées aux couleurs globales avec le globe. Les titres et unités des pyramides sont modifiables dans Contenu. Le PNG reprend toutes les canettes et adapte sa hauteur au nombre d’années. Les limites de l’import public restent indiquées : les canettes représentent les données effectivement importées.
 
 ## Textes et typographie
 
