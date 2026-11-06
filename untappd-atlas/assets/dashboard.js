@@ -414,7 +414,13 @@
     const tag = (key, name = 'p', cls = '') => t(key) ? `<${name}${cls ? ` class="${cls}"` : ''}>${h(key)}</${name}>` : '';
     let items = [], rawMap = new Map(), source = '', profile = '', isDemo = false, state = null, running = false, generation = 0, pending = false, currentStats = null;
     let checkingProfile = false;
-    let token = ''; const storageKey = 'untappd-atlas-session:' + config.api;
+    const history = config.account && window.UATHistory
+      ? window.UATHistory.connect(config.account.endpoint, config.account.nonce) : null;
+    const saved = new Map();
+    let historyReady = Promise.resolve();
+    let previousImport = null;
+    let token = '';
+    const storageKey = 'untappd-atlas-session:' + config.api + (history ? ':user:' + config.account.user : '');
     try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
     let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     try { C.zoned(new Date().toISOString(), zone); } catch (_) { zone = 'UTC'; }
@@ -424,6 +430,16 @@
       <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label></div></div>
       ${config.configured ? tag('import_api_description', 'p', 'uat-import-help') : ''}</section>
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div data-progress-copy><p data-progress-text role="status"></p><progress data-progress-meter aria-label="Progression de l’import du profil" hidden></progress><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
+      ${history ? `<div class="uat-account">
+        <p data-history-message role="status"></p>
+        <button type="button" class="uat-secondary" data-action="restore-history" hidden>Ajouter mon import précédent</button>
+        <button type="button" class="uat-secondary" data-action="retry-history" hidden>Réessayer l’enregistrement</button>
+        <button type="button" class="uat-text-button" data-action="erase-history" hidden>Effacer mon historique enregistré</button>
+      </div>` : (config.loginUrl && window.UATHistory ? `<div class="uat-account" data-account-invitation hidden>
+        <p>Conserve tes statistiques dans ton compte et complète-les à chaque import.</p>
+        ${config.registerUrl ? `<a data-account-link href="${esc(config.registerUrl)}">Créer un compte</a>` : ''}
+        <a data-account-link href="${esc(config.loginUrl)}">Se connecter</a>
+      </div>` : '')}
       <section class="uat-report" hidden>${storyOnly ? `<section class="uat-story uat-story--inline"></section><div class="uat-story-actions"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button></div>` : `<div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
       <div class="uat-results"></div>`}</section>
@@ -435,11 +451,12 @@
     const action = name => $(`[data-action="${name}"]`);
     const storyButton = action('story');
     const inlineStory = storyOnly ? window.UATStory.mount($('.uat-story--inline'), texts) : null;
-    const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items, timezone: zone, demo: isDemo}), texts) : null;
+    const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items: reportItems(), timezone: zone, demo: isDemo}), texts) : null;
     const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('share').disabled = value; $('.uat-file input').disabled = value; };
     const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
     function statusLabel() {
       if (isDemo) return 'Démonstration — données fictives.';
+      if (saved.size && (!state || source !== 'api' || state.phase === 'done')) return 'Historique enregistré dans votre compte WordPress.';
       if (state?.source === 'public' && source === 'api') return `Lecture publique : ${fmt(state.count)} check-ins importés${state.profile?.expected != null ? ` sur ${fmt(state.profile.expected)} annoncés par le profil` : ''}. ${state.phase === 'done' ? 'Lecture des pages accessibles terminée.' : 'Lecture des informations de bière en cours.'} ${state.public_complete ? '' : 'HISTORIQUE PARTIEL. '}Aucun accès aux données réservées à la connexion Untappd.`;
       if (source === 'file') return 'Analyse du fichier fourni ; la complétude de l’historique dépend de cet export.';
       if (!state || state.phase === 'idle') return 'Import non démarré.';
@@ -499,23 +516,65 @@
       try { sessionStorage.setItem(storageKey, token); } catch (_) { /* Current tab only. */ }
     }
     function merge(rawItems) { rawItems.forEach(r => { const n = C.normalize(r, rawMap.size); if (n) rawMap.set(n.id, n); }); items = [...rawMap.values()]; }
+    function reportItems() {
+      if (!history || isDemo) return items;
+      const report = new Map(saved);
+      for (const {key, row} of window.UATHistory.entries(items)) {
+        if (!report.has(key)) report.set(key, row);
+      }
+      return [...report.values()];
+    }
+    function addSaved(entries) {
+      for (const {key, row} of entries) saved.set(key, row);
+    }
+    async function saveAccount(entries = window.UATHistory?.entries(items)) {
+      if (!history || isDemo || !entries?.length) return false;
+      await historyReady;
+      const feedback = $('[data-history-message]');
+      const retry = action('retry-history');
+      retry.hidden = true;
+      const changes = entries.filter(({key, row}) => {
+        const prior = saved.get(key);
+        return !prior || Object.keys(row).some(field =>
+          !(field === 'id' && row.synthetic) && JSON.stringify(row[field]) !== JSON.stringify(prior[field])
+        );
+      });
+      if (!changes.length) return true;
+      feedback.textContent = 'Enregistrement dans votre compte…';
+      try {
+        await history.save(changes, addSaved);
+        feedback.textContent = 'Historique enregistré dans votre compte.';
+        return true;
+      } catch (error) {
+        feedback.textContent = error.message;
+        retry.hidden = !items.length;
+        return false;
+      } finally { render(); }
+    }
     function setData(data, nextSource, nextProfile, demo = false) {
       if (story?.open) story.close();
       items = data; source = nextSource; profile = nextProfile; isDemo = demo;
       render(true); progress();
     }
     function render(restartStory = false) {
-      $('.uat-report').hidden = !items.length;
+      const rows = reportItems();
+      const invitation = $('[data-account-invitation]');
+      if (invitation) invitation.hidden = isDemo || !items.length;
+      if (history) {
+        action('erase-history').hidden = !saved.size;
+        if (!items.length) action('retry-history').hidden = true;
+      }
+      $('.uat-report').hidden = !rows.length;
       if (inlineStory) {
-        inlineStory({items, timezone: zone, demo: isDemo}, restartStory);
+        inlineStory({items: rows, timezone: zone, demo: isDemo}, restartStory);
         return;
       }
-      $('.uat-onboard').hidden = !!items.length;
+      $('.uat-onboard').hidden = !!rows.length;
       $('.uat-demo-notice').hidden = !isDemo;
-      if (!items.length) { currentStats = null; return; }
-      const s = currentStats = C.analyze(items, {timezone: zone}), paints = stylePalette(s);
-      context = {...statVariables(s), profile};
-      $('[data-source]').textContent = t(isDemo ? 'source_demo' : source === 'file' ? 'source_file' : state?.source === 'public' ? 'source_public' : 'source_api');
+      if (!rows.length) { currentStats = null; return; }
+      const s = currentStats = C.analyze(rows, {timezone: zone}), paints = stylePalette(s);
+      context = {...statVariables(s), profile: saved.size ? 'Mon historique Untappd' : profile};
+      $('[data-source]').textContent = saved.size ? 'Mon historique Untappd' : t(isDemo ? 'source_demo' : source === 'file' ? 'source_file' : state?.source === 'public' ? 'source_public' : 'source_api');
       $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
       const metric = (icon, n, label, small = '') => `<div class="uat-kpi"><strong>${metricIcon(icon)}${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
       const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
@@ -525,7 +584,7 @@
       const yearlyCards = yearlyStyleCards(s, paints, count => t('yearly_description', {count: fmt(count)}));
       const allUnknown = (total, unknown, value) => unknown === total && total > 0 ? '—' : fmt(value);
       const badgeKnown = s.badgesUnknown < s.total;
-      const badgeSection = `${section('badges_title', 'badges_subtitle')}<div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), t('badges_unique_description'))}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), t('badges_awards_description'))}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), t('badges_unknown_description'))}${mini(state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), t('badges_total_description'))}</div><div class="uat-badge-grid">${badgeTiles(s, texts)}</div>`;
+      const badgeSection = `${section('badges_title', 'badges_subtitle')}<div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), t('badges_unique_description'))}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), t('badges_awards_description'))}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), t('badges_unknown_description'))}${mini(!saved.size && state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), t('badges_total_description'))}</div><div class="uat-badge-grid">${badgeTiles(s, texts)}</div>`;
       $('.uat-results').innerHTML = `<div class="uat-kpis">${metric('checkins', fmt(s.total), t('kpi_checkins'), t('kpi_checkins_description'))}${metric('beers', fmt(s.uniqueBeers), t('kpi_beers'), t('kpi_beers_description'))}${metric('breweries', fmt(s.uniqueBreweries), t('kpi_breweries'), t('kpi_breweries_description'))}${metric('average', fmt(s.average, 2), t('kpi_average'), t('kpi_average_description'))}</div>
         ${section('pyramids_title')}<div class="uat-pyramids">${pyramidCards(s, texts)}</div>
         <div class="uat-pyramid-callouts">${callout(1, t('first_label'), s.first?.beer || '—', t('first_description'))}${callout('↗', t('favorite_label'), s.styles[0]?.label || '—', t('favorite_description', {count: fmt(s.styles[0]?.count || 0)}))}${callout(2, t('biggest_label'), t('checkins_count', {count: fmt(s.biggestDay?.count || 0)}), t('biggest_description'))}${callout(3, t('last_label'), s.last?.beer || '—', t('last_description'))}</div>
@@ -555,7 +614,11 @@
       } catch (error) {
         if (error.retryAt) state.retry_at = error.retryAt;
         notify(error.message, 'error');
-      } finally { running = false; busy(false); progress(); }
+      } finally {
+        running = false; progress();
+        if (source === 'api') await saveAccount();
+        busy(false);
+      }
     }
     $('.uat-import-top').addEventListener('submit', async event => {
       event.preventDefault(); if (pending) return;
@@ -564,8 +627,13 @@
         await session(); const res = await api('start', {profile: field('profile').value.trim(), source: config.configured ? 'api' : 'public', enrich: $('[data-enrich]').checked});
         checkingProfile = false; rawMap = new Map(); state = res.state;
         merge(res.items || []); setData(items, 'api', state.profile.username);
-        if (state.source === 'public' && state.phase === 'done') notify(publicImportMessage());
-        busy(false); await loop();
+        if (state.phase === 'done') {
+          if (state.source === 'public') notify(publicImportMessage());
+          await saveAccount();
+        } else {
+          busy(false);
+          await loop();
+        }
       } catch (error) {
         if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} }
         notify(error.message, 'error');
@@ -578,19 +646,77 @@
       try {
         const result = C.parse(await file.text(), file.name);
         setData(result.items, 'file', file.name);
+        await saveAccount();
         notify(`${fmt(result.items.length)} check-ins importés. ${result.duplicates} doublons par identifiant écartés. ${result.invalid} lignes ignorées (date ou nom de bière absent/invalide).${result.missingIds ? ` ${result.missingIds} lignes sans ID : conservées sans déduplication.` : ''}`, result.invalid ? 'info' : 'success');
       } catch (error) { notify(error.message, 'error'); } finally { busy(false); event.target.value = ''; }
     });
     action('pause').addEventListener('click', () => { running = false; notify('Pause demandée. La requête en cours sera enregistrée avant l’arrêt.'); progress(); });
     action('resume').addEventListener('click', () => { notify(''); loop(); });
+    async function eraseSession() {
+      if (token) {
+        try { await api('erase'); } catch (error) { if (error.status !== 401) throw error; }
+      }
+      token = '';
+      try { sessionStorage.removeItem(storageKey); } catch (_) {}
+      state = null; rawMap = new Map(); setData([], '', '');
+    }
     async function eraseData() {
       if (pending) { running = false; notify('La requête en cours doit se terminer. Cliquez ensuite sur Effacer.'); return; }
       busy(true);
-      try { if (token) await api('erase'); token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} state = null; rawMap = new Map(); setData([], '', ''); notify('Les données et le jeton de cette session ont été effacés.', 'success'); }
+      try { await eraseSession(); notify('Les données et le jeton de cette session ont été effacés.', 'success'); }
       catch (error) { notify(error.message, 'error'); } finally { busy(false); }
     }
     action('erase').addEventListener('click', eraseData);
     action('clear').addEventListener('click', eraseData);
+    app.querySelectorAll('[data-account-link]').forEach(link => link.addEventListener('click', async event => {
+      event.preventDefault();
+      try {
+        await window.UATHistory.stage(window.UATHistory.entries(items));
+        window.location.assign(link.href);
+      } catch (_) {
+        notify('Impossible de conserver cet import dans ce navigateur. Tu peux exporter tes données avant de créer ton compte.', 'error');
+        link.removeAttribute('data-account-link');
+      }
+    }, {once: true}));
+    if (history) {
+      action('retry-history').addEventListener('click', async () => {
+        if (pending) return;
+        busy(true);
+        try { await saveAccount(); } finally { busy(false); }
+      });
+      action('restore-history').addEventListener('click', async () => {
+        if (pending || !previousImport) return;
+        busy(true);
+        try {
+          if (await saveAccount(previousImport)) {
+            previousImport = null;
+            action('restore-history').hidden = true;
+            await window.UATHistory.discard().catch(() => {});
+          }
+        } finally { busy(false); }
+      });
+      action('erase-history').addEventListener('click', async () => {
+        if (pending || !window.confirm('Effacer définitivement les check-ins enregistrés dans ton compte ?')) return;
+        busy(true);
+        try {
+          await historyReady;
+          await eraseSession();
+          await history.erase();
+          saved.clear();
+          $('[data-history-message]').textContent = 'Historique enregistré effacé.';
+          action('retry-history').hidden = true;
+          render(true);
+        } catch (error) { notify(error.message, 'error'); }
+        finally { busy(false); }
+      });
+      historyReady = history.read(addSaved).then(() => render()).catch(error => {
+        $('[data-history-message]').textContent = error.message;
+      });
+      window.UATHistory.pending().then(rows => {
+        previousImport = rows;
+        action('restore-history').hidden = !rows?.length;
+      }).catch(() => {});
+    }
     action('share').addEventListener('click', async () => {
       if (pending || source !== 'api' || !items.length) return;
       busy(true);
@@ -605,7 +731,7 @@
       try { await session(); const clean = new URL(location.href); clean.hash = ''; const res = await api('oauth', {return: clean.href}); location.assign(res.url); }
       catch (error) { notify(error.message, 'error'); busy(false); }
     });
-    function meta() { return {texts, variables: {...context}, profile, profileBadgesTotal: state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), timezone: zone, grain}; }
+    function meta() { return {texts, variables: {...context}, profile: context.profile || profile, profileBadgesTotal: !saved.size && state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: saved.size ? 'Historique du compte WordPress' : source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), timezone: zone, grain}; }
     for (const type of ['xlsx', 'png']) action(type)?.addEventListener('click', async () => {
       if (!currentStats) return;
       const button = action(type); button.disabled = true;
@@ -624,7 +750,10 @@
         const connected = location.hash === '#uat-connected';
         if (connected || location.hash === '#uat-denied') history.replaceState(null, '', location.pathname + location.search);
         if (connected && state.connected_username) field('profile').value = state.connected_username;
-        if (items.length) setData(items, 'api', state.profile?.username || 'Profil Untappd');
+        if (items.length) {
+          setData(items, 'api', state.profile?.username || 'Profil Untappd');
+          await saveAccount();
+        }
         else progress();
         if (connected) notify('Connexion Untappd autorisée. Cliquez sur Créer mes statistiques pour démarrer.', 'success');
         else if (state.phase !== 'idle' && state.phase !== 'done') notify('Votre import précédent est disponible. Cliquez sur Reprendre pour continuer.');

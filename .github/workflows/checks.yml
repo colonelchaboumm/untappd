@@ -16,6 +16,7 @@ jobs:
       - run: node --check untappd-atlas/assets/theme.js
       - run: node --check untappd-atlas/assets/content.js
       - run: node --check untappd-atlas/assets/story.js
+      - run: node --check untappd-atlas/assets/history.js
       - run: node --check untappd-atlas/assets/admin.js
   php:
     runs-on: ubuntu-latest
@@ -35,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/build-package.py
-      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.12.8.zip
+      - run: python3 -m zipfile -t test-artifacts/untappd-atlas-1.13.0.zip
   wordpress:
     runs-on: ubuntu-latest
     services:
@@ -71,3 +72,4 @@ jobs:
           php tests/import-errors.php /tmp/uat-wordpress
           php tests/public.php /tmp/uat-wordpress
           php tests/integration.php /tmp/uat-wordpress
+          php tests/history.php /tmp/uat-wordpress

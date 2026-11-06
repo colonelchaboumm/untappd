@@ -4,6 +4,7 @@ global $wpdb;
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_checkins");
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_sessions");
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_archive");
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_history");
 delete_option('uat_credentials');
 delete_option('uat_palette');
 delete_option('uat_texts');

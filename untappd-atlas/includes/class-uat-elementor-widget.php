@@ -10,6 +10,7 @@ class UAT_Elementor_Widget extends \Elementor\Widget_Base {
     public function get_keywords(): array { return ['untappd', 'bière', 'statistiques', 'atlas']; }
     public function get_style_depends(): array { return ['uat-story']; }
     public function get_script_depends(): array { return ['uat-dashboard']; }
+    protected function is_dynamic_content(): bool { return true; }
     protected function register_controls(): void {
         $this->start_controls_section('uat_content', ['label' => 'Untappd Atlas']);
         $this->add_control('uat_help', ['type' => \Elementor\Controls_Manager::RAW_HTML, 'raw' => 'L’éditeur montre une démonstration fictive. Modifiez les titres, sous-titres et libellés dans les sections de l’onglet Contenu. Personnalisez les couleurs et la typographie dans Style ; l’icône globe permet de choisir un style global Elementor.', 'content_classes' => 'elementor-panel-alert elementor-panel-alert-info']);

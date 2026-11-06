@@ -28,3 +28,8 @@
 .uat-progress [data-progress-meter] { display: block; width: 100%; height: 12px; margin: 8px 0; accent-color: var(--uat-accent); }
 
 .uat-kpi-icon { display: block; flex: none; width: 1em; height: 1em; }
+
+.uat-account { margin: 12px 0; }
+.uat-account p { font-size: 13px; color: var(--uat-muted); }
+.uat-account a, .uat-account button { margin: 8px 14px 0 0; }
+.uat-account a { display: inline-block; color: var(--uat-ink); text-decoration: underline; }

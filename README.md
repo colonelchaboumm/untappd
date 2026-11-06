@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.12.8 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.12.8.zip)**
+**[Télécharger Untappd Atlas 1.13.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.13.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
@@ -21,6 +21,14 @@ Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress,
 4. Sans accès API, importer un fichier CSV/JSON Untappd : l’analyse et les exports fonctionnent entièrement dans le navigateur.
 
 Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pour le mode public. OpenSSL est nécessaire pour enregistrer les identifiants API et les jetons OAuth. Testé sur WordPress 7.1.4 / PHP 8.4.11. Pas de compilation, de CDN, de bibliothèque JavaScript externe ou de dépendance Composer.
+
+## Statistiques du compte WordPress
+
+Une fois connecté, chaque import de profil ou de fichier complète l’historique privé du compte. Les check-ins identifiés se regroupent par identifiant Untappd. Pour les lignes sans identifiant, Atlas utilise la date, la bière, la brasserie et l’occurrence dans l’import. Cette règle conserve les lignes identiques d’un même fichier tout en évitant les doublons lors du réimport du fichier. Les informations connues sont conservées quand un nouvel import ne les fournit pas.
+
+Avec **BSC Profil 0.21.0**, la section **Mes statistiques Untappd** apparaît sur le profil du compte connecté. Le shortcode `[untappd_atlas_history]` permet également de l’ajouter à une page réservée au compte.
+
+Après un import en tant que visiteur, les liens de connexion et d’inscription permettent de transférer les données pendant 24 heures dans le même navigateur. Après connexion, cliquez sur **Ajouter mon import précédent**. Le lien de création de compte suit les réglages d’inscription de WordPress ou de WooCommerce.
 
 ## Statistiques pour l’administration
 
@@ -195,7 +203,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.12.8.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.13.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

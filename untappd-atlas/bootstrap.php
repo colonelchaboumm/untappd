@@ -2,7 +2,7 @@
 // Shared bootstrap. The single WordPress plugin header lives in the root entry point.
 defined('ABSPATH') || exit;
 if (defined('UAT_VERSION')) { return; }
-define('UAT_VERSION', '1.12.8');
+define('UAT_VERSION', '1.13.0');
 if (!defined('UAT_MAIN_FILE')) { define('UAT_MAIN_FILE', __FILE__); }
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
@@ -10,6 +10,7 @@ require_once __DIR__ . '/includes/class-uat-public.php';
 require_once __DIR__ . '/includes/class-uat-theme.php';
 require_once __DIR__ . '/includes/class-uat-content.php';
 require_once __DIR__ . '/includes/class-uat-admin.php';
+require_once __DIR__ . '/includes/class-uat-history.php';
 
 function uat_register_assets() {
     static $registered = false;
@@ -23,7 +24,8 @@ function uat_register_assets() {
     wp_register_script('uat-content', plugins_url('assets/content.js', UAT_FILE), [], UAT_VERSION, true);
     wp_register_script('uat-export', plugins_url('assets/export.js', UAT_FILE), ['uat-core'], UAT_VERSION, true);
     wp_register_script('uat-story', plugins_url('assets/story.js', UAT_FILE), ['uat-core', 'uat-content'], UAT_VERSION, true);
-    wp_register_script('uat-dashboard', plugins_url('assets/dashboard.js', UAT_FILE), ['uat-core', 'uat-theme', 'uat-content', 'uat-export', 'uat-story'], UAT_VERSION, true);
+    wp_register_script('uat-history', plugins_url('assets/history.js', UAT_FILE), [], UAT_VERSION, true);
+    wp_register_script('uat-dashboard', plugins_url('assets/dashboard.js', UAT_FILE), ['uat-core', 'uat-theme', 'uat-content', 'uat-export', 'uat-story', 'uat-history'], UAT_VERSION, true);
 }
 add_action('wp_enqueue_scripts', 'uat_register_assets', 5);
 add_action('elementor/frontend/after_register_scripts', 'uat_register_assets');
@@ -46,6 +48,8 @@ register_deactivation_hook(UAT_MAIN_FILE, function () { wp_clear_scheduled_hook(
 add_action('uat_cleanup', ['UAT_API', 'cleanup']);
 add_action('rest_api_init', ['UAT_API', 'routes']);
 add_action('rest_api_init', ['UAT_Admin', 'routes']);
+add_action('rest_api_init', ['UAT_History', 'routes']);
+add_action('deleted_user', ['UAT_History', 'delete_user']);
 add_action('admin_menu', ['UAT_Admin', 'menu']);
 add_action('admin_post_uat_clear_archive', ['UAT_Admin', 'clear_archive']);
 add_action('wp_enqueue_scripts', function () {
@@ -97,6 +101,25 @@ function uat_dashboard($preview = false, $texts = [], $visibility = [], $story_o
     wp_enqueue_script('uat-dashboard');
     $credentials = get_option('uat_credentials', []);
     $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'storyOnly' => (bool) $story_only, 'texts' => UAT_Content::values($texts, $visibility)];
+    if (!$preview && is_user_logged_in()) {
+        $config['account'] = ['user' => get_current_user_id(), 'endpoint' => rest_url('untappd-atlas/v1/history'), 'nonce' => wp_create_nonce('wp_rest')];
+    } elseif (!$preview) {
+        $return = get_permalink() ?: home_url('/');
+        $config['loginUrl'] = wp_login_url($return);
+        if (get_option('users_can_register')) {
+            $config['registerUrl'] = add_query_arg('redirect_to', $return, wp_registration_url());
+        } elseif (function_exists('wc_get_page_permalink') && get_option('woocommerce_enable_myaccount_registration') === 'yes') {
+            $config['registerUrl'] = wc_get_page_permalink('myaccount');
+        }
+    }
     return '<div class="uat-app alignwide" data-config="' . esc_attr(wp_json_encode($config)) . '"><p>Chargement d’Untappd Atlas… JavaScript est nécessaire pour les graphiques et exports.</p></div>';
 }
 add_shortcode('untappd_atlas', function () { return uat_dashboard(); });
+function uat_profile_history($user_id): string {
+    if (!$user_id || (int) $user_id !== get_current_user_id()) { return ''; }
+    return '<section class="uat-profile-history"><h2>Mes statistiques Untappd</h2>' . uat_dashboard() . '</section>';
+}
+add_shortcode('untappd_atlas_history', function () { return uat_profile_history(get_current_user_id()); });
+add_action('bsc_profile_personal_sections', function ($user_id) {
+    echo uat_profile_history($user_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by renderer.
+});
