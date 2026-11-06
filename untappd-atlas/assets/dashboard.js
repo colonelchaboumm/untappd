@@ -9,10 +9,9 @@
     average: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>'
   };
   function metricIcon(name, size = 36) {
-    return `<svg class="uat-kpi-icon" width="${size}" height="${size}" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-      <rect width="36" height="36" rx="9" fill="var(--uat-accent)" fill-opacity=".14"/>
-      <g transform="translate(6 6)" fill="none" stroke="var(--uat-accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${metricIcons[name]}</g>
-    </svg>`;
+    return `<svg class="uat-kpi-icon" width="${size}" height="${size}" viewBox="0 0 36 36" aria-hidden="true" focusable="false">`
+      + '<rect width="36" height="36" rx="9" fill="var(--uat-accent)" fill-opacity=".14"/>'
+      + `<g transform="translate(3 3) scale(1.25)" fill="none" stroke="var(--uat-accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${metricIcons[name]}</g></svg>`;
   }
   let canCounter = 0;
   // Embedded from assets/can-logo.png so the SVG and PNG exports need no external image request.
@@ -359,8 +358,8 @@
     ];
     metrics.forEach(([icon, value, label], i) => {
       const x = 80 + i * 420;
-      out += `<g transform="translate(${x} 230)">${metricIcon(icon, 34)}</g>`;
-      out += text(x, 329, value, 76, 'var(--uat-ink)', 800) + text(x, 365, short(label, 34), 21);
+      out += `<g transform="translate(${x} 263)">${metricIcon(icon, 76)}</g>`;
+      out += text(x + 92, 329, value, 76, 'var(--uat-ink)', 800) + text(x, 365, short(label, 34), 21);
     });
     out += text(80, 460, short(t('pyramids_title'), 70), 26, 'var(--uat-heading)', 800);
     out += embed(pyramidGraphic, 80, 480, 1640);
@@ -518,7 +517,7 @@
       context = {...statVariables(s), profile};
       $('[data-source]').textContent = t(isDemo ? 'source_demo' : source === 'file' ? 'source_file' : state?.source === 'public' ? 'source_public' : 'source_api');
       $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
-      const metric = (icon, n, label, small = '') => `<div class="uat-kpi">${metricIcon(icon)}<strong>${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
+      const metric = (icon, n, label, small = '') => `<div class="uat-kpi"><strong>${metricIcon(icon)}${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
       const mini = (n, label, small = '') => `<div class="uat-mini"><strong>${n}</strong>${label ? `<span>${safe(label)}</span>` : ''}${small ? `<small>${safe(small)}</small>` : ''}</div>`;
       const card = (title, sub, content, cls = '') => `<article class="uat-card ${cls}">${title ? `<h3>${safe(title)}</h3>` : ''}${sub ? `<p>${safe(sub)}</p>` : ''}${content}</article>`;
       const callout = (number, label, value, sub) => `<div class="uat-callout">${label ? `<h3><span class="uat-number">${number}</span>${safe(label)}</h3>` : ''}<strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
