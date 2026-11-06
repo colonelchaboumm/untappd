@@ -366,8 +366,8 @@
 
   window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
   function boot(scope = document) {
-    if (scope.matches?.('.uat-app')) mount(scope);
-    scope.querySelectorAll('.uat-app').forEach(mount);
+    if (scope.matches?.('.uat-app[data-config]')) mount(scope);
+    scope.querySelectorAll('.uat-app[data-config]').forEach(mount);
   }
   boot();
   function editorHook() {
@@ -398,12 +398,14 @@
     app.innerHTML = `${storyOnly ? '' : `<section class="uat-intro">${tag('hero_title', 'h2')}${tag('hero_subtitle')}</section>`}
       <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field">${tag('profile_label', 'span')}<input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
       <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
-      ${help ? `<p class="uat-import-help">${safe(help)}</p>` : ''}</section>
+      ${help ? `<p class="uat-import-help">${safe(help)}</p>` : ''}
+      <p class="uat-import-help">Les imports de profil sont visibles par l’administration pendant 24 heures. Tu peux choisir de conserver une copie pour ses statistiques.</p></section>
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
       <section class="uat-report" hidden>${storyOnly ? `<section class="uat-story uat-story--inline"></section><div class="uat-story-actions"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button></div>` : `<div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
       <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from" aria-label="${esc(t('filter_from') || 'Date de début')}"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to" aria-label="${esc(t('filter_to') || 'Date de fin')}"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style" aria-label="${esc(t('filter_style') || 'Style de bière')}"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain" aria-label="${esc(t('filter_grain') || 'Périodes')}"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone" aria-label="${esc(t('filter_timezone') || 'Fuseau horaire')}">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
       <div class="uat-results"></div>`}</section>
+      <div class="uat-share" hidden><button type="button" class="uat-secondary" data-action="share">Conserver une copie pour les statistiques du site</button><p class="uat-import-help">La copie reste accessible aux administrateurs après l’expiration ou l’effacement de cette session.</p></div>
       ${storyOnly ? '' : `<div class="uat-onboard">${tag('onboard_title', 'strong')}${tag('onboard_subtitle')}</div>`}
       ${t('footer_left') || t('footer_right') ? `<footer class="uat-footer">${tag('footer_left', 'span')}${tag('footer_right', 'span')}</footer>` : ''}`;
     const $ = q => app.querySelector(q);
@@ -412,7 +414,7 @@
     const storyButton = action('story');
     const inlineStory = storyOnly ? window.UATStory.mount($('.uat-story--inline'), texts) : null;
     const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items, timezone: field('timezone').value, demo: isDemo}), texts) : null;
-    const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('demo').disabled = value; $('.uat-file input').disabled = value; };
+    const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('demo').disabled = value; action('share').disabled = value; $('.uat-file input').disabled = value; };
     const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
     function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
     function statusLabel() {
@@ -424,6 +426,7 @@
       return `Historique partiel : ${fmt(state.count)} check-ins importés. ${state.phase === 'details' ? `Enrichissement des échanges : ${fmt(state.details_done)} / ${fmt(state.count)}.` : 'Import en cours ou en pause.'}`;
     }
     function progress() {
+      $('.uat-share').hidden = source !== 'api' || !items.length;
       $('.uat-progress').hidden = !state || source !== 'api';
       if (!state) return;
       $('[data-progress-text]').textContent = statusLabel();
@@ -544,6 +547,15 @@
     }
     action('erase').addEventListener('click', eraseData);
     action('clear').addEventListener('click', eraseData);
+    action('share').addEventListener('click', async () => {
+      if (pending || source !== 'api' || !items.length) return;
+      busy(true);
+      try {
+        const result = await api('share');
+        notify(`${fmt(result.shared)} check-ins copiés dans les statistiques du site.`, 'success');
+      } catch (error) { notify(error.message, 'error'); }
+      finally { busy(false); }
+    });
     action('oauth').addEventListener('click', async () => {
       if (pending) return; busy(true);
       try { await session(); const clean = new URL(location.href); clean.hash = ''; const res = await api('oauth', {return: clean.href}); location.assign(res.url); }

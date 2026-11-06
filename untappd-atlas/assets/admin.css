@@ -1,0 +1,8 @@
+.uat-admin { margin: 16px 0; }
+.uat-admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 12px 0; }
+.uat-admin-file { margin: 16px 0; }
+.uat-admin-file summary { cursor: pointer; }
+.uat-admin-file label { display: inline-block; margin: 8px 12px 0 0; }
+.uat-admin-table { overflow-x: auto; }
+.uat-admin-table td { min-width: 6rem; overflow-wrap: anywhere; }
+.uat-admin [data-stats] .uat-card-grid { margin-top: 18px; }

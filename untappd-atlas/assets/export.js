@@ -56,6 +56,13 @@
     add('Auteurs observés', [['Identifiant', 'Pseudo', 'Commentaires observés'], ...s.commenters.map(c => [c.key, c.label, c.count])]);
     add('Commentaires observés', [['Check-in', 'Auteur ID', 'Pseudo', 'Texte', 'Date source'], ...s.rows.flatMap(r => r.commenters.map(c => [r.id, c.id, c.name, c.text, c.date]))]);
     add('Check-ins', [['ID', 'Date UTC', 'Date locale', 'Heure locale', 'Semaine ISO', 'Bière ID', 'Bière', 'Brasserie ID', 'Brasserie', 'Style', 'Note', 'ABV (%)', 'IBU', 'Photos', 'Texte personnel', 'Commentaires connus', 'Auteurs complets', 'Toasts', 'Lieu', 'Ville', 'Pays du lieu', 'Pays brasserie', 'Service'], ...s.rows.map(r => [r.synthetic ? '' : r.id, r.date, r.local.day, `${String(r.local.hour).padStart(2, '0')}:${String(r.local.minute).padStart(2, '0')}`, r.local.week, r.beerId, r.beer, r.breweryId, r.brewery, r.style, r.rating, r.abv, r.ibu, r.photos, r.shout, r.commentsCount, r.commentsComplete ? 'Oui' : 'Non', r.toasts, r.venue, r.city, r.country, r.breweryCountry, r.serving])]);
+    if (meta.profiles) {
+      add('Profils Untappd', [['Profil', 'Check-ins', 'Notés', 'Moyenne', 'Bières différentes', 'Avec photo', 'Commentaires connus'],
+        ...meta.profiles.map(row => [row.label, row.count, row.rated, row.average, row.beers, row.photos, row.comments])]);
+      const checkins = sheets.find(sheet => sheet.name === 'Check-ins').rows;
+      checkins[0].push('Profil Untappd', 'Copie conservée');
+      s.rows.forEach((row, index) => checkins[index + 1].push(row.profile || '', row.archived ? 'Oui' : 'Non'));
+    }
     return sheets;
   }
   function xlsx(s, meta) {

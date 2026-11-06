@@ -4,7 +4,7 @@ Tags: untappd, statistics, beer, dashboard, export
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.11.0
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,10 @@ Oui. L’API documente 25 check-ins par page et 100 appels/heure par clé ou uti
 Pas nécessairement. Les identités peuvent être limitées à une liste partielle dans la réponse. Le tableau de bord indique alors un minimum observé. Un export sans ces champs affiche des valeurs inconnues.
 
 == Changelog ==
+
+= 1.12.0 =
+* Rapport privé dans Outils → Statistiques Untappd Atlas. Synthèse globale, filtres, détail des imports et export Excel.
+* Les imports de profil peuvent être conservés à la demande du visiteur.
 
 = 1.11.0 =
 * Widget Elementor dédié au récapitulatif annuel dans la page, avec import et navigation sur ordinateur et mobile.

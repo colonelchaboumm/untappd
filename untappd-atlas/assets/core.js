@@ -238,7 +238,7 @@
     }
     return rows;
   }
-  const api = {csv, extract, normalize, parse, analyze, zoned, weekKey, periods, demo, badgeImage};
+  const api = {csv, extract, normalize, parse, analyze, zoned, weekKey, periods, groupRows, demo, badgeImage};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.UATCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

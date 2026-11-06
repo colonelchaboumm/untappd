@@ -51,6 +51,16 @@ verify(!str_contains(wp_json_encode($s), 'TESTSECRET') && !str_contains(wp_json_
 for ($i = 0; $i < 4; $i++) { $step = request('step', $a); verify($step->get_status() === 200, 'detail step ' . ($i + 1)); }
 $s = request('status', $a, [], 'GET')->get_data();
 verify($s['state']['phase'] === 'done' && $s['state']['details_done'] === 3 && count($s['items'][0]['comments']['items']) === 1, 'detail enrichment completes and is persisted');
+verify(request('admin/imports', '', [], 'GET')->get_status() === 401, 'administration report refuses anonymous requests');
+verify(request('share', '', [], 'POST')->get_status() === 401, 'sharing requires the visitor session');
+$admin = get_users(['role' => 'administrator', 'fields' => 'ID', 'number' => 1]);
+wp_set_current_user((int) $admin[0]);
+$active = request('admin/imports', '', ['source' => 'active'], 'GET');
+verify($active->get_status() === 200 && in_array('Colonelchaboum', array_column($active->get_data()['records'], 'profile'), true), 'administrator sees active imports by profile');
+$archive = request('admin/imports', '', ['source' => 'archive'], 'GET');
+verify($archive->get_status() === 200 && !$archive->get_data()['records'], 'imports are not archived automatically');
+wp_set_current_user(0);
+verify(request('share', $a)->get_data()['shared'] === 3 && request('share', $a)->get_data()['shared'] === 3, 'visitor can explicitly share an import and repeat safely');
 verify(request('start', $b, ['profile' => 'Colonelchaboum'])->get_status() === 200, 'new visitor can start independently');
 $scope = substr(hash('sha256', wp_json_encode(['client_id' => 'TESTCLIENT', 'client_secret' => 'TESTSECRET'])), 0, 32);
 set_transient('uat_budget_' . $scope, ['used' => 95, 'reset' => time() + 3600], 3700);
@@ -68,5 +78,10 @@ $wpdb->update($wpdb->prefix . 'uat_sessions', ['expires' => time() - 1], ['id' =
 UAT_API::cleanup();
 verify((int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}uat_checkins WHERE session_id=%s", hash('sha256', $b))) === 0, 'scheduled cleanup removes expired check-ins');
 verify(request('status', $b, [], 'GET')->get_status() === 401, 'expired session removed by cleanup');
+wp_set_current_user((int) $admin[0]);
+$archive = request('admin/imports', '', ['source' => 'archive'], 'GET')->get_data()['records'];
+verify(count($archive) === 3 && count(array_unique(array_column(array_column($archive, 'item'), 'checkin_id'))) === 3, 'archive survives session erasure without duplicates');
+$wpdb->query("DELETE FROM {$wpdb->prefix}uat_archive WHERE checkin_id IN ('101','102','103')");
+wp_set_current_user(0);
 delete_option('uat_credentials');
 echo 'INTEGRATION OK — WordPress ' . $GLOBALS['wp_version'] . PHP_EOL;

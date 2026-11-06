@@ -63,7 +63,7 @@ final class UAT_API {
         return true;
     }
     public static function routes() {
-        foreach (['session' => 'POST', 'status' => 'GET', 'start' => 'POST', 'step' => 'POST', 'oauth' => 'POST', 'erase' => 'POST'] as $name => $method) {
+        foreach (['session' => 'POST', 'status' => 'GET', 'start' => 'POST', 'step' => 'POST', 'oauth' => 'POST', 'erase' => 'POST', 'share' => 'POST'] as $name => $method) {
             $callback = $name === 'session' ? 'create' : $name;
             $permission = $name === 'session' ? 'origin' : 'permission';
             register_rest_route('untappd-atlas/v1', '/' . $name, ['methods' => $method,
@@ -304,6 +304,19 @@ final class UAT_API {
         try {
             if ($wpdb->delete($wpdb->prefix . 'uat_checkins', ['session_id' => $id]) === false || $wpdb->delete($wpdb->prefix . 'uat_sessions', ['id' => $id]) === false) { throw new UAT_Storage_Exception('erase'); }
             return self::response(['erased' => true]);
+        } finally { delete_option('uat_lock_' . $id); }
+    }
+    public static function share($r) {
+        $id = self::id($r);
+        if (!self::lock($id)) { return new WP_Error('busy', 'Attendez la fin de la requête en cours puis réessayez.', ['status' => 409]); }
+        try {
+            $state = self::read($id);
+            if (!$state) { return self::session_error(); }
+            $username = $state['profile']['username'] ?? '';
+            if ($username === '' || empty($state['count'])) {
+                return new WP_Error('empty_import', 'Importez un profil avec des check-ins avant de le partager.', ['status' => 400]);
+            }
+            return self::response(['shared' => UAT_Admin::archive($username, self::items($id))]);
         } finally { delete_option('uat_lock_' . $id); }
     }
     public static function oauth($r) {

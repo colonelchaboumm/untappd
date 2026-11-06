@@ -3,6 +3,7 @@ defined('WP_UNINSTALL_PLUGIN') || exit;
 global $wpdb;
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_checkins");
 $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_sessions");
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}uat_archive");
 delete_option('uat_credentials');
 delete_option('uat_palette');
 delete_option('uat_texts');

@@ -2,13 +2,14 @@
 // Shared bootstrap. The single WordPress plugin header lives in the root entry point.
 defined('ABSPATH') || exit;
 if (defined('UAT_VERSION')) { return; }
-define('UAT_VERSION', '1.11.0');
+define('UAT_VERSION', '1.12.0');
 if (!defined('UAT_MAIN_FILE')) { define('UAT_MAIN_FILE', __FILE__); }
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
 require_once __DIR__ . '/includes/class-uat-public.php';
 require_once __DIR__ . '/includes/class-uat-theme.php';
 require_once __DIR__ . '/includes/class-uat-content.php';
+require_once __DIR__ . '/includes/class-uat-admin.php';
 
 function uat_register_assets() {
     static $registered = false;
@@ -44,6 +45,9 @@ register_activation_hook(UAT_MAIN_FILE, ['UAT_API', 'install']);
 register_deactivation_hook(UAT_MAIN_FILE, function () { wp_clear_scheduled_hook('uat_cleanup'); });
 add_action('uat_cleanup', ['UAT_API', 'cleanup']);
 add_action('rest_api_init', ['UAT_API', 'routes']);
+add_action('rest_api_init', ['UAT_Admin', 'routes']);
+add_action('admin_menu', ['UAT_Admin', 'menu']);
+add_action('admin_post_uat_clear_archive', ['UAT_Admin', 'clear_archive']);
 add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     if ($post && has_shortcode($post->post_content, 'untappd_atlas')) {
@@ -82,7 +86,7 @@ function uat_settings() {
     <?php submit_button(); ?></form>
     <?php UAT_Theme::settings(); ?>
     <?php UAT_Content::settings(); ?>
-    <h2>Données et confidentialité</h2><p>Les exports de fichiers sont analysés dans le navigateur. Les imports API et jetons chiffrés sont isolés par session et supprimés après 24 heures (nettoyage horaire WordPress). Le visiteur peut les effacer immédiatement. Aucun résultat personnel n’est intégré au HTML public de la page.</p>
+    <h2>Données et confidentialité</h2><p>Les fichiers sont analysés dans le navigateur. Les imports de profil en cours sont visibles dans le rapport privé des administrateurs. Ils expirent après 24 heures. Le visiteur peut choisir de conserver une copie de son import pour ce rapport. Les jetons chiffrés expirent avec la session.</p>
     <p><a href="https://untappd.com/api/docs/v4" target="_blank" rel="noopener noreferrer">Documentation API officielle</a></p></div>
     <?php
 }
