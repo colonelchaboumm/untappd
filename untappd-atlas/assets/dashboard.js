@@ -370,7 +370,11 @@
     scope.querySelectorAll('.uat-app').forEach(mount);
   }
   boot();
-  function editorHook() { window.elementorFrontend?.hooks.addAction('frontend/element_ready/untappd-atlas.default', scope => boot(scope[0] || scope)); }
+  function editorHook() {
+    for (const name of ['untappd-atlas', 'untappd-atlas-story']) {
+      window.elementorFrontend?.hooks.addAction('frontend/element_ready/' + name + '.default', scope => boot(scope[0] || scope));
+    }
+  }
   if (window.elementorFrontend?.hooks) editorHook();
   else if (window.jQuery) window.jQuery(window).on('elementor/frontend/init.uat', editorHook);
   function mount(app) {
@@ -378,6 +382,7 @@
     app.dataset.uatMounted = '1';
     const config = JSON.parse(app.dataset.config || '{}');
     const texts = config.texts || {};
+    const storyOnly = config.storyOnly && !!window.UATStory;
     let context = {};
     const t = (key, values = {}) => window.UATContent.value(texts, key, '', {...context, ...values});
     const safe = window.UATContent.html;
@@ -390,21 +395,23 @@
     let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     try { C.zoned(new Date().toISOString(), zone); } catch (_) { zone = 'UTC'; }
     const zones = [...new Set([zone, Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Paris', 'Europe/Brussels', 'Europe/London', 'America/Montreal', 'America/New_York', 'UTC'].filter(Boolean))];
-    app.innerHTML = `<section class="uat-intro">${tag('hero_title', 'h2')}${tag('hero_subtitle')}</section>
+    app.innerHTML = `${storyOnly ? '' : `<section class="uat-intro">${tag('hero_title', 'h2')}${tag('hero_subtitle')}</section>`}
       <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field">${tag('profile_label', 'span')}<input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
       <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label><button type="button" class="uat-text-button" data-action="demo">${h('demo_button')}</button></div></div>
       ${help ? `<p class="uat-import-help">${safe(help)}</p>` : ''}</section>
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
-      <section class="uat-report" hidden><div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
+      <section class="uat-report" hidden>${storyOnly ? `<section class="uat-story uat-story--inline"></section><div class="uat-story-actions"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button></div>` : `<div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
       <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from" aria-label="${esc(t('filter_from') || 'Date de début')}"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to" aria-label="${esc(t('filter_to') || 'Date de fin')}"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style" aria-label="${esc(t('filter_style') || 'Style de bière')}"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain" aria-label="${esc(t('filter_grain') || 'Périodes')}"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone" aria-label="${esc(t('filter_timezone') || 'Fuseau horaire')}">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
-      <div class="uat-results"></div></section><div class="uat-onboard">${tag('onboard_title', 'strong')}${tag('onboard_subtitle')}</div>
+      <div class="uat-results"></div>`}</section>
+      ${storyOnly ? '' : `<div class="uat-onboard">${tag('onboard_title', 'strong')}${tag('onboard_subtitle')}</div>`}
       ${t('footer_left') || t('footer_right') ? `<footer class="uat-footer">${tag('footer_left', 'span')}${tag('footer_right', 'span')}</footer>` : ''}`;
     const $ = q => app.querySelector(q);
     const field = name => $(`[name="${name}"]`);
     const action = name => $(`[data-action="${name}"]`);
     const storyButton = action('story');
-    const story = storyButton ? window.UATStory.mount(storyButton, () => ({items, timezone: field('timezone').value, demo: isDemo}), texts) : null;
+    const inlineStory = storyOnly ? window.UATStory.mount($('.uat-story--inline'), texts) : null;
+    const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items, timezone: field('timezone').value, demo: isDemo}), texts) : null;
     const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('demo').disabled = value; $('.uat-file input').disabled = value; };
     const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
     function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
@@ -438,6 +445,7 @@
     }
     function merge(rawItems) { rawItems.forEach(r => { const n = C.normalize(r, rawMap.size); if (n) rawMap.set(n.id, n); }); items = [...rawMap.values()]; }
     function refreshStyles() {
+      if (storyOnly) return;
       const prior = field('style').value;
       field('style').innerHTML = `<option value="">${h('filter_all_styles')}</option>` + [...new Set(items.map(r => r.style))].sort().map(st => `<option value="${esc(st)}">${esc(st)}</option>`).join('');
       field('style').value = prior;
@@ -445,11 +453,19 @@
     function setData(data, nextSource, nextProfile, demo = false) {
       if (story?.open) story.close();
       items = data; source = nextSource; profile = nextProfile; isDemo = demo;
-      field('from').value = ''; field('to').value = ''; field('style').value = '';
-      refreshStyles(); render(); progress();
+      if (!storyOnly) {
+        field('from').value = ''; field('to').value = ''; field('style').value = '';
+        refreshStyles();
+      }
+      render(true); progress();
     }
-    function render() {
-      $('.uat-report').hidden = !items.length; $('.uat-onboard').hidden = !!items.length;
+    function render(restartStory = false) {
+      $('.uat-report').hidden = !items.length;
+      if (inlineStory) {
+        inlineStory({items, timezone: zone, demo: isDemo}, restartStory);
+        return;
+      }
+      $('.uat-onboard').hidden = !!items.length;
       $('.uat-demo-notice').hidden = !isDemo;
       if (!items.length) { currentStats = null; return; }
       const opts = options();
@@ -489,7 +505,7 @@
           if (!running || version !== generation || state.phase === 'done') break;
           await new Promise(resolve => setTimeout(resolve, state.source === 'public' ? 1100 : 450));
         }
-        if (state.phase === 'done') notify(state.source === 'public' ? statusLabel() : 'Import terminé. Vos statistiques et exports sont prêts.', state.source === 'public' && !state.public_complete ? 'info' : 'success');
+        if (state.phase === 'done') notify(state.source === 'public' ? statusLabel() : (storyOnly ? 'Import terminé. Votre récapitulatif est prêt.' : 'Import terminé. Vos statistiques et exports sont prêts.'), state.source === 'public' && !state.public_complete ? 'info' : 'success');
       } catch (error) {
         if (error.retryAt) state.retry_at = error.retryAt;
         notify(error.message, 'error');
@@ -518,8 +534,8 @@
     action('demo').addEventListener('click', () => { if (pending) return; notify(''); setData(C.demo(), 'demo', 'Démonstration', true); });
     action('pause').addEventListener('click', () => { running = false; notify('Pause demandée. La requête en cours sera enregistrée avant l’arrêt.'); progress(); });
     action('resume').addEventListener('click', () => { notify(''); loop(); });
-    action('reset').addEventListener('click', () => { field('from').value = ''; field('to').value = ''; field('style').value = ''; notify(''); render(); });
-    $('.uat-filters').addEventListener('change', () => { notify(''); render(); });
+    action('reset')?.addEventListener('click', () => { field('from').value = ''; field('to').value = ''; field('style').value = ''; notify(''); render(); });
+    $('.uat-filters')?.addEventListener('change', () => { notify(''); render(); });
     async function eraseData() {
       if (pending) { running = false; notify('La requête en cours doit se terminer. Cliquez ensuite sur Effacer.'); return; }
       busy(true);
@@ -534,7 +550,7 @@
       catch (error) { notify(error.message, 'error'); busy(false); }
     });
     function meta() { return {texts, variables: {...context}, profile, profileBadgesTotal: state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), ...options(), grain: field('grain').value}; }
-    for (const type of ['xlsx', 'png']) action(type).addEventListener('click', async () => {
+    for (const type of ['xlsx', 'png']) action(type)?.addEventListener('click', async () => {
       if (!currentStats) return;
       const button = action(type); button.disabled = true;
       try {

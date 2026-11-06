@@ -2,7 +2,7 @@
 // Shared bootstrap. The single WordPress plugin header lives in the root entry point.
 defined('ABSPATH') || exit;
 if (defined('UAT_VERSION')) { return; }
-define('UAT_VERSION', '1.10.0');
+define('UAT_VERSION', '1.11.0');
 if (!defined('UAT_MAIN_FILE')) { define('UAT_MAIN_FILE', __FILE__); }
 define('UAT_FILE', __FILE__);
 require_once __DIR__ . '/includes/class-uat-api.php';
@@ -31,6 +31,7 @@ add_action('elementor/editor/before_enqueue_scripts', 'uat_register_assets');
 add_action('elementor/widgets/register', function ($manager) {
     require_once __DIR__ . '/includes/class-uat-elementor-widget.php';
     $manager->register(new UAT_Elementor_Widget());
+    $manager->register(new UAT_Elementor_Story_Widget());
 });
 add_action('admin_enqueue_scripts', function ($hook) {
     if ($hook !== 'settings_page_untappd-atlas') { return; }
@@ -46,7 +47,7 @@ add_action('rest_api_init', ['UAT_API', 'routes']);
 add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     if ($post && has_shortcode($post->post_content, 'untappd_atlas')) {
-        wp_enqueue_style('uat-dashboard');
+        wp_enqueue_style('uat-story');
     }
 });
 add_action('admin_post_uat_callback', ['UAT_API', 'callback']);
@@ -85,13 +86,13 @@ function uat_settings() {
     <p><a href="https://untappd.com/api/docs/v4" target="_blank" rel="noopener noreferrer">Documentation API officielle</a></p></div>
     <?php
 }
-function uat_dashboard($preview = false, $texts = [], $visibility = []) {
+function uat_dashboard($preview = false, $texts = [], $visibility = [], $story_only = false) {
     uat_register_assets();
     wp_enqueue_style('uat-dashboard');
     wp_enqueue_style('uat-story');
     wp_enqueue_script('uat-dashboard');
     $credentials = get_option('uat_credentials', []);
-    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'texts' => UAT_Content::values($texts, $visibility)];
+    $config = ['api' => rest_url('untappd-atlas/v1/'), 'configured' => !empty($credentials['id']) && !empty($credentials['secret']), 'timezone' => wp_timezone_string() ?: 'UTC', 'preview' => (bool) $preview, 'storyOnly' => (bool) $story_only, 'texts' => UAT_Content::values($texts, $visibility)];
     return '<div class="uat-app alignwide" data-config="' . esc_attr(wp_json_encode($config)) . '"><p>Chargement d’Untappd Atlas… JavaScript est nécessaire pour les graphiques et exports.</p></div>';
 }
 add_shortcode('untappd_atlas', function () { return uat_dashboard(); });

@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.10.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.10.0.zip)**
+**[Télécharger Untappd Atlas 1.11.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.11.0.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
@@ -29,6 +29,8 @@ Après un import, le bouton **Mon année en canettes** ouvre un récit en plein 
 Le récapitulatif analyse toute l’année choisie dans l’historique importé, avec le fuseau horaire du tableau de bord. Les filtres de date et de style restent propres au tableau de bord. On avance avec les boutons ou les flèches du clavier. Échap ferme le récit et les préférences de réduction des animations sont respectées.
 
 Les titres et descriptions se règlent dans **Elementor → Contenu → Récapitulatif annuel** ou dans **Réglages → Untappd Atlas**. Les accents colorés reprennent les couleurs de la palette des styles.
+
+Dans Elementor, ajoutez **Untappd Atlas · Récapitulatif annuel** pour consacrer une page ou une colonne à ce format. Le widget propose l’import de profil ou de fichier et affiche le récit directement dans la page dès que les données sont disponibles. L’éditeur utilise la démonstration pour prévisualiser le rendu.
 
 ## Correction de l’import — version 1.7.1
 
@@ -187,7 +189,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.10.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.11.0.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
