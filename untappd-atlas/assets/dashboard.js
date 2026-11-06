@@ -392,6 +392,7 @@
     const h = key => safe(t(key));
     const tag = (key, name = 'p', cls = '') => t(key) ? `<${name}${cls ? ` class="${cls}"` : ''}>${h(key)}</${name}>` : '';
     let items = [], rawMap = new Map(), source = '', profile = '', isDemo = false, state = null, running = false, generation = 0, pending = false, currentStats = null;
+    let checkingProfile = false;
     let token = ''; const storageKey = 'untappd-atlas-session:' + config.api;
     try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
     let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -401,7 +402,7 @@
       <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field">${tag('profile_label', 'span')}<input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
       <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label></div></div>
       ${config.configured ? tag('import_api_description', 'p', 'uat-import-help') : ''}</section>
-      <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div data-progress-copy><p data-progress-text></p><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
+      <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div data-progress-copy><p data-progress-text role="status"></p><progress data-progress-meter aria-label="Progression de l’import du profil" hidden></progress><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
       <section class="uat-report" hidden>${storyOnly ? `<section class="uat-story uat-story--inline"></section><div class="uat-story-actions"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button></div>` : `<div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
       <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from" aria-label="${esc(t('filter_from') || 'Date de début')}"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to" aria-label="${esc(t('filter_to') || 'Date de fin')}"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style" aria-label="${esc(t('filter_style') || 'Style de bière')}"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain" aria-label="${esc(t('filter_grain') || 'Périodes')}"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone" aria-label="${esc(t('filter_timezone') || 'Fuseau horaire')}">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
@@ -430,19 +431,40 @@
       if (state.phase !== 'done') return 'Lecture des informations sur les bières…';
       return items.length ? '' : 'Aucun check-in public accessible pour ce profil.';
     }
+    function updateImportMeter() {
+      const meter = $('[data-progress-meter]');
+      meter.hidden = !checkingProfile && (!running || state.phase === 'done');
+      if (meter.hidden) return;
+      meter.removeAttribute('value');
+      if (checkingProfile) return;
+      const [done, total] = {
+        feed: [state.count, state.profile?.expected],
+        details: [state.details_done, state.count],
+        public_beers: [state.details_done, state.beer_total]
+      }[state.phase] || [];
+      // A profile's announced count can differ from what the feed actually returns.
+      if (Number.isFinite(done) && Number.isFinite(total) && done >= 0 && done < total) {
+        meter.max = total;
+        meter.value = done;
+      }
+    }
     function progress() {
       $('.uat-share').hidden = source !== 'api' || !items.length;
       const publicDone = state?.source === 'public' && state.phase === 'done';
       const panel = $('.uat-progress');
-      panel.hidden = !state || source !== 'api' || (publicDone && !!items.length);
+      panel.hidden = !checkingProfile && (!state || source !== 'api' || (publicDone && !!items.length));
+      updateImportMeter();
       if (panel.hidden) return;
-      const label = state.source === 'public' ? (publicDone ? '' : publicImportMessage()) : statusLabel();
-      const quota = state.retry_at > Date.now() / 1000
+      const label = checkingProfile ? 'Vérification du profil auprès d’Untappd…'
+        : state.source === 'public' ? (publicDone ? '' : publicImportMessage()) : statusLabel();
+      const quota = !checkingProfile && state.retry_at > Date.now() / 1000
         ? `Quota atteint. Reprise possible à ${new Date(state.retry_at * 1000).toLocaleString('fr-FR')}.` : '';
       $('[data-progress-copy]').hidden = !label && !quota;
       $('[data-progress-text]').textContent = label;
       $('[data-progress-sub]').textContent = quota;
-      action('pause').hidden = !running; action('resume').hidden = running || state.phase === 'done' || state.phase === 'idle';
+      $('.uat-progress-actions').hidden = checkingProfile;
+      action('pause').hidden = !running;
+      action('resume').hidden = checkingProfile || running || state.phase === 'done' || state.phase === 'idle';
     }
     async function api(path, data, method = 'POST') {
       const res = await fetch(config.api + path, {method, credentials: 'same-origin', headers: {'Content-Type': 'application/json', ...(token ? {'X-UAT-Session': token} : {})}, ...(method === 'GET' ? {} : {body: JSON.stringify(data || {})})});
@@ -530,13 +552,17 @@
     }
     $('.uat-import-top').addEventListener('submit', async event => {
       event.preventDefault(); if (pending) return;
-      busy(true); notify('Vérification du profil auprès d’Untappd…');
+      checkingProfile = true; busy(true); notify(''); progress();
       try {
         await session(); const res = await api('start', {profile: field('profile').value.trim(), source: config.configured ? 'api' : 'public', enrich: $('[data-enrich]').checked});
-        rawMap = new Map(); state = res.state;
-        merge(res.items || []); setData(items, 'api', state.profile.username); notify(state.source === 'public' ? (state.phase === 'done' ? publicImportMessage() : '') : 'Import de votre historique…');
+        checkingProfile = false; rawMap = new Map(); state = res.state;
+        merge(res.items || []); setData(items, 'api', state.profile.username);
+        if (state.source === 'public' && state.phase === 'done') notify(publicImportMessage());
         busy(false); await loop();
-      } catch (error) { if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} } notify(error.message, 'error'); busy(false); }
+      } catch (error) {
+        if (error.status === 401) { token = ''; try { sessionStorage.removeItem(storageKey); } catch (_) {} }
+        notify(error.message, 'error');
+      } finally { checkingProfile = false; busy(false); progress(); }
     });
     $('.uat-file input').addEventListener('change', async event => {
       const file = event.target.files[0]; if (!file || pending) return;

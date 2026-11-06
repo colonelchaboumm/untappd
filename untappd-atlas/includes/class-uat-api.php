@@ -142,7 +142,11 @@ final class UAT_API {
         return $response;
     }
     private static function public_state($s) {
-        return array_intersect_key($s, array_flip(['phase', 'count', 'cursor', 'profile', 'retry_at', 'enrich', 'details_done', 'connected_username', 'source', 'public_complete']));
+        $public = array_intersect_key($s, array_flip(['phase', 'count', 'cursor', 'profile', 'retry_at', 'enrich', 'details_done', 'connected_username', 'source', 'public_complete']));
+        if ($s['phase'] === 'public_beers' && is_array($s['beer_paths'] ?? null)) {
+            $public['beer_total'] = count($s['beer_paths']);
+        }
+        return $public;
     }
     public static function status($r) {
         $id = self::id($r); $s = self::read($id);
