@@ -59,7 +59,8 @@
     "label": "Bouton de démonstration",
     "default": "Voir la démonstration",
     "group": "form",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "onboard_title": {
     "label": "Titre avant l’import",
@@ -70,7 +71,8 @@
     "label": "Texte avant l’import",
     "default": "Importez votre profil, un fichier de votre historique\nou découvrez un exemple avec la démonstration.",
     "group": "form",
-    "multiline": true
+    "multiline": true,
+    "retired": true
   },
   "report_title": {
     "label": "Titre du rapport",
@@ -611,13 +613,15 @@
     "label": "Import public : description",
     "default": "Sans clé : lecture des pages publiques uniquement. Untappd peut masquer l’historique ancien et les badges. Aucune connexion à votre compte n’est effectuée.",
     "group": "form",
-    "multiline": true
+    "multiline": true,
+    "retired": true
   },
   "import_privacy_description": {
     "label": "Fichiers et conservation : description",
     "default": "Les fichiers sont analysés dans votre navigateur. Les imports par profil sont conservés 24 h et peuvent être effacés ici.",
     "group": "form",
-    "multiline": true
+    "multiline": true,
+    "retired": true
   },
   "enrich_label": {
     "label": "Approfondissement API : libellé",
