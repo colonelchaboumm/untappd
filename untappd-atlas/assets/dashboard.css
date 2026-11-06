@@ -26,3 +26,5 @@
 
 .uat-progress [data-progress-copy] { flex: 1; min-width: 0; }
 .uat-progress [data-progress-meter] { display: block; width: 100%; height: 12px; margin: 8px 0; accent-color: var(--uat-accent); }
+
+.uat-kpi-icon { display: block; margin-bottom: 8px; }
