@@ -5,4 +5,7 @@
 .uat-admin-file label { display: inline-block; margin: 8px 12px 0 0; }
 .uat-admin-table { overflow-x: auto; }
 .uat-admin-table td { min-width: 6rem; overflow-wrap: anywhere; }
-.uat-admin [data-stats] .uat-card-grid { margin-top: 18px; }
+.uat-admin-pyramids { margin: 24px 0; padding: 16px 20px; background: var(--uat-surface); border: 1px solid var(--uat-border); border-radius: 12px; }
+.uat-admin-pyramids summary { cursor: pointer; color: var(--uat-heading); font-weight: 750; }
+.uat-admin-pyramids > p { margin-top: 10px; color: var(--uat-muted); }
+.uat-admin-chart-section { margin: 24px 0; }

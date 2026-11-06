@@ -312,6 +312,9 @@
       return `<div class="uat-rank"><span>${String(i + 1).padStart(2, '0')}</span><div><strong title="${esc(r.label)}">${esc(r.label)}</strong><div class="uat-track"><i style="width:${r.count / max * 100}%;${background}">${fill}</i></div></div><b>${fmt(r.count)}</b></div>`;
     }).join('');
   }
+  function yearlyStyleCards(s, paints, describe) {
+    return s.yearlyWinners.map(row => `<div class="uat-year"><strong>${row.year}</strong><i>${styleSwatch(paints.get(row.style), 100, 12)}</i><span>${esc(row.style)}</span><small>${window.UATContent.html(describe(row.count))}</small></div>`).join('');
+  }
   function badgeTiles(s, texts = {}) {
     if (!s.badges.length) { const empty = caption(texts, 'badges_empty', 'Aucun badge identifié dans les données importées. Un champ absent ne signifie pas que vous n’avez aucun badge.'); return empty ? `<p class="uat-empty">${esc(empty)}</p>` : ''; }
     const note = caption(texts, 'badges_limit_note', '100 premiers badges affichés ; liste complète dans Excel.');
@@ -364,7 +367,7 @@
     return svg(W, H, out, 'Rapport Untappd Atlas — pyramides de canettes');
   }
 
-  window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
+  window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, ranking, yearlyStyleCards, poster, badgeTiles};
   function boot(scope = document) {
     if (scope.matches?.('.uat-app[data-config]')) mount(scope);
     scope.querySelectorAll('.uat-app[data-config]').forEach(mount);
@@ -482,7 +485,7 @@
       const card = (title, sub, content, cls = '') => `<article class="uat-card ${cls}">${title ? `<h3>${safe(title)}</h3>` : ''}${sub ? `<p>${safe(sub)}</p>` : ''}${content}</article>`;
       const callout = (number, label, value, sub) => `<div class="uat-callout">${label ? `<h3><span class="uat-number">${number}</span>${safe(label)}</h3>` : ''}<strong>${esc(value)}</strong><p>${esc(sub)}</p></div>`;
       const section = (title, sub = '') => t(title) || (sub && t(sub)) ? `<div class="uat-section-head">${tag(title, 'h3')}${sub ? tag(sub) : ''}</div>` : '';
-      const yearlyCards = s.yearlyWinners.map(r => `<div class="uat-year"><strong>${r.year}</strong><i>${styleSwatch(paints.get(r.style), 100, 12)}</i><span>${esc(r.style)}</span><small>${safe(t('yearly_description', {count: fmt(r.count)}))}</small></div>`).join('');
+      const yearlyCards = yearlyStyleCards(s, paints, count => t('yearly_description', {count: fmt(count)}));
       const allUnknown = (total, unknown, value) => unknown === total && total > 0 ? '—' : fmt(value);
       const badgeKnown = s.badgesUnknown < s.total;
       const badgeSection = `${section('badges_title', 'badges_subtitle')}<div class="uat-mini-grid">${mini(badgeKnown ? fmt(s.badges.length) : '—', t('badges_unique_label'), t('badges_unique_description'))}${mini(badgeKnown ? (s.badgesComplete ? '' : '≥ ') + fmt(s.badgeAwards) : '—', t('badges_awards_label'), t('badges_awards_description'))}${mini(fmt(s.badgesUnknown), t('badges_unknown_label'), t('badges_unknown_description'))}${mini(state?.source === 'public' && source === 'api' ? fmt(state.profile?.expected_badges) : '—', t('badges_total_label'), t('badges_total_description'))}</div><div class="uat-badge-grid">${badgeTiles(s, texts)}</div>`;
@@ -573,8 +576,6 @@
         E.download(blob, `untappd-atlas${isDemo ? '-DEMO' : ''}-${new Date().toISOString().slice(0, 10)}.${type}`); notify('Votre export est prêt.', 'success');
       } catch (error) { notify(error.message, 'error'); } finally { button.disabled = false; }
     });
-    // Exposed rendering helper is useful for standalone previews and export verification.
-    window.UATView = {stylePalette, styleSwatch, styleLegend, pyramids, pyramidLayout, pyramidGeometry, pyramidScene, pyramidYear, pyramidCards, heat, ratings, timeline, styleTimeline, poster, badgeTiles};
     if (config.preview) { token = ''; setData(C.demo(), 'demo', 'Démonstration', true); }
     if (token) (async () => {
       busy(true);

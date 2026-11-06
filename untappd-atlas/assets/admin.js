@@ -42,6 +42,12 @@
       <label class="uat-field">Période <select name="grain">${Object.entries(periods).map(([k, v]) => `<option value="${k}"${k === 'month' ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
     </div>
     <div data-stats></div>
+    <details class="uat-admin-pyramids" data-pyramids hidden>
+      <summary>Pyramides de canettes par année</summary>
+      <p>Une canette représente un check-in de la sélection. Sa couleur indique le style de bière.</p>
+      <div data-pyramid-scene></div>
+    </details>
+    <div data-charts></div>
     <div class="uat-admin-actions">
       <label>Tableau <select name="table">${Object.entries(tables).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
       <label>Rechercher <input name="search" type="search"></label>
@@ -55,6 +61,8 @@
   const $ = selector => panel.querySelector(selector);
   const field = name => $(`[name="${name}"]`);
   const message = text => { $('[data-message]').textContent = text; };
+  const pyramids = $('[data-pyramids]');
+  let pyramidStats;
 
   // A richer copy wins when the same check-in appears in multiple sessions.
   function quality(row) {
@@ -134,13 +142,55 @@
       ['Auteurs identifiés', stats.distinctCommenters], ['Toasts connus', stats.toasts], ['Badges distincts', stats.badges.length],
       ['Check-ins conservés', stats.rows.filter(row => row.archived).length]
     ];
-    const card = (title, svg) => `<article class="uat-card"><h3>${title}</h3>${svg}</article>`;
-    $('[data-stats]').innerHTML = `<div class="uat-mini-grid">${metrics.map(([label, value]) => `<div class="uat-mini"><strong>${fmt(value)}</strong><span>${label}</span></div>`).join('')}</div>
-      <div class="uat-card-grid">${card('Activité', V.timeline(stats, grain))}
-      ${card('Moyenne des notes dans le temps', V.timeline(stats, grain, true))}
-      ${card('Répartition des notes', V.ratings(stats))}${card('Jours et heures des check-ins', V.heat(stats))}
-      ${card('Évolution des styles', V.styleTimeline(stats, grain))}</div>`;
+    $('[data-stats]').innerHTML = `<div class="uat-mini-grid">${metrics.map(([label, value]) => `<div class="uat-mini"><strong>${fmt(value)}</strong><span>${label}</span></div>`).join('')}</div>`;
+    renderCharts(grain);
     selectTable();
+  }
+
+  function renderPyramids() {
+    if (!pyramids.open || !stats?.total || pyramidStats === stats) return;
+    $('[data-pyramid-scene]').innerHTML = `<div class="uat-pyramids">${V.pyramidCards(stats)}</div>
+      <div class="uat-legend uat-style-legend">${V.styleLegend(stats)}</div>`;
+    pyramidStats = stats;
+  }
+
+  function renderCharts(grain) {
+    pyramids.hidden = !stats.total;
+    $('[data-pyramid-scene]').replaceChildren();
+    pyramidStats = null;
+    const charts = $('[data-charts]');
+    if (!stats.total) {
+      charts.innerHTML = '<p class="uat-empty">Aucun check-in dans la sélection.</p>';
+      return;
+    }
+    renderPyramids();
+    const paints = V.stylePalette(stats);
+    const card = (title, body) => `<article class="uat-card"><h3>${title}</h3>${body}</article>`;
+    const chart = (title, svg) => card(title, `<div class="uat-chart">${svg}</div>`);
+    const section = (title, body) => `<section class="uat-admin-chart-section"><div class="uat-section-head"><h3>${title}</h3></div>${body}</section>`;
+    const ranking = (title, rows, color) => card(title, V.ranking(rows, 8, color));
+    const rhythm = [
+      chart('Jours et heures des check-ins', V.heat(stats)),
+      chart('Évolution des styles', V.styleTimeline(stats, grain)),
+      chart('Répartition des notes', V.ratings(stats)),
+      chart('Activité par période', V.timeline(stats, grain)),
+      chart('Moyenne des notes dans le temps', V.timeline(stats, grain, true)),
+      ranking('Lieux les plus fréquentés', stats.venues, 'var(--uat-series-2)')
+    ];
+    const favorites = [
+      ranking('Styles les plus évalués', stats.styles, row => paints.get(row.key)),
+      ranking('Brasseries les plus évaluées', stats.breweries, 'var(--uat-series-2)'),
+      ranking('Bières les plus évaluées', stats.beers, 'var(--uat-series-3)'),
+      ranking('Profils les plus actifs', profiles, 'var(--uat-accent)'),
+      ranking('Pays des lieux', stats.countries, 'var(--uat-series-5)'),
+      ranking('Pays des brasseries', stats.breweryCountries, 'var(--uat-series-6)'),
+      ranking('Modes de service', stats.servings, 'var(--uat-series-4)'),
+      ranking('Auteurs de commentaires', stats.commenters, 'var(--uat-accent)'),
+      ranking('Badges les plus obtenus', stats.badges, 'var(--uat-series-2)')
+    ];
+    charts.innerHTML = section('Rythme des check-ins', `<div class="uat-card-grid">${rhythm.join('')}</div>`)
+      + section('Classements', `<div class="uat-card-grid">${favorites.join('')}</div>`)
+      + section('Style le plus évalué par année', `<div class="uat-year-grid">${V.yearlyStyleCards(stats, paints, count => `${fmt(count)} check-ins`)}</div>`);
   }
 
   function selectTable() {
@@ -177,6 +227,7 @@
   }
 
   $('.uat-filters').addEventListener('change', update);
+  pyramids.addEventListener('toggle', renderPyramids);
   field('table').addEventListener('change', selectTable);
   field('search').addEventListener('input', () => { page = 0; drawTable(); });
   $('[data-prev]').addEventListener('click', () => { if (page > 0) page--; drawTable(); });

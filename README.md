@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.12.0 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.12.0.zip)**
+**[Télécharger Untappd Atlas 1.12.1 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.12.1.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
@@ -24,7 +24,7 @@ Prérequis : WordPress 6.4+, PHP 8.1+. L’extension PHP DOM est nécessaire pou
 
 ## Statistiques pour l’administration
 
-Ouvrez **Outils → Statistiques Untappd Atlas** avec un compte administrateur. Les check-ins de profil disponibles sur le serveur sont dédupliqués par identifiant. Filtrez les résultats par profil, période ou style, consultez les tableaux détaillés et exportez la sélection dans Excel. Les pays des lieux et des brasseries sont présentés séparément.
+Ouvrez **Outils → Statistiques Untappd Atlas** avec un compte administrateur. Les check-ins de profil disponibles sur le serveur sont dédupliqués par identifiant. Filtrez les résultats par profil, période ou style, consultez les tableaux détaillés et exportez la sélection dans Excel. Les pays des lieux et des brasseries sont présentés séparément. Les graphiques reprennent la carte des jours et des heures, les courbes, les classements et les styles favoris par année. Dépliez **Pyramides de canettes par année** pour visualiser les check-ins de la sélection.
 
 Les sessions de profil expirent après 24 heures. Le visiteur peut cliquer sur **Conserver une copie pour les statistiques du site** pour garder ses check-ins dans ce rapport. Cette copie est indépendante de sa session. Les administrateurs peuvent effacer les copies conservées depuis le rapport. Les fichiers importés côté visiteur sont analysés dans son navigateur. Dans l’administration, un fichier peut être ajouté à l’analyse de l’onglet.
 
@@ -195,7 +195,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.12.0.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.12.1.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.
