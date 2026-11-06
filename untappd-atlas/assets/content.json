@@ -23,7 +23,7 @@
   },
   "hero_subtitle": {
     "label": "Sous-titre principal",
-    "default": "Vos découvertes, vos habitudes et vos coups de cœur, réunis sur une page selon les données disponibles.",
+    "default": "",
     "group": "intro",
     "multiline": true
   },

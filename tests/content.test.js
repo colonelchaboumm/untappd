@@ -10,7 +10,11 @@ test('all editable text keys used by the dashboard are declared and have default
   const source = fs.readFileSync(path.join(__dirname, '../untappd-atlas/assets/dashboard.js'), 'utf8');
   for (const match of source.matchAll(/(?:t|h)\('([a-z_]+)'\)/g)) assert.ok(fields[match[1]], match[1]);
   assert.ok(Object.keys(fields).length >= 60);
-  for (const field of Object.values(fields)) assert.ok(typeof field.default === 'string' && field.default.length > 0);
+  for (const [key, field] of Object.entries(fields)) {
+    assert.equal(typeof field.default, 'string', key);
+    if (key !== 'hero_subtitle') assert.ok(field.default.length > 0, key);
+  }
+  assert.equal(fields.hero_subtitle.default, '');
 });
 test('custom report captions interpolate only named values without evaluating code', () => {
   assert.equal(content.format('{profile} : {count} découvertes en {years} ans', {profile: 'Alice', count: '1 234', years: 4}), 'Alice : 1 234 découvertes en 4 ans');
