@@ -397,7 +397,7 @@
     try { token = sessionStorage.getItem(storageKey) || ''; } catch (_) { /* Private mode may disable storage; the current tab still works. */ }
     let zone = config.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     try { C.zoned(new Date().toISOString(), zone); } catch (_) { zone = 'UTC'; }
-    const zones = [...new Set([zone, Intl.DateTimeFormat().resolvedOptions().timeZone, 'Europe/Paris', 'Europe/Brussels', 'Europe/London', 'America/Montreal', 'America/New_York', 'UTC'].filter(Boolean))];
+    const grain = 'month';
     app.innerHTML = `${storyOnly ? '' : `<section class="uat-intro">${tag('hero_title', 'h2')}${tag('hero_subtitle')}</section>`}
       <section class="uat-import" aria-label="Importer mes données"><form class="uat-import-top"><label class="uat-field uat-profile-field">${tag('profile_label', 'span')}<input name="profile" type="text" placeholder="${esc(t('profile_placeholder'))}" autocomplete="off" maxlength="200" required aria-label="Lien ou pseudo du profil Untappd"></label><button type="submit">${h('import_button')}</button><button type="button" data-action="oauth" class="uat-secondary" ${config.configured ? '' : 'hidden'}>${h('connect_button')}</button></form>
       <div class="uat-import-bottom"><label ${config.configured ? '' : 'hidden'}><input type="checkbox" data-enrich> ${h('enrich_label')} ${t('enrich_description') ? `<span title="${esc(t('enrich_description'))}">ⓘ</span>` : ''}</label><div class="uat-import-actions"><label class="uat-file">${h('file_button')}<input type="file" accept=".csv,.json,text/csv,application/json" aria-label="Importer un fichier CSV ou JSON"></label></div></div>
@@ -405,7 +405,6 @@
       <div class="uat-message" role="status" aria-live="polite" hidden></div><section class="uat-progress" hidden><div data-progress-copy><p data-progress-text role="status"></p><progress data-progress-meter aria-label="Progression de l’import du profil" hidden></progress><small data-progress-sub></small></div><div class="uat-progress-actions"><button class="uat-secondary" data-action="pause" type="button">${h('pause_button')}</button><button data-action="resume" type="button">${h('resume_button')}</button><button class="uat-secondary" data-action="erase" type="button">${h('erase_button')}</button></div></section>
       <section class="uat-report" hidden>${storyOnly ? `<section class="uat-story uat-story--inline"></section><div class="uat-story-actions"><button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button></div>` : `<div class="uat-demo-notice" hidden><strong>DÉMONSTRATION</strong><span>Données entièrement fictives. Elles ne correspondent pas au profil Colonelchaboum.</span></div>
       <div class="uat-report-head"><div><p class="uat-kicker" data-source></p><h2 class="uat-profile-name" data-title></h2></div><div class="uat-export-buttons">${window.UATStory && t('story_open') ? `<button type="button" data-action="story" aria-haspopup="dialog">${h('story_open')}</button>` : ''}<button type="button" class="uat-text-button" data-action="clear">${h('clear_button')}</button><button type="button" class="uat-secondary" data-action="png">${h('export_png')}</button><button type="button" data-action="xlsx">${h('export_excel')}</button></div></div>
-      <div class="uat-filters"><label class="uat-field">${tag('filter_from', 'span')}<input type="date" name="from" aria-label="${esc(t('filter_from') || 'Date de début')}"></label><label class="uat-field">${tag('filter_to', 'span')}<input type="date" name="to" aria-label="${esc(t('filter_to') || 'Date de fin')}"></label><label class="uat-field uat-style-field">${tag('filter_style', 'span')}<select name="style" aria-label="${esc(t('filter_style') || 'Style de bière')}"><option value="">${h('filter_all_styles')}</option></select></label><label class="uat-field">${tag('filter_grain', 'span')}<select name="grain" aria-label="${esc(t('filter_grain') || 'Périodes')}"><option value="day">${h('grain_day')}</option><option value="week">${h('grain_week')}</option><option value="month" selected>${h('grain_month')}</option><option value="year">${h('grain_year')}</option></select></label><label class="uat-field">${tag('filter_timezone', 'span')}<select name="timezone" aria-label="${esc(t('filter_timezone') || 'Fuseau horaire')}">${zones.map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('')}</select></label><button type="button" class="uat-text-button" data-action="reset">${h('reset_button')}</button></div>
       <div class="uat-results"></div>`}</section>
       <div class="uat-share" hidden><button type="button" class="uat-secondary" data-action="share">Conserver une copie pour les statistiques du site</button><p class="uat-import-help">La copie reste accessible aux administrateurs après l’expiration ou l’effacement de cette session.</p></div>
       ${storyOnly ? '' : `<div class="uat-onboard">${tag('onboard_title', 'strong')}</div>`}
@@ -415,10 +414,9 @@
     const action = name => $(`[data-action="${name}"]`);
     const storyButton = action('story');
     const inlineStory = storyOnly ? window.UATStory.mount($('.uat-story--inline'), texts) : null;
-    const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items, timezone: field('timezone').value, demo: isDemo}), texts) : null;
+    const story = storyButton ? window.UATStory.mountDialog(storyButton, () => ({items, timezone: zone, demo: isDemo}), texts) : null;
     const busy = value => { pending = value; $('.uat-import-top button[type=submit]').disabled = value; action('oauth').disabled = value; action('share').disabled = value; $('.uat-file input').disabled = value; };
     const notify = (message, kind = 'info') => { const el = $('.uat-message'); el.hidden = !message; el.textContent = message; el.dataset.kind = kind; };
-    function options() { return {from: field('from').value, to: field('to').value, style: field('style').value, timezone: field('timezone').value}; }
     function statusLabel() {
       if (isDemo) return 'Démonstration — données fictives.';
       if (state?.source === 'public' && source === 'api') return `Lecture publique : ${fmt(state.count)} check-ins importés${state.profile?.expected != null ? ` sur ${fmt(state.profile.expected)} annoncés par le profil` : ''}. ${state.phase === 'done' ? 'Lecture des pages accessibles terminée.' : 'Lecture des informations de bière en cours.'} ${state.public_complete ? '' : 'HISTORIQUE PARTIEL. '}Aucun accès aux données réservées à la connexion Untappd.`;
@@ -480,19 +478,9 @@
       try { sessionStorage.setItem(storageKey, token); } catch (_) { /* Current tab only. */ }
     }
     function merge(rawItems) { rawItems.forEach(r => { const n = C.normalize(r, rawMap.size); if (n) rawMap.set(n.id, n); }); items = [...rawMap.values()]; }
-    function refreshStyles() {
-      if (storyOnly) return;
-      const prior = field('style').value;
-      field('style').innerHTML = `<option value="">${h('filter_all_styles')}</option>` + [...new Set(items.map(r => r.style))].sort().map(st => `<option value="${esc(st)}">${esc(st)}</option>`).join('');
-      field('style').value = prior;
-    }
     function setData(data, nextSource, nextProfile, demo = false) {
       if (story?.open) story.close();
       items = data; source = nextSource; profile = nextProfile; isDemo = demo;
-      if (!storyOnly) {
-        field('from').value = ''; field('to').value = ''; field('style').value = '';
-        refreshStyles();
-      }
       render(true); progress();
     }
     function render(restartStory = false) {
@@ -504,9 +492,7 @@
       $('.uat-onboard').hidden = !!items.length;
       $('.uat-demo-notice').hidden = !isDemo;
       if (!items.length) { currentStats = null; return; }
-      const opts = options();
-      if (opts.from && opts.to && opts.from > opts.to) { notify('La date de début doit précéder la date de fin.', 'error'); return; }
-      const s = currentStats = C.analyze(items, opts), grain = field('grain').value, paints = stylePalette(s);
+      const s = currentStats = C.analyze(items, {timezone: zone}), paints = stylePalette(s);
       context = {...statVariables(s), profile};
       $('[data-source]').textContent = t(isDemo ? 'source_demo' : source === 'file' ? 'source_file' : state?.source === 'public' ? 'source_public' : 'source_api');
       $('[data-title]').textContent = t(s.first ? 'report_title' : 'report_empty_title');
@@ -537,7 +523,7 @@
         while (running && version === generation && ['feed', 'details', 'public_beers'].includes(state.phase)) {
           if (state.retry_at > Date.now() / 1000) { notify(`Quota API atteint. Reprise possible à ${new Date(state.retry_at * 1000).toLocaleString('fr-FR')}.`); break; }
           const res = await api('step');
-          state = res.state; merge(res.items || []); refreshStyles(); render(); progress();
+          state = res.state; merge(res.items || []); render(); progress();
           if (!running || version !== generation || state.phase === 'done') break;
           await new Promise(resolve => setTimeout(resolve, state.source === 'public' ? 1100 : 450));
         }
@@ -576,8 +562,6 @@
     });
     action('pause').addEventListener('click', () => { running = false; notify('Pause demandée. La requête en cours sera enregistrée avant l’arrêt.'); progress(); });
     action('resume').addEventListener('click', () => { notify(''); loop(); });
-    action('reset')?.addEventListener('click', () => { field('from').value = ''; field('to').value = ''; field('style').value = ''; notify(''); render(); });
-    $('.uat-filters')?.addEventListener('change', () => { notify(''); render(); });
     async function eraseData() {
       if (pending) { running = false; notify('La requête en cours doit se terminer. Cliquez ensuite sur Effacer.'); return; }
       busy(true);
@@ -600,12 +584,11 @@
       try { await session(); const clean = new URL(location.href); clean.hash = ''; const res = await api('oauth', {return: clean.href}); location.assign(res.url); }
       catch (error) { notify(error.message, 'error'); busy(false); }
     });
-    function meta() { return {texts, variables: {...context}, profile, profileBadgesTotal: state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), ...options(), grain: field('grain').value}; }
+    function meta() { return {texts, variables: {...context}, profile, profileBadgesTotal: state?.source === 'public' && source === 'api' ? state.profile?.expected_badges : null, demo: isDemo, source: source === 'file' ? 'Export de fichier Untappd' : (state?.source === 'public' ? 'Pages publiques Untappd (limitées)' : 'API Untappd'), status: statusLabel(), timezone: zone, grain}; }
     for (const type of ['xlsx', 'png']) action(type)?.addEventListener('click', async () => {
       if (!currentStats) return;
       const button = action(type); button.disabled = true;
       try {
-        if (options().from && options().to && options().from > options().to) throw new Error('Corrigez les dates avant d’exporter.');
         notify(type === 'png' ? 'Création de votre affiche PNG…' : 'Création du classeur Excel…');
         await new Promise(resolve => setTimeout(resolve, 20));
         const blob = type === 'xlsx' ? E.xlsx(currentStats, meta()) : await E.png(window.UATTheme.inlineSvg(poster(currentStats, meta()), app));

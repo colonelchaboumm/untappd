@@ -4,7 +4,7 @@ Un tableau de bord français qui transforme un historique Untappd en pyramides d
 
 ## Télécharger le plugin installable
 
-**[Télécharger Untappd Atlas 1.12.5 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.12.5.zip)**
+**[Télécharger Untappd Atlas 1.12.6 pour WordPress](https://github.com/colonelchaboumm/untappd/raw/refs/heads/main/downloads/untappd-atlas-1.12.6.zip)**
 
 Ce ZIP contient uniquement le plugin et s’installe directement dans WordPress, sans le décompresser. Depuis la version **1.2.1**, le téléchargement GitHub **Code → Download ZIP** est également installable : le dépôt possède maintenant un fichier principal d’extension à sa racine. Les deux archives chargent le même code et les mêmes ressources. Le ZIP dédié reste le téléchargement conseillé pour les mises à jour, car il conserve le dossier `untappd-atlas`.
 
@@ -32,7 +32,7 @@ Les sessions de profil expirent après 24 heures. Le visiteur peut cliquer sur *
 
 Après un import, le bouton **Mon année en canettes** ouvre un récit en plein écran. Il présente le rythme des check-ins, les styles et brasseries les plus explorés, la meilleure note et un bilan. Le sélecteur propose les années présentes dans l’import et ouvre l’année précédente si elle est disponible.
 
-Le récapitulatif analyse toute l’année choisie dans l’historique importé, avec le fuseau horaire du tableau de bord. Les filtres de date et de style restent propres au tableau de bord. On avance avec les boutons ou les flèches du clavier. Échap ferme le récit et les préférences de réduction des animations sont respectées.
+Le récapitulatif analyse toute l’année choisie dans l’historique importé, avec le fuseau horaire du site WordPress. On avance avec les boutons ou les flèches du clavier. Échap ferme le récit et les préférences de réduction des animations sont respectées.
 
 Les titres et descriptions se règlent dans **Elementor → Contenu → Récapitulatif annuel** ou dans **Réglages → Untappd Atlas**. Les accents colorés reprennent les couleurs de la palette des styles.
 
@@ -50,7 +50,7 @@ Cette correction ne change pas les droits d’accès Untappd. Sans application a
 
 ## Pyramides de canettes — édition 1.9.0-v4
 
-La page et le PNG affichent des canettes dessinées au trait et colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les filtres de date et de style déterminent les canettes affichées ; les années suivent le fuseau horaire choisi.
+La page et le PNG affichent des canettes dessinées au trait et colorées selon le style. **Une canette représente exactement un check-in importé**, noté ou non. Les pyramides affichent tous les check-ins importés. Les années suivent le fuseau horaire du site WordPress.
 
 Depuis la version 1.8.2, les canettes adoptent une silhouette plus haute, inspirée des proportions du [format 44 cl standard de CANPACK](https://www.canpack.com/capabilities/beverage-cans/44-cl-standard/). Le corps est allongé ; le couvercle et le logo gardent leurs proportions. Le logo est recentré et les appuis, l’écartement vertical des rangées et les limites du graphique sont recalculés pour ce nouveau format visuel, sur la page comme dans le PNG.
 
@@ -60,11 +60,11 @@ Les contours et les ombres de contact sont sombres par défaut (`#151515`). Les 
 
 Depuis la version 1.8.1, le logo fourni des **deux bouteilles croisées** remplace l’épi au centre des canettes. Sa transparence est conservée ; le motif est affiché en aplat dans le nouveau dessin. Il est noir par défaut ; sa couleur se règle dans **Elementor → Style → Pyramides de canettes → Canettes : logo**, avec les couleurs globales disponibles. Le PNG contient lui aussi le logo : l’image est embarquée dans le SVG, sans requête d’image externe. Le fichier source est conservé dans `untappd-atlas/assets/can-logo.png`.
 
-Le corps adopte la couleur du style de bière ; les couvercles, languettes, contours et socles utilisent leurs couleurs dédiées. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout le fichier importé, hors filtres ; les styles suivants reçoivent des mélanges de ces couleurs. La correspondance reste stable entre années et lors des changements de filtres. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu utilise la couleur neutre configurée pour ce cas. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
+Le corps adopte la couleur du style de bière ; les couvercles, languettes, contours et socles utilisent leurs couleurs dédiées. Dans **Elementor → Style → Palette des 10 styles**, les dix couleurs de base suivent le classement des styles sur tout l’historique importé. Les styles suivants reçoivent des mélanges de ces couleurs, qui restent stables d’une année à l’autre. Un nouvel import peut modifier le classement et donc l’attribution. Un style inconnu utilise la couleur neutre configurée pour ce cas. La légende affiche tous les styles ; les classements, favoris annuels et graphiques de styles réutilisent les mêmes couleurs. Le PNG inclut la légende complète et adapte sa hauteur.
 
 La scène remplace les panneaux annuels séparés. Sous chaque repère annuel, une barre indique la répartition des styles. Une pyramide complète est construite à partir des check-ins de l’année ; le reste prolonge son bord en conservant les appuis entre les rangées. Par exemple, 37 check-ins donnent **une seule pyramide de 37 canettes**. Les pyramides peuvent donc être incomplètes : aucune canette de remplissage n’est ajoutée.
 
-Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Depuis la version 1.7.2, les pyramides sont statiques : aucun clic nécessaire, aucune infobulle, aucun curseur d’aide « ? » et aucun éclaircissement au survol. Les détails sont disponibles dans l’export Excel. Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in dans le filtre ne créent pas de pyramide vide.
+Les check-ins sont attribués chronologiquement, du bas vers le haut et de gauche à droite. Depuis la version 1.7.2, les pyramides sont statiques : aucun clic nécessaire, aucune infobulle, aucun curseur d’aide « ? » et aucun éclaircissement au survol. Les détails sont disponibles dans l’export Excel. Certaines canettes des années du fond peuvent être masquées par celles de devant ; les totaux, tableaux et exports de données conservent toutes les évaluations. Les années sans check-in importé sont omises.
 
 En colonne étroite, **le graphique se fait défiler horizontalement** pour préserver la lisibilité. La zone peut recevoir le focus au clavier et se parcourir avec les flèches. Le défilement reste à l’intérieur du graphique. Le PNG reprend toute la scène sur une seule image.
 
@@ -74,7 +74,7 @@ Dans **Elementor → Style → Pyramides de canettes**, les couleurs des canette
 
 ## Textes et typographie
 
-Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les sections proposent des **textes personnalisables** : introduction, titres et descriptions du rapport, sections et graphiques, titres et descriptions de chaque compteur, badges et niveaux, filtres, boutons, repères des pyramides, pied de page et textes du PNG. Les retours à la ligne sont conservés sur la page.
+Dans Elementor, sélectionnez le widget **Untappd Atlas**, puis ouvrez **Contenu**. Les sections proposent des **textes personnalisables** : introduction, titres et descriptions du rapport, sections et graphiques, titres et descriptions de chaque compteur, badges et niveaux, boutons, repères des pyramides, pied de page et textes du PNG. Les retours à la ligne sont conservés sur la page.
 
 Pour définir des textes communs au shortcode et à tous les widgets, utilisez **Réglages → Untappd Atlas → Textes du tableau de bord**. La priorité est : texte du widget, puis texte commun, puis valeur initiale. Un champ vide rétablit l’héritage. Les textes acceptent du texte simple ; le HTML est supprimé.
 
@@ -86,7 +86,7 @@ Certains champs acceptent des variables, indiquées sous le champ :
 - Sous-titres des cartes : `{rated}`, `{median}`, `{styles}`, `{breweries}`, `{beers}`, `{venues}` selon la carte.
 - Fuseau horaire : `{timezone}`.
 
-Exemple : `{profile} : {count} découvertes` affiche le profil et le nombre de check-ins du filtre actif. Les valeurs des statistiques restent calculées à partir des données importées. Les avis de démonstration et de couverture des données restent affichés.
+Exemple : `{profile} : {count} découvertes` affiche le profil et le nombre de check-ins importés. Les valeurs des statistiques restent calculées à partir des données importées. Les avis de démonstration et de couverture des données restent affichés.
 
 Dans **Style → Typographie des textes**, six groupes permettent de choisir la police, la taille, la graisse, l’interligne, l’espacement et les réglages responsives : texte courant, titres des sections et cartes, titre principal, sous-titres, chiffres clés et boutons. Le globe permet de choisir une typographie globale Elementor. Les polices sont chargées suivant la configuration d’Elementor.
 
@@ -155,7 +155,7 @@ Documentation : [API et OAuth Untappd](https://untappd.com/api/docs/v4).
 | Autres | Lieux, villes dans l’historique, pays des lieux et des brasseries, types de service, degré alcoolique moyen et IBU moyen |
 | Excel seulement | Série de jours actifs, plus grand intervalle entre jours actifs, listes exhaustives, commentaires identifiés et données ligne par ligne |
 
-Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines suivent ISO 8601 (lundi–dimanche). Les graphiques regroupent visuellement les séries trop longues ; l’Excel conserve chaque période. L’historique détaillé et les tableaux par période sont disponibles dans l’Excel, qui contient tous les check-ins filtrés.
+Les graphiques publics présentent l’historique importé par mois, dans le fuseau horaire du site. Les graphiques regroupent visuellement les séries trop longues. L’Excel détaille chaque période et chaque check-in. Les semaines suivent ISO 8601 (lundi–dimanche).
 
 ### Sens des chiffres
 
@@ -164,13 +164,13 @@ Filtres communs : dates de début et fin, style et fuseau horaire. Les semaines 
 - Les bières/brasseries utilisent leurs identifiants lorsqu’ils existent. Sans identifiant, un regroupement par nom est utilisé ; les homonymes peuvent se confondre.
 - Les doublons d’import sont éliminés par ID de check-in. Les lignes sans ID sont conservées, sans déduplication approximative.
 - Les dates ISO sans fuseau sont interprétées en UTC. Les formats numériques ambigus, comme `01/02/2024`, sont refusés et les lignes ignorées sont signalées.
-- Les statistiques décrivent les données importées et le filtre actif. Un export incomplet ou une réponse API tronquée ne permet pas de reconstituer les champs absents.
+- Les statistiques décrivent les données importées. Un export incomplet ou une réponse API tronquée ne permet pas de reconstituer les champs absents.
 
 ## Exports
 
 - **PNG** : affiche de 1 800 pixels de large, dont la hauteur s’adapte au nombre d’années, avec les pyramides, les principaux graphiques, chiffres et classements.
 - **Excel `.xlsx`** : véritable classeur OpenXML à **21 onglets**, sans dépendance externe : synthèse, quatre granularités temporelles, styles par granularité, classements, notes, heures, auteurs, commentaires observés et tous les check-ins filtrés. Les noms et textes sont enregistrés comme chaînes, jamais comme formules.
-- Les exports suivent les filtres actifs. La démonstration est marquée **DEMO** dans le nom de fichier et dans le rapport.
+- Les exports publics couvrent l’historique importé. La démonstration est marquée **DEMO** dans le nom de fichier et dans le rapport.
 
 ## Confidentialité
 
@@ -195,7 +195,7 @@ python tests/build-package.py
 Sur une installation WordPress **locale et isolée**, vérifier l’installation du ZIP, son activation, ses ressources, son shortcode et sa désactivation :
 
 ```sh
-php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.12.5.zip
+php tests/package-install.php /chemin/vers/wordpress test-artifacts/untappd-atlas-1.12.6.zip
 ```
 
 Ce test accepte aussi l’archive complète du dépôt GitHub et fonctionne avec ZipArchive ou avec le décompresseur PclZip de WordPress. Il restaure les options de plugins actifs et de tâches planifiées ; ne pas l’exécuter en production.

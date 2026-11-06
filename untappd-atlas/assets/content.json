@@ -637,63 +637,73 @@
   "filter_from": {
     "label": "Date de début : libellé",
     "default": "Du",
-    "group": "filters"
+    "group": "filters",
+    "retired": true
   },
   "filter_to": {
     "label": "Date de fin : libellé",
     "default": "Au",
-    "group": "filters"
+    "group": "filters",
+    "retired": true
   },
   "filter_style": {
     "label": "Style : libellé",
     "default": "Style de bière",
-    "group": "filters"
+    "group": "filters",
+    "retired": true
   },
   "filter_all_styles": {
-    "label": "Tous les styles : option",
+    "label": "Libellé de tous les styles dans le PNG",
     "default": "Tous les styles",
-    "group": "filters",
+    "group": "export",
     "hideable": false
   },
   "filter_grain": {
     "label": "Périodes : libellé",
     "default": "Périodes",
-    "group": "filters"
+    "group": "filters",
+    "retired": true
   },
   "filter_timezone": {
     "label": "Fuseau horaire : libellé",
     "default": "Fuseau horaire",
-    "group": "filters"
+    "group": "filters",
+    "retired": true
   },
   "grain_day": {
     "label": "Période : jour",
     "default": "Jour",
     "group": "filters",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "grain_week": {
     "label": "Période : semaine",
     "default": "Semaine",
     "group": "filters",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "grain_month": {
     "label": "Période : mois",
     "default": "Mois",
     "group": "filters",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "grain_year": {
     "label": "Période : année",
     "default": "Année",
     "group": "filters",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "reset_button": {
     "label": "Bouton : tout afficher",
     "default": "Tout afficher",
     "group": "filters",
-    "hideable": false
+    "hideable": false,
+    "retired": true
   },
   "pause_button": {
     "label": "Bouton : pause",
